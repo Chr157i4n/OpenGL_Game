@@ -15,15 +15,16 @@
 #include "libs/glm/ext/matrix_transform.hpp"
 #include "libs/glm/gtc/matrix_transform.hpp"
 
-#define STB_IMAGE_IMPLEMENTATION
+//#define STB_IMAGE_IMPLEMENTATION
 //#include "libs/stb_image.h"
+//#undef STB_IMAGE_IMPLEMENTATION
 
 #pragma comment(lib, "SDL2.lib")
 #pragma comment(lib, "glew32s.lib")
 #pragma comment(lib, "opengl32.lib")
 
 void openGLDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
-	std::cout << "[OpenGL Error] " << message << std::endl;
+	std::cout << "[OpenGL Callback] " << message << std::endl;
 }
 
 #ifdef _DEBUG
@@ -55,6 +56,7 @@ void _GLGetError(const char* file, int line, const char* call) {
 #include "ResourceManager.h"
 #include "ConfigManager.h"
 #include "Bullet.h"
+#include "UI.h"
 
 
 
@@ -67,7 +69,6 @@ int main(int argc, char* argv[])
 	AllocConsole();
 	console = FindWindowA("ConsoleWindowClass", NULL);
 	ShowWindow(console, 1);
-
 
 	SDL_Window* window;
 	SDL_Init(SDL_INIT_EVERYTHING);
@@ -121,7 +122,7 @@ int main(int argc, char* argv[])
 	srand(time(NULL));
 
 
-
+	UI* ui = new UI(window);
 
 	std::vector<Object*> objects;
 	std::vector<Player*> players;
@@ -131,6 +132,9 @@ int main(int argc, char* argv[])
 	resourceManager.loadShader("shaders/basic.vert", "shaders/basic.frag");
 
 	
+
+	resourceManager.bindShader();
+
 	int directionLocation = GLCALL(glGetUniformLocation(resourceManager.getShader()->getShaderId(), "u_directional_light.direction"));
 	glm::vec3 sunColor = glm::vec3(0.98f,0.83f,0.25f);
 	//sunColor *= 0.4f;
@@ -169,9 +173,6 @@ int main(int argc, char* argv[])
 	resourceManager.loadMap("levels/"+ levelname, &objects, &players, &npcs);
 
 
-	
-
-
 	uint64 perfCounterFrequency = SDL_GetPerformanceFrequency();
 	uint64 lastCounter = SDL_GetPerformanceCounter();
 	float32 delta = 0.0f;
@@ -193,6 +194,9 @@ int main(int argc, char* argv[])
 	GLCALL(glEnable(GL_DEPTH_TEST));
 	GLCALL(glFrontFace(GL_CCW));
 
+	GLCALL(glEnable(GL_BLEND));
+	GLCALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+
 	bool buttonW = false;
 	bool buttonS = false;
 	bool buttonA = false;
@@ -204,11 +208,10 @@ int main(int argc, char* argv[])
 	bool spaceReleased = true;
 
 	float time = 0.0f;
+	uint32 FPS = 0;
 	bool close = false;
 
 	SDL_SetRelativeMouseMode(SDL_TRUE);
-
-
 	
 
 	while (!close)
@@ -217,6 +220,8 @@ int main(int argc, char* argv[])
 		GLCALL(glClearColor(0.0f, 0.0f, 0.8f, 1.0f));
 		GLCALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 		
+
+		resourceManager.bindShader();
 
 		#pragma region inputs
 		SDL_Event event;
@@ -362,6 +367,7 @@ int main(int argc, char* argv[])
 			object->move(delta/ 1000);
 			object->fall(delta / 1000);
 		}
+
 		for (Player* player : players)
 		{
 			player->updateCameraPosition();
@@ -376,6 +382,8 @@ int main(int argc, char* argv[])
 		pointLightPosition = pointLightMatrix * pointLightPosition;
 		glm::vec3 transformedPointLightPosition = (glm::vec3) (players[0]->getView() * pointLightPosition);
 		glUniform3fv(positionLocation, 1, (float*)&transformedPointLightPosition);
+
+		resourceManager.unbindShader();
 
 		for (int i = 0; i < objects.size(); i++)
 		{
@@ -402,13 +410,25 @@ int main(int argc, char* argv[])
 			glm::mat4 modelView = players[0]->getView() * model;
 			glm::mat4 invModelView = glm::transpose(glm::inverse(modelView));
 
+			objects[i]->bindShader();
 
 			GLCALL(glUniformMatrix4fv(modelViewProjMatrixUniformIndex, 1, GL_FALSE, &modelViewProj[0][0]));
 			GLCALL(glUniformMatrix4fv(modelViewUniformIndex, 1, GL_FALSE, &modelView[0][0]));
 			GLCALL(glUniformMatrix4fv(invmodelViewUniformIndex, 1, GL_FALSE, &invModelView[0][0]));
 
+			
+
 			objects[i]->render();
+
+			objects[i]->unbindShader();
 		}
+
+
+		ui->drawFPS(FPS);
+		ui->drawPos(players[0]);
+
+
+
 
 		SDL_GL_SwapWindow(window);
 
@@ -417,7 +437,7 @@ int main(int argc, char* argv[])
 		uint64 endCounter = SDL_GetPerformanceCounter();
 		uint64 counterElasped = endCounter - lastCounter;
 		delta = ((float32)counterElasped) / (float32)perfCounterFrequency;
-		uint32 FPS = (uint32)((float32)perfCounterFrequency / (float32)counterElasped);
+		FPS = (uint32)((float32)perfCounterFrequency / (float32)counterElasped);
 		//std::cout << "FPS: " << FPS << std::endl;
 		lastCounter = endCounter;
 	}

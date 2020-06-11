@@ -1,5 +1,6 @@
 #pragma once
 #include "Model.h"
+#include "Shader.h"
 #include "libs/glm/glm.hpp"
 #include "libs/glm/ext/matrix_transform.hpp"
 #include "libs/glm/gtc/matrix_transform.hpp"
@@ -16,6 +17,12 @@ class Object
 {
 public:
 	Object(Shader* shader, std::string modelFileName);
+
+	Shader* getShader();
+
+	void bindShader();
+
+	void unbindShader();
 
 	bool checkCollision(Object* object, glm::vec3 newPosition);
 
@@ -56,6 +63,7 @@ public:
 	void render();
 
 protected:
+	
 	glm::vec3 position;			//x, y, z		rechts, oben, vorne
 	glm::vec3 rotation;			//yaw, pitch, roll	gieren (360°), Steigung (360° | +-90°), Rollen (360°)
 	glm::vec3 movement;	//x, y, z

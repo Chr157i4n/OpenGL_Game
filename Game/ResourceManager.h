@@ -19,6 +19,10 @@ public:
 
 	Shader* getShader();
 
+	void bindShader();
+
+	void unbindShader();
+
 	void loadMap(std::string mapFileName, std::vector<Object*>* objects, std::vector<Player*>* players, std::vector<NPC*>* npcs);
 
 private:

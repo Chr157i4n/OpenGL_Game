@@ -17,6 +17,16 @@ Shader* ResourceManager::getShader()
 	return shader;
 }
 
+void ResourceManager::bindShader()
+{
+	shader->bind();
+}
+
+void ResourceManager::unbindShader()
+{
+	shader->unbind();
+}
+
 void ResourceManager::loadMap(std::string mapFileName, std::vector<Object*>* objects, std::vector<Player*>* players, std::vector<NPC*>* npcs)
 {
 	std::ifstream mapFile;

@@ -15,6 +15,21 @@ Object::Object(Shader* shader, std::string modelFileName)
 	loadModel(modelFileName);
 }
 
+Shader* Object::getShader()
+{
+	return shader;
+}
+
+void Object::bindShader()
+{
+	shader->bind();
+}
+
+void Object::unbindShader()
+{
+	shader->unbind();
+}
+
 bool Object::checkCollision(Object* object, glm::vec3 newPosition)
 {
 	// X - Achse
