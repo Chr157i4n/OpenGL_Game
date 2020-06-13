@@ -4,6 +4,7 @@
 #include "libs/glm/glm.hpp"
 #include "libs/glm/ext/matrix_transform.hpp"
 #include "libs/glm/gtc/matrix_transform.hpp"
+#include <math.h>
 
 enum ObjectType {
 	Object_Player = 0,
@@ -24,7 +25,13 @@ public:
 
 	void unbindShader();
 
-	bool checkCollision(Object* object, glm::vec3 newPosition);
+	bool checkCollisionXY(Object* object, glm::vec3 newPosition);
+
+	bool checkCollisionXY_AABB(Object* object, glm::vec3 newPosition);
+
+	bool checkCollisionXY_SAT(Object* object, glm::vec3 newPosition);
+
+	std::vector<glm::vec2*> getRectPoints(Object* object);
 
 	bool checkBoundaries(Object* map, glm::vec3 newPosition);
 
@@ -54,6 +61,8 @@ public:
 
 	glm::vec3 getDimensions();
 
+	glm::vec3 getBoundingBoxDimensions();
+
 	void setObjectType(ObjectType newObjectType);
 
 	ObjectType getObjectType();
@@ -64,10 +73,11 @@ public:
 
 protected:
 	
-	glm::vec3 position;			//x, y, z		rechts, oben, vorne
-	glm::vec3 rotation;			//yaw, pitch, roll	gieren (360°), Steigung (360° | +-90°), Rollen (360°)
-	glm::vec3 movement;	//x, y, z
-	glm::vec3 dimensions;		//x, y, z
+	glm::vec3 position;						//x, y, z		rechts, oben, vorne
+	glm::vec3 rotation;						//yaw, pitch, roll	gieren (360°), Steigung (360° | +-90°), Rollen (360°)
+	glm::vec3 movement;						//x, y, z
+	glm::vec3 dimensions;					//x, y, z
+	glm::vec3 boundingboxdimensions;		//x, y, z
 
 	Model* model = nullptr;
 	Shader* shader = nullptr;

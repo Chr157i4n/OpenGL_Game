@@ -4,6 +4,7 @@
 #include <vector>
 #include <cmath>
 #include <algorithm>
+#include "Logger.h"
 
 
 class ConfigManager
@@ -22,7 +23,7 @@ public:
 		configFile.open(configFileName);
 
 		if (!configFile) {
-			std::cout << "Cant open Configfile: " << configFileName << std::endl;
+			Logger::log("Cant open Configfile: " + configFileName);
 			return "";
 		}
 

@@ -58,9 +58,12 @@ public:
 
     glm::vec3 getDimension();
 
+    glm::vec3 getBoundingBoxDimension();
+
     ~Model();
 
 private:
     std::vector<Mesh*> meshes;
     glm::vec3 dimension = glm::vec3(0.0f, 0.0f, 0.0f);
+    glm::vec3 boundingBoxDimension = glm::vec3(0.0f, 0.0f, 0.0f);
 };

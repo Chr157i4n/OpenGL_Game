@@ -5,9 +5,9 @@ Player::Player(Shader* shader, float fov, float width, float height) : Character
 	setObjectType(ObjectType::Object_Player);
 	
 
-	position.x = -30;
+	position.x = 20;
 	position.y = 0;
-	position.z = 20;
+	position.z = 0;
 
 	cameraposition.x = position.x;
 	cameraposition.y = position.y + 4;
@@ -25,7 +25,7 @@ void Player::moveForward(std::vector<Object*> objects) {
 		if (object->getObjectType() == ObjectType::Object_Bot) continue;
 		if (object->getObjectType() == ObjectType::Object_Environment) continue;
 		if (object->getObjectType() == ObjectType::Object_Bullet) continue;
-		if (checkCollision(object, position+v)) return;
+		if (checkCollisionXY(object, position+v)) return;
 	}
 	if (checkBoundaries(objects[0], position+v)) return;
 
@@ -43,7 +43,7 @@ void Player::moveBackward(std::vector<Object*> objects) {
 		if (object->getObjectType() == ObjectType::Object_Bot) continue;
 		if (object->getObjectType() == ObjectType::Object_Environment) continue;
 		if (object->getObjectType() == ObjectType::Object_Bullet) continue;
-		if (checkCollision(object, position+v)) return;
+		if (checkCollisionXY(object, position+v)) return;
 	}
 	if (checkBoundaries(objects[0], position+v)) return;
 
@@ -61,7 +61,7 @@ void Player::moveRight(std::vector<Object*> objects) {
 		if (object->getObjectType() == ObjectType::Object_Bot) continue;
 		if (object->getObjectType() == ObjectType::Object_Environment) continue;
 		if (object->getObjectType() == ObjectType::Object_Bullet) continue;
-		if (checkCollision(object, position+v)) return;
+		if (checkCollisionXY(object, position+v)) return;
 	}
 	if (checkBoundaries(objects[0], position+v)) return;
 
@@ -79,7 +79,7 @@ void Player::moveLeft(std::vector<Object*> objects) {
 		if (object->getObjectType() == ObjectType::Object_Bot) continue;
 		if (object->getObjectType() == ObjectType::Object_Environment) continue;
 		if (object->getObjectType() == ObjectType::Object_Bullet) continue;
-		if (checkCollision(object, position+v)) return;
+		if (checkCollisionXY(object, position+v)) return;
 	}
 	if (checkBoundaries(objects[0], position+v)) return;
 

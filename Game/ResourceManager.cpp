@@ -1,4 +1,5 @@
 #include "ResourceManager.h"
+#include "Logger.h"
 
 
 ResourceManager::ResourceManager(ConfigManager* configManager)
@@ -33,7 +34,8 @@ void ResourceManager::loadMap(std::string mapFileName, std::vector<Object*>* obj
 	mapFile.open(mapFileName);
 
 	if (!mapFile) {
-		std::cout << "Cant open Map: " << mapFileName << std::endl;
+		Logger::log("Cant open Map: " + mapFileName);
+
 		return;
 	}
 
@@ -57,7 +59,6 @@ void ResourceManager::loadMap(std::string mapFileName, std::vector<Object*>* obj
 		newObject->setPosition(glm::vec3(stof(param[1]), stof(param[2]), stof(param[3])));
 		newObject->setRotation(glm::vec3(stof(param[4]), stof(param[5]), stof(param[6])));
 		newObject->setObjectType(ObjectType::Object_Entity);
-		newObject->calculateDimensions();
 		objects->push_back(newObject);
 	}
 

@@ -23,15 +23,18 @@
 #pragma comment(lib, "glew32s.lib")
 #pragma comment(lib, "opengl32.lib")
 
+#include "Logger.h"
+
 void openGLDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
-	std::cout << "[OpenGL Callback] " << message << std::endl;
+	std::string messageS = message;
+	Logger::log("[OpenGL Callback] " + messageS);
 }
 
 #ifdef _DEBUG
 
 void _GLGetError(const char* file, int line, const char* call) {
 	while (GLenum error = glGetError()) {
-		std::cout << "[OpenGL Error] " << glewGetErrorString(error) << " in " << file << ":" << line << " Call: " << call << std::endl;
+		Logger::log("[OpenGL Error] " + std::string((char*)glewGetErrorString(error)) + " in " + std::string(file) + ":" + std::to_string(line) + " Call: " + std::string(call));
 	}
 }
 
@@ -68,7 +71,16 @@ int main(int argc, char* argv[])
 	HWND console;
 	AllocConsole();
 	console = FindWindowA("ConsoleWindowClass", NULL);
-	ShowWindow(console, 1);
+
+	if (configManager.readConfig("showdebug_console") == "1")
+	{
+		ShowWindow(console, 1);
+	}
+	else
+	{
+		ShowWindow(console, 0);
+	}
+
 
 	SDL_Window* window;
 	SDL_Init(SDL_INIT_EVERYTHING);
@@ -107,11 +119,11 @@ int main(int argc, char* argv[])
 	GLenum err = glewInit();
 	if (err != GLEW_OK)
 	{
-		std::cout << "Error" << glewGetErrorString(err) << std::endl;
+		Logger::log("Error: " + std::string((char*)glewGetErrorString(err)));
 		std::cin.get();
 		return -1;
 	}
-	std::cout << "OpenGL version: " << glGetString(GL_VERSION) << std::endl;
+	Logger::log("OpenGL version: " + std::string((char*)glGetString(GL_VERSION)));
 
 #ifdef _DEBUG
 	glEnable(GL_DEBUG_OUTPUT);
@@ -122,7 +134,7 @@ int main(int argc, char* argv[])
 	srand(time(NULL));
 
 
-	UI* ui = new UI(window);
+	UI::init(window);
 
 	std::vector<Object*> objects;
 	std::vector<Player*> players;
@@ -357,6 +369,8 @@ int main(int argc, char* argv[])
 		
 		#pragma endregion
 
+		resourceManager.unbindShader();
+
 		for (NPC* npc : npcs)
 		{
 			npc->followCharacter(delta / 1000, players[0]);
@@ -364,6 +378,8 @@ int main(int argc, char* argv[])
 
 		for (Object* object : objects)
 		{
+			if (object->getObjectType() == ObjectType::Object_Environment) continue;
+
 			object->move(delta/ 1000);
 			object->fall(delta / 1000);
 		}
@@ -374,6 +390,7 @@ int main(int argc, char* argv[])
 			player->update();
 		}
 
+		resourceManager.bindShader();
 
 		glm::vec4 transformedSunDirection = glm::transpose(glm::inverse(players[0]->getView())) * glm::vec4(sunDirection, 1.0f);
 		glUniform3fv(directionLocation, 1, (float*)&transformedSunDirection);
@@ -424,8 +441,9 @@ int main(int argc, char* argv[])
 		}
 
 
-		ui->drawFPS(FPS);
-		ui->drawPos(players[0]);
+		UI::drawFPS(FPS);
+		UI::drawPos(players[0]);
+		UI::drawUI();
 
 
 
@@ -438,7 +456,6 @@ int main(int argc, char* argv[])
 		uint64 counterElasped = endCounter - lastCounter;
 		delta = ((float32)counterElasped) / (float32)perfCounterFrequency;
 		FPS = (uint32)((float32)perfCounterFrequency / (float32)counterElasped);
-		//std::cout << "FPS: " << FPS << std::endl;
 		lastCounter = endCounter;
 	}
 

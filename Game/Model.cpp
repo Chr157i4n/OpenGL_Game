@@ -1,4 +1,5 @@
 #include "Model.h"
+#include "Logger.h"
 
 
 
@@ -61,11 +62,14 @@ inline void Mesh::render()
 	GLCALL(glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_INT, 0));
 }
 
+
+
+
 void Model::init(const char* filename, Shader* shader) {
 	uint64 numMeshes = 0;
 	std::ifstream input = std::ifstream(filename, std::ios::in | std::ios::binary);
 	if (!input.is_open()) {
-		std::cout << "File not found" << std::endl;
+		Logger::log("Modelfile "+ std::string(filename) +" not found");
 		return;
 	}
 
@@ -115,9 +119,15 @@ void Model::init(const char* filename, Shader* shader) {
 		if (mesh->getDimension().x < min.x) min.x =mesh->getDimension().x;
 		if (mesh->getDimension().y < min.y) min.y =mesh->getDimension().y;
 		if (mesh->getDimension().z < min.z) min.z =mesh->getDimension().z;
-
-		dimension = max - min;
+			
 	}
+	dimension = max - min;
+
+	boundingBoxDimension.x = dimension.x + dimension.y + dimension.z;
+	boundingBoxDimension.y = dimension.y;
+	boundingBoxDimension.z = dimension.x + dimension.y + dimension.z;
+
+
 }
 
 void Model::render()
@@ -130,6 +140,11 @@ void Model::render()
 glm::vec3 Model::getDimension()
 {
 	return dimension;
+}
+
+glm::vec3 Model::getBoundingBoxDimension()
+{
+	return boundingBoxDimension;
 }
 
 Model::~Model() {
