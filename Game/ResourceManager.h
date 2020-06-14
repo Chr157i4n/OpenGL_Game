@@ -9,10 +9,13 @@
 #include <algorithm>
 #include "ConfigManager.h"
 #include "Object.h"
+#include "tinyxml2.h"
 
 static class ResourceManager
 {
 public:
+
+	static void init();
 
 	static void loadShader(std::string vertexShaderFilename, std::string fragmentShaderFilename);
 
@@ -31,5 +34,6 @@ private:
 
 
 	static Shader* shader;
+	static std::string modelFolder;
 };
 

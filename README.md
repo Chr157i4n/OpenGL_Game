@@ -13,6 +13,8 @@ https://www.khronos.org/opengl/wiki/Core_Language_(GLSL)
 
 For importing Textures and Fonts i use the STB Libary.
 
+As Mapfiles i use the XML format. To parse them i use the tinyxml2 Library.
+
 The idea and the knowlegde for this project did i get from this german youtube OpenGL tutorial playlist:
 https://www.youtube.com/playlist?list=PLStQc0GqppuWBDuNWnkQ8rzmyx35AINyt
 https://github.com/Pilzschaf/OpenGLTutorial
@@ -21,6 +23,7 @@ https://github.com/Pilzschaf/OpenGLTutorial
 ![](Images/screenshot2.png)
 
 used Libaries:
+
 https://www.assimp.org/
 https://github.com/assimp/assimp
 
@@ -38,3 +41,5 @@ https://github.com/g-truc/glm
 https://github.com/nothings/stb
 https://github.com/nothings/stb/blob/master/stb_image.h
 https://github.com/nothings/stb/blob/master/stb_truetype.h
+
+https://github.com/leethomason/tinyxml2

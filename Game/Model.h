@@ -3,17 +3,22 @@
 #include <fstream>
 #include <iostream>
 
-#ifdef _DEBUG
+#include "defines.h"
+
+#include "libs/glm/glm.hpp"
+#include "shader.h"
+#include "VertexBuffer.h"
+#include "IndexBuffer.h"
+
+
+#ifdef _DEBUG123
 void _GLGetError(const char* file, int line, const char* call);
 #define GLCALL(call) call; _GLGetError(__FILE__, __LINE__, #call)
 #else
 #define GLCALL(call) call
 #endif
 
-#include "libs/glm/glm.hpp"
-#include "shader.h"
-#include "VertexBuffer.h"
-#include "IndexBuffer.h"
+
 
 struct Material {
     glm::vec3 diffuse;

@@ -3,9 +3,11 @@
 #include <GL/glew.h>
 
 #include "defines.h"
+
+#include "defines.h"
 #include "Shader.h"
 
-#ifdef _DEBUG
+#ifdef _DEBUG123
 void _GLGetError(const char* file, int line, const char* call);
 #define GLCALL(call) call; _GLGetError(__FILE__, __LINE__, #call)
 #else

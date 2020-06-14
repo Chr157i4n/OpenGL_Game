@@ -21,11 +21,10 @@ void Player::moveForward(std::vector<Object*> objects) {
 
 	for (Object* object : objects)
 	{
-		if (object->getType() == ObjectType::Object_Player) continue;
-		//if (object->getType() == ObjectType::Object_Bot) continue;
+		if (object->getNumber() == this->getNumber()) continue;
 		if (object->getType() == ObjectType::Object_Environment) continue;
 		if (object->getType() == ObjectType::Object_Bullet) continue;
-		if (checkCollisionXY(object, position+v)) return;
+		if (checkCollisionXY(object, position + v)) return;
 	}
 	if (checkBoundaries(objects[1], position+v)) return;
 
@@ -39,11 +38,10 @@ void Player::moveBackward(std::vector<Object*> objects) {
 
 	for (Object* object : objects)
 	{
-		if (object->getType() == ObjectType::Object_Player) continue;
-		//if (object->getType() == ObjectType::Object_Bot) continue;
+		if (object->getNumber() == this->getNumber()) continue;
 		if (object->getType() == ObjectType::Object_Environment) continue;
 		if (object->getType() == ObjectType::Object_Bullet) continue;
-		if (checkCollisionXY(object, position+v)) return;
+		if (checkCollisionXY(object, position + v)) return;
 	}
 	if (checkBoundaries(objects[1], position+v)) return;
 
@@ -57,11 +55,10 @@ void Player::moveRight(std::vector<Object*> objects) {
 
 	for (Object* object : objects)
 	{
-		if (object->getType() == ObjectType::Object_Player) continue;
-		//if (object->getType() == ObjectType::Object_Bot) continue;
+		if (object->getNumber() == this->getNumber()) continue;
 		if (object->getType() == ObjectType::Object_Environment) continue;
 		if (object->getType() == ObjectType::Object_Bullet) continue;
-		if (checkCollisionXY(object, position+v)) return;
+		if (checkCollisionXY(object, position + v)) return;
 	}
 	if (checkBoundaries(objects[1], position+v)) return;
 
@@ -75,11 +72,10 @@ void Player::moveLeft(std::vector<Object*> objects) {
 
 	for (Object* object : objects)
 	{
-		if (object->getType() == ObjectType::Object_Player) continue;
-		//if (object->getType() == ObjectType::Object_Bot) continue;
+		if (object->getNumber() == this->getNumber()) continue;
 		if (object->getType() == ObjectType::Object_Environment) continue;
 		if (object->getType() == ObjectType::Object_Bullet) continue;
-		if (checkCollisionXY(object, position+v)) return;
+		if (checkCollisionXY(object, position + v)) return;
 	}
 	if (checkBoundaries(objects[1], position+v)) return;
 
@@ -97,7 +93,7 @@ void Player::onMouseMove(float xRel, float yRel)
 Bullet* Player::shoot()
 {
 	Bullet* newBullet = new Bullet(shader, cameraposition, glm::vec3(0, -yaw, pitch - 90), lookAt);
-	newBullet->setType(ObjectType::Object_Bullet);
+	//newBullet->setType(ObjectType::Object_Bullet);
 	return newBullet;
 }
 

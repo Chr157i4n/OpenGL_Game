@@ -165,12 +165,12 @@ bool Object::checkCollisionXY_SAT(Object* object, glm::vec3 newPosition)
 	object1.setPosition(newPosition);
 
 
-	std::vector<std::vector<glm::vec2*>> RectPoints;
+	std::vector<std::vector<glm::vec2>> RectPoints;
 
 	RectPoints.push_back(getRectPoints(&object1));
 	RectPoints.push_back(getRectPoints(&object2));
 
-	std::vector<glm::vec2*> axes;
+	std::vector<glm::vec2> axes;
 
 	//get all axes of both shapes
 	for (int shape = 0; shape < 2; shape++)
@@ -180,13 +180,13 @@ bool Object::checkCollisionXY_SAT(Object* object, glm::vec3 newPosition)
 		{
 			// calculate the normal vector of the current edge
 						// this is the axis will we check in this loop
-			auto current = *RectPoints[shape][i];
-			auto next = *RectPoints[shape][(i + 1) % RectPoints[shape].size()];
+			auto current = RectPoints[shape][i];
+			auto next = RectPoints[shape][(i + 1) % RectPoints[shape].size()];
 			auto edge = next - current;
 
-			glm::vec2* axis = new glm::vec2;
-			axis->x = -edge.y;
-			axis->y = edge.x;
+			glm::vec2 axis;
+			axis.x = -edge.y;
+			axis.y = edge.x;
 
 			axes.push_back(axis);
 		}
@@ -194,7 +194,7 @@ bool Object::checkCollisionXY_SAT(Object* object, glm::vec3 newPosition)
 	}
 
 
-	for (glm::vec2* axis : axes)
+	for (glm::vec2 axis : axes)
 	{
 		// loop over all vertices of both polygons and project them
 					// onto the axis. We are only interested in max/min projections
@@ -203,13 +203,13 @@ bool Object::checkCollisionXY_SAT(Object* object, glm::vec3 newPosition)
 		auto bMaxProj = -std::numeric_limits<float>::infinity();
 		auto bMinProj = std::numeric_limits<float>::infinity();
 		for (const auto& v : RectPoints[0]) {
-			auto proj = glm::dot(*axis, *v);
+			auto proj = glm::dot(axis, v);
 			if (proj < aMinProj) aMinProj = proj;
 			if (proj > aMaxProj) aMaxProj = proj;
 		}
 
 		for (const auto& v : RectPoints[1]) {
-			auto proj = glm::dot(*axis, *v);
+			auto proj = glm::dot(axis, v);
 			if (proj < bMinProj) bMinProj = proj;
 			if (proj > bMaxProj) bMaxProj = proj;
 		}
@@ -232,9 +232,9 @@ bool Object::checkCollisionXY_SAT(Object* object, glm::vec3 newPosition)
 
 }
 
-std::vector<glm::vec2*> Object::getRectPoints(Object* object)
+std::vector<glm::vec2> Object::getRectPoints(Object* object)
 {
-	std::vector<glm::vec2*> rectPoints;
+	std::vector<glm::vec2> rectPoints;
 
 	float cosW = cos(-object->getRotation().y * 3.14 / 180);
 	float sinW = sin(-object->getRotation().y * 3.14 / 180);
@@ -243,44 +243,42 @@ std::vector<glm::vec2*> Object::getRectPoints(Object* object)
 
 	glm::vec2 newPoint = glm::vec2(object->getDimensions().x / 2, object->getDimensions().z / 2);
 
-	glm::vec2* newRotatedPoint = new glm::vec2();
-	*newRotatedPoint = drehmatrix * newPoint;
+	glm::vec2 newRotatedPoint;
+	newRotatedPoint = drehmatrix * newPoint;
 
-	newRotatedPoint->x += object->getPosition().x;
-	newRotatedPoint->y += object->getPosition().z;
+	newRotatedPoint.x += object->getPosition().x;
+	newRotatedPoint.y += object->getPosition().z;
 
 	rectPoints.push_back(newRotatedPoint);
 
 	//Punkt
 	newPoint = glm::vec2(-object->getDimensions().x / 2, object->getDimensions().z / 2);
 
-	newRotatedPoint = new glm::vec2();
-	*newRotatedPoint = drehmatrix * newPoint;
+	newRotatedPoint = drehmatrix * newPoint;
 
-	newRotatedPoint->x += object->getPosition().x;
-	newRotatedPoint->y += object->getPosition().z;
+	newRotatedPoint.x += object->getPosition().x;
+	newRotatedPoint.y += object->getPosition().z;
 
 	rectPoints.push_back(newRotatedPoint);
 
 	//Punkt
 	newPoint = glm::vec2(-object->getDimensions().x / 2, -object->getDimensions().z / 2);
 
-	newRotatedPoint = new glm::vec2();
-	*newRotatedPoint = drehmatrix * newPoint;
+	
+	newRotatedPoint = drehmatrix * newPoint;
 
-	newRotatedPoint->x += object->getPosition().x;
-	newRotatedPoint->y += object->getPosition().z;
+	newRotatedPoint.x += object->getPosition().x;
+	newRotatedPoint.y += object->getPosition().z;
 
 	rectPoints.push_back(newRotatedPoint);
 
 	//Punkt
 	newPoint = glm::vec2(object->getDimensions().x / 2, -object->getDimensions().z / 2);
 
-	newRotatedPoint = new glm::vec2();
-	*newRotatedPoint = drehmatrix * newPoint;
+	newRotatedPoint = drehmatrix * newPoint;
 
-	newRotatedPoint->x += object->getPosition().x;
-	newRotatedPoint->y += object->getPosition().z;
+	newRotatedPoint.x += object->getPosition().x;
+	newRotatedPoint.y += object->getPosition().z;
 
 	rectPoints.push_back(newRotatedPoint);
 
@@ -387,6 +385,16 @@ glm::vec3 Object::getRotation()
 	return rotation;
 }
 
+void Object::setScale(glm::vec3 newScale)
+{
+	scale = newScale;
+}
+
+glm::vec3 Object::getScale()
+{
+	return scale;
+}
+
 void Object::setMovement(glm::vec3 newMovement)
 {
 	movement = newMovement;
@@ -422,6 +430,19 @@ void Object::setType(ObjectType newObjectType)
 ObjectType Object::getType()
 {
 	return type;
+}
+
+ObjectType Object::convertStringToType(std::string objectTypeAsString)
+{
+	auto it = objectTypeTable.find(objectTypeAsString);
+	if (it != objectTypeTable.end()) {
+		return it->second;
+	}
+}
+
+void Object::setName(std::string newName)
+{
+	name = newName;
 }
 
 std::string Object::getName()

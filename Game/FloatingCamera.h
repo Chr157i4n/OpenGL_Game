@@ -9,5 +9,8 @@ public:
 
     void moveUp(float amount);
 
+private:
+
+
 };
 

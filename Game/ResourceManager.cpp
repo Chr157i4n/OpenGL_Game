@@ -2,8 +2,14 @@
 #include "Logger.h"
 
 
-Shader* ResourceManager::shader;
 
+Shader* ResourceManager::shader;
+std::string ResourceManager::modelFolder = "models";
+
+void ResourceManager::init()
+{
+
+}
 
 void ResourceManager::loadShader(std::string vertexShaderFilename, std::string fragmentShaderFilename)
 {
@@ -28,17 +34,19 @@ void ResourceManager::unbindShader()
 
 void ResourceManager::loadMap(std::string mapFileName, std::vector<Object*>* objects, std::vector<Player*>* players, std::vector<NPC*>* npcs)
 {
+	const char* mapFileNameC = mapFileName.c_str();
 	int32 numObject = 0;
-	char mapFileLine[255];
+	tinyxml2::XMLDocument doc;
+	std::string xmlNodeText;
+	std::vector<std::string> params;
 
-	std::ifstream mapFile;
-	mapFile.open(mapFileName);
 
-	if (!mapFile) {
-		Logger::log("Cant open Map: " + mapFileName);
 
-		return;
-	}	
+	doc.LoadFile(mapFileNameC);
+
+	std::string title = doc.FirstChildElement("map")->FirstChildElement("name")->GetText();
+
+
 
 	//Player(s)
 	float fov = std::stof(ConfigManager::readConfig("fov"));
@@ -47,47 +55,100 @@ void ResourceManager::loadMap(std::string mapFileName, std::vector<Object*>* obj
 	objects->push_back(player);
 	players->push_back(player);
 	numObject++;
-	
-	//Enviroment and Entities
-	while (!mapFile.eof())
+
+
+
+
+	for (tinyxml2::XMLElement* xmlNodeObject = doc.FirstChildElement("map")->FirstChildElement("objects")->FirstChildElement("object"); xmlNodeObject != NULL; xmlNodeObject = xmlNodeObject->NextSiblingElement())
 	{
-		std::vector<std::string> mapParams;
-		mapFile.getline(mapFileLine, 255);
+		xmlNodeText = xmlNodeObject->FirstChildElement("modelfile")->GetText();
+		xmlNodeText = modelFolder + "/" + xmlNodeText;
 
-		if (mapFileLine[0] == '\0' || mapFileLine[0] == '#' || (mapFileLine[0] == '/' && mapFileLine[1] == '/'))
-		{
-			continue;
-		}
+		Object* newObject = new Object(shader, xmlNodeText);
 
-		split(mapFileLine, mapParams, ',');
+		xmlNodeText = xmlNodeObject->FirstChildElement("position")->GetText();
+		split(xmlNodeText, params, ';');
+		newObject->setPosition(glm::vec3(stof(params[0]), stof(params[1]), stof(params[2])));
 
-		std::string fileName = "models/" + mapParams[0];
+		xmlNodeText = xmlNodeObject->FirstChildElement("rotation")->GetText();
+		split(xmlNodeText, params, ';');
+		newObject->setRotation(glm::vec3(stof(params[0]), stof(params[1]), stof(params[2])));
 
-		Object* newObject = new Object(shader, fileName);
-		newObject->setPosition(glm::vec3(stof(mapParams[1]), stof(mapParams[2]), stof(mapParams[3])));
-		newObject->setRotation(glm::vec3(stof(mapParams[4]), stof(mapParams[5]), stof(mapParams[6])));
-		newObject->setType(ObjectType::Object_Entity);
+		xmlNodeText = xmlNodeObject->FirstChildElement("scale")->GetText();
+		split(xmlNodeText, params, ';');
+		newObject->setScale(glm::vec3(stof(params[0]), stof(params[1]), stof(params[2])));
+
+		xmlNodeText = xmlNodeObject->FirstChildElement("type")->GetText();
+		newObject->setType(Object::convertStringToType(xmlNodeText));
+
+		xmlNodeText = xmlNodeObject->FirstChildElement("name")->GetText();
+		newObject->setName(xmlNodeText);
+
 		newObject->setNumber(numObject);
 		objects->push_back(newObject);
 
 		numObject++;
 	}
-	(*objects)[1]->setType(ObjectType::Object_Environment);
 
-	//Bots
+
+
+	for (tinyxml2::XMLElement* xmlNodeBot = doc.FirstChildElement("map")->FirstChildElement("bots")->FirstChildElement("bot"); xmlNodeBot != NULL; xmlNodeBot = xmlNodeBot->NextSiblingElement())
+	{
+		xmlNodeText = xmlNodeBot->FirstChildElement("modelfile")->GetText();
+		xmlNodeText = modelFolder + "/" + xmlNodeText;
+
+		NPC* newNPC = new NPC(shader);
+
+		xmlNodeText = xmlNodeBot->FirstChildElement("position")->GetText();
+		split(xmlNodeText, params, ';');
+		newNPC->setPosition(glm::vec3(stof(params[0]), stof(params[1]), stof(params[2])));
+
+		xmlNodeText = xmlNodeBot->FirstChildElement("rotation")->GetText();
+		split(xmlNodeText, params, ';');
+		newNPC->setRotation(glm::vec3(stof(params[0]), stof(params[1]), stof(params[2])));
+
+		xmlNodeText = xmlNodeBot->FirstChildElement("scale")->GetText();
+		split(xmlNodeText, params, ';');
+		newNPC->setScale(glm::vec3(stof(params[0]), stof(params[1]), stof(params[2])));
+
+		xmlNodeText = xmlNodeBot->FirstChildElement("type")->GetText();
+		newNPC->setType(Object::convertStringToType(xmlNodeText));
+
+		xmlNodeText = xmlNodeBot->FirstChildElement("name")->GetText();
+		newNPC->setName(xmlNodeText);
+
+		for (tinyxml2::XMLElement* xmlNodeNavPoint = xmlNodeBot->FirstChildElement("navpoints")->FirstChildElement("navpoint"); xmlNodeNavPoint != NULL; xmlNodeNavPoint = xmlNodeNavPoint->NextSiblingElement())
+		{
+			xmlNodeText = xmlNodeNavPoint->GetText();
+			split(xmlNodeText, params, ';');
+			newNPC->addNavPoint(glm::vec3(stof(params[0]), stof(params[1]), stof(params[2])));
+		}
+
+
+		newNPC->setNumber(numObject);
+		objects->push_back(newNPC);
+		npcs->push_back(newNPC);
+
+		numObject++;
+	}
+
+
+
+	//random bots
 	int botcount = std::stoi(ConfigManager::readConfig("bots"));
 	for (int i = 0; i < botcount; i++)
 	{
 		float x = rand() % 100 - 50;
 		float z = rand() % 100 - 50;
 
-		NPC* npc = new NPC(shader, 90.0f, 800.0f, 600.0f);
+		NPC* npc = new NPC(shader);
 		npc->setPosition(glm::vec3(x, 0, z));
 		npc->setNumber(numObject);
 		objects->push_back(npc);
 		npcs->push_back(npc);
 		numObject++;
 	}
+
 }
 
 size_t ResourceManager::split(const std::string& txt, std::vector<std::string>& strs, char ch)

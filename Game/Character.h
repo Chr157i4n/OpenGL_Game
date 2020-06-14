@@ -40,5 +40,7 @@ protected:
 	float32 upwardSpeed = 0;
 
 	const float32 heigth = 4;
+
+	glm::vec3 up;
 };
 

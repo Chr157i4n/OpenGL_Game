@@ -2,7 +2,7 @@
 #include "ConfigManager.h"
 #include <string>
 
-NPC::NPC(Shader* shader, float fov, float width, float height) : Character(shader)
+NPC::NPC(Shader* shader) : Character(shader)
 {
 	setType(ObjectType::Object_Bot);
 	lookDirection = glm::vec3(1, 0, 1);
@@ -27,4 +27,43 @@ void NPC::followCharacter(float32 deltaTime, std::vector<Object*> objects, Chara
 	setRotation(glm::vec3(0, yaw, 0));
 
 	this->moveForward(objects);
+}
+
+void NPC::followNavPoints(float32 deltaTime, std::vector<Object*> objects)
+{
+	if (round(position) == round(navPoints[currentNavPoint]))
+	{
+		currentNavPoint = (currentNavPoint + 1) % navPoints.size();
+	}
+	
+	glm::vec3 myPosition = position;
+	glm::vec3 targetPosition = navPoints[currentNavPoint];
+
+	glm::vec3 direction = targetPosition - myPosition;
+
+	lookDirection.x = direction.x;
+	lookDirection.z = direction.z;
+
+	lookDirection = glm::normalize(lookDirection);
+
+	float pitch = glm::degrees(asin(-lookDirection.y));
+	float yaw = glm::degrees(atan2(lookDirection.x, lookDirection.z));
+	setRotation(glm::vec3(0, yaw, 0));
+
+	this->moveForward(objects);
+}
+
+void NPC::addNavPoint(glm::vec3 newNavPoint)
+{
+	navPoints.push_back(newNavPoint);
+}
+
+void NPC::setNavPoints(std::vector<glm::vec3> newNavPoints)
+{
+	navPoints = newNavPoints;
+}
+
+std::vector<glm::vec3> NPC::getNavPoints()
+{
+	return navPoints;
 }

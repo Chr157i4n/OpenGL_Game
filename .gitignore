@@ -51,3 +51,6 @@
 *OpenGL_Tutorial/libs
 *OpenGL_Tutorial/Release
 *OpenGL_Tutorial/x64
+
+tinyxml2.cpp
+tinyxml2.h

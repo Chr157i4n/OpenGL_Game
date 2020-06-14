@@ -2,7 +2,6 @@
 #include "Logger.h"
 
 
-
 Mesh::Mesh(std::vector<Vertex>& vertices, uint64 numVertices, std::vector<uint32>& indices, uint64 numIndices, Material material, Shader* shader) {
 	this->material = material;
 	this->shader = shader;

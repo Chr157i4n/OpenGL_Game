@@ -2,6 +2,7 @@
 
 Bullet::Bullet(Shader* shader, glm::vec3 position, glm::vec3 rotation, glm::vec3 direction) : Object(shader, "models/arrow.bmf")
 {
+	this->setType(ObjectType::Object_Bullet);
 	this->position = position;
 	this->rotation = rotation;
 }
