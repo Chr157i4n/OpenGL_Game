@@ -65,14 +65,13 @@ void _GLGetError(const char* file, int line, const char* call) {
 
 int main(int argc, char* argv[])
 {
-	ConfigManager configManager("config.ini");
-	ResourceManager resourceManager(&configManager);
+	ConfigManager::init("config.ini");
 
 	HWND console;
 	AllocConsole();
 	console = FindWindowA("ConsoleWindowClass", NULL);
 
-	if (configManager.readConfig("showdebug_console") == "1")
+	if (ConfigManager::readConfig("showdebug_console") == "1")
 	{
 		ShowWindow(console, 1);
 	}
@@ -104,14 +103,14 @@ int main(int argc, char* argv[])
 	#endif // DEBUG
 
 	uint32 flags = SDL_WINDOW_OPENGL;
-	int fullscreen = std::stoi(configManager.readConfig("fullscreen"));
+	int fullscreen = std::stoi(ConfigManager::readConfig("fullscreen"));
 	if (fullscreen == 1)
 	{
 		flags += SDL_WINDOW_FULLSCREEN_DESKTOP;
 	}
 
-	int resolution_width = std::stoi(configManager.readConfig("resolution_width"));
-	int resolution_height = std::stoi(configManager.readConfig("resolution_height"));
+	int resolution_width = std::stoi(ConfigManager::readConfig("resolution_width"));
+	int resolution_height = std::stoi(ConfigManager::readConfig("resolution_height"));
 
 	window = SDL_CreateWindow("OpenGL-Test", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, resolution_width, resolution_height, flags);
 	SDL_GLContext glContext = SDL_GL_CreateContext(window);
@@ -141,48 +140,48 @@ int main(int argc, char* argv[])
 	std::vector<NPC*> npcs;
 	std::vector<Bullet*> bullets;
 
-	resourceManager.loadShader("shaders/basic.vert", "shaders/basic.frag");
+	ResourceManager::loadShader("shaders/basic.vert", "shaders/basic.frag");
 
 	
 
-	resourceManager.bindShader();
+	ResourceManager::bindShader();
 
-	int directionLocation = GLCALL(glGetUniformLocation(resourceManager.getShader()->getShaderId(), "u_directional_light.direction"));
+	int directionLocation = GLCALL(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_directional_light.direction"));
 	glm::vec3 sunColor = glm::vec3(0.98f,0.83f,0.25f);
 	//sunColor *= 0.4f;
 	glm::vec3 sunDirection = glm::vec3(-1.0f);
-	GLCALL(glUniform3fv(glGetUniformLocation(resourceManager.getShader()->getShaderId(), "u_directional_light.diffuse"), 1, (float*)&sunColor));
-	GLCALL(glUniform3fv(glGetUniformLocation(resourceManager.getShader()->getShaderId(), "u_directional_light.specular"), 1, (float*)&sunColor));
+	GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_directional_light.diffuse"), 1, (float*)&sunColor));
+	GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_directional_light.specular"), 1, (float*)&sunColor));
 	sunColor *= 0.2f;
-	GLCALL(glUniform3fv(glGetUniformLocation(resourceManager.getShader()->getShaderId(), "u_directional_light.ambient"), 1, (float*)&sunColor));
+	GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_directional_light.ambient"), 1, (float*)&sunColor));
 
 
 	glm::vec3 pointLightColor = glm::vec3(0,0,1);
-	GLCALL(glUniform3fv(glGetUniformLocation(resourceManager.getShader()->getShaderId(), "u_point_light.diffuse"), 1, (float*)&pointLightColor));
-	GLCALL(glUniform3fv(glGetUniformLocation(resourceManager.getShader()->getShaderId(), "u_point_light.specular"), 1, (float*)&pointLightColor));
+	GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_point_light.diffuse"), 1, (float*)&pointLightColor));
+	GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_point_light.specular"), 1, (float*)&pointLightColor));
 	pointLightColor *= 0.2f;
-	GLCALL(glUniform3fv(glGetUniformLocation(resourceManager.getShader()->getShaderId(), "u_point_light.ambient"), 1, (float*)&pointLightColor));
-	GLCALL(glUniform1f(glGetUniformLocation(resourceManager.getShader()->getShaderId(), "u_point_light.linear"), 0.007f));
-	GLCALL(glUniform1f(glGetUniformLocation(resourceManager.getShader()->getShaderId(), "u_point_light.quadratic"), 0.0002));
+	GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_point_light.ambient"), 1, (float*)&pointLightColor));
+	GLCALL(glUniform1f(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_point_light.linear"), 0.007f));
+	GLCALL(glUniform1f(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_point_light.quadratic"), 0.0002));
 	glm::vec4 pointLightPosition = glm::vec4(80, 2.5, 10, 1.0f);
-	int positionLocation = GLCALL(glGetUniformLocation(resourceManager.getShader()->getShaderId(), "u_point_light.position"));
+	int positionLocation = GLCALL(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_point_light.position"));
 
 
 	glm::vec3 spotLightColor = glm::vec3(0);
-	GLCALL(glUniform3fv(glGetUniformLocation(resourceManager.getShader()->getShaderId(), "u_spot_light.diffuse"), 1, (float*)&spotLightColor));
-	GLCALL(glUniform3fv(glGetUniformLocation(resourceManager.getShader()->getShaderId(), "u_spot_light.specular"), 1, (float*)&spotLightColor));
+	GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_spot_light.diffuse"), 1, (float*)&spotLightColor));
+	GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_spot_light.specular"), 1, (float*)&spotLightColor));
 	spotLightColor *= 0.2f;
-	GLCALL(glUniform3fv(glGetUniformLocation(resourceManager.getShader()->getShaderId(), "u_spot_light.ambient"), 1, (float*)&spotLightColor));
+	GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_spot_light.ambient"), 1, (float*)&spotLightColor));
 	glm::vec3 spotLightPosition = glm::vec3(0.0f);
-	GLCALL(glUniform3fv(glGetUniformLocation(resourceManager.getShader()->getShaderId(), "u_spot_light.position"), 1, (float*)&spotLightPosition));
+	GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_spot_light.position"), 1, (float*)&spotLightPosition));
 	spotLightPosition.z = 1.0f;
-	GLCALL(glUniform3fv(glGetUniformLocation(resourceManager.getShader()->getShaderId(), "u_spot_light.direction"), 1, (float*)&spotLightPosition));
-	GLCALL(glUniform1f(glGetUniformLocation(resourceManager.getShader()->getShaderId(), "u_spot_light.innerCone"), 0.95f));
-	GLCALL(glUniform1f(glGetUniformLocation(resourceManager.getShader()->getShaderId(), "u_spot_light.outerCone"), 0.80f));
+	GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_spot_light.direction"), 1, (float*)&spotLightPosition));
+	GLCALL(glUniform1f(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_spot_light.innerCone"), 0.95f));
+	GLCALL(glUniform1f(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_spot_light.outerCone"), 0.80f));
 
 
-	std::string levelname = configManager.readConfig("level");
-	resourceManager.loadMap("levels/"+ levelname, &objects, &players, &npcs);
+	std::string levelname = ConfigManager::readConfig("level");
+	ResourceManager::loadMap("levels/"+ levelname, &objects, &players, &npcs);
 
 
 	uint64 perfCounterFrequency = SDL_GetPerformanceFrequency();
@@ -197,9 +196,9 @@ int main(int argc, char* argv[])
 	glm::mat4 modelViewProj = players[0]->getViewProj() * model;
 
 
-	int modelViewProjMatrixUniformIndex = GLCALL(glGetUniformLocation(resourceManager.getShader()->getShaderId(), "u_modelViewProj"));
-	int modelViewUniformIndex = GLCALL(glGetUniformLocation(resourceManager.getShader()->getShaderId(), "u_modelView"));
-	int invmodelViewUniformIndex = GLCALL(glGetUniformLocation(resourceManager.getShader()->getShaderId(), "u_invModelView"));
+	int modelViewProjMatrixUniformIndex = GLCALL(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_modelViewProj"));
+	int modelViewUniformIndex = GLCALL(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_modelView"));
+	int invmodelViewUniformIndex = GLCALL(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_invModelView"));
 
 
 	GLCALL(glEnable(GL_CULL_FACE));
@@ -233,7 +232,7 @@ int main(int argc, char* argv[])
 		GLCALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 		
 
-		resourceManager.bindShader();
+		ResourceManager::bindShader();
 
 		#pragma region inputs
 		SDL_Event event;
@@ -273,10 +272,10 @@ int main(int argc, char* argv[])
 					break;
 				case SDLK_f:
 					glm::vec3 spotLightColor = glm::vec3(1.0f);
-					GLCALL(glUniform3fv(glGetUniformLocation(resourceManager.getShader()->getShaderId(), "u_spot_light.diffuse"), 1, (float*)&spotLightColor));
-					GLCALL(glUniform3fv(glGetUniformLocation(resourceManager.getShader()->getShaderId(), "u_spot_light.specular"), 1, (float*)&spotLightColor));
+					GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_spot_light.diffuse"), 1, (float*)&spotLightColor));
+					GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_spot_light.specular"), 1, (float*)&spotLightColor));
 					spotLightColor *= 0.2f;
-					GLCALL(glUniform3fv(glGetUniformLocation(resourceManager.getShader()->getShaderId(), "u_spot_light.ambient"), 1, (float*)&spotLightColor));
+					GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_spot_light.ambient"), 1, (float*)&spotLightColor));
 					break;
 				case SDLK_ESCAPE:
 					SDL_SetRelativeMouseMode(SDL_FALSE);
@@ -316,9 +315,9 @@ int main(int argc, char* argv[])
 					break;
 				case SDLK_f:
 					glm::vec3 spotLightColor = glm::vec3(0);
-					GLCALL(glUniform3fv(glGetUniformLocation(resourceManager.getShader()->getShaderId(), "u_spot_light.diffuse"), 1, (float*)&spotLightColor));
-					GLCALL(glUniform3fv(glGetUniformLocation(resourceManager.getShader()->getShaderId(), "u_spot_light.specular"), 1, (float*)&spotLightColor));
-					GLCALL(glUniform3fv(glGetUniformLocation(resourceManager.getShader()->getShaderId(), "u_spot_light.ambient"), 1, (float*)&spotLightColor));
+					GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_spot_light.diffuse"), 1, (float*)&spotLightColor));
+					GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_spot_light.specular"), 1, (float*)&spotLightColor));
+					GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_spot_light.ambient"), 1, (float*)&spotLightColor));
 					break;
 				}
 			}
@@ -369,16 +368,16 @@ int main(int argc, char* argv[])
 		
 		#pragma endregion
 
-		resourceManager.unbindShader();
+		ResourceManager::unbindShader();
 
 		for (NPC* npc : npcs)
 		{
-			npc->followCharacter(delta / 1000, players[0]);
+			npc->followCharacter(delta / 1000, objects, players[0]);
 		}
 
 		for (Object* object : objects)
 		{
-			if (object->getObjectType() == ObjectType::Object_Environment) continue;
+			if (object->getType() == ObjectType::Object_Environment) continue;
 
 			object->move(delta/ 1000);
 			object->fall(delta / 1000);
@@ -390,7 +389,7 @@ int main(int argc, char* argv[])
 			player->update();
 		}
 
-		resourceManager.bindShader();
+		ResourceManager::bindShader();
 
 		glm::vec4 transformedSunDirection = glm::transpose(glm::inverse(players[0]->getView())) * glm::vec4(sunDirection, 1.0f);
 		glUniform3fv(directionLocation, 1, (float*)&transformedSunDirection);
@@ -400,7 +399,7 @@ int main(int argc, char* argv[])
 		glm::vec3 transformedPointLightPosition = (glm::vec3) (players[0]->getView() * pointLightPosition);
 		glUniform3fv(positionLocation, 1, (float*)&transformedPointLightPosition);
 
-		resourceManager.unbindShader();
+		ResourceManager::unbindShader();
 
 		for (int i = 0; i < objects.size(); i++)
 		{

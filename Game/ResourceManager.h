@@ -10,28 +10,26 @@
 #include "ConfigManager.h"
 #include "Object.h"
 
-class ResourceManager
+static class ResourceManager
 {
 public:
-	ResourceManager(ConfigManager* configManager);
 
-	void loadShader(std::string vertexShaderFilename, std::string fragmentShaderFilename);
+	static void loadShader(std::string vertexShaderFilename, std::string fragmentShaderFilename);
 
-	Shader* getShader();
+	static Shader* getObjectShader();
 
-	void bindShader();
+	static void bindShader();
 
-	void unbindShader();
+	static void unbindShader();
 
-	void loadMap(std::string mapFileName, std::vector<Object*>* objects, std::vector<Player*>* players, std::vector<NPC*>* npcs);
+	static void loadMap(std::string mapFileName, std::vector<Object*>* objects, std::vector<Player*>* players, std::vector<NPC*>* npcs);
 
 private:
 
-	size_t split(const std::string& txt, std::vector<std::string>& strs, char ch);
+	static size_t split(const std::string& txt, std::vector<std::string>& strs, char ch);
 
 
 
-	Shader* shader;
-	ConfigManager* configManager;
+	static Shader* shader;
 };
 

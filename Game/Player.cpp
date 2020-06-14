@@ -2,7 +2,7 @@
 
 Player::Player(Shader* shader, float fov, float width, float height) : Character(shader), FPSCamera(fov, width, height)
 {
-	setObjectType(ObjectType::Object_Player);
+	setType(ObjectType::Object_Player);
 	
 
 	position.x = 20;
@@ -21,13 +21,13 @@ void Player::moveForward(std::vector<Object*> objects) {
 
 	for (Object* object : objects)
 	{
-		if (object->getObjectType() == ObjectType::Object_Player) continue;
-		if (object->getObjectType() == ObjectType::Object_Bot) continue;
-		if (object->getObjectType() == ObjectType::Object_Environment) continue;
-		if (object->getObjectType() == ObjectType::Object_Bullet) continue;
+		if (object->getType() == ObjectType::Object_Player) continue;
+		//if (object->getType() == ObjectType::Object_Bot) continue;
+		if (object->getType() == ObjectType::Object_Environment) continue;
+		if (object->getType() == ObjectType::Object_Bullet) continue;
 		if (checkCollisionXY(object, position+v)) return;
 	}
-	if (checkBoundaries(objects[0], position+v)) return;
+	if (checkBoundaries(objects[1], position+v)) return;
 
 	position += v;
 
@@ -39,13 +39,13 @@ void Player::moveBackward(std::vector<Object*> objects) {
 
 	for (Object* object : objects)
 	{
-		if (object->getObjectType() == ObjectType::Object_Player) continue;
-		if (object->getObjectType() == ObjectType::Object_Bot) continue;
-		if (object->getObjectType() == ObjectType::Object_Environment) continue;
-		if (object->getObjectType() == ObjectType::Object_Bullet) continue;
+		if (object->getType() == ObjectType::Object_Player) continue;
+		//if (object->getType() == ObjectType::Object_Bot) continue;
+		if (object->getType() == ObjectType::Object_Environment) continue;
+		if (object->getType() == ObjectType::Object_Bullet) continue;
 		if (checkCollisionXY(object, position+v)) return;
 	}
-	if (checkBoundaries(objects[0], position+v)) return;
+	if (checkBoundaries(objects[1], position+v)) return;
 
 	position += v;
 
@@ -57,13 +57,13 @@ void Player::moveRight(std::vector<Object*> objects) {
 
 	for (Object* object : objects)
 	{
-		if (object->getObjectType() == ObjectType::Object_Player) continue;
-		if (object->getObjectType() == ObjectType::Object_Bot) continue;
-		if (object->getObjectType() == ObjectType::Object_Environment) continue;
-		if (object->getObjectType() == ObjectType::Object_Bullet) continue;
+		if (object->getType() == ObjectType::Object_Player) continue;
+		//if (object->getType() == ObjectType::Object_Bot) continue;
+		if (object->getType() == ObjectType::Object_Environment) continue;
+		if (object->getType() == ObjectType::Object_Bullet) continue;
 		if (checkCollisionXY(object, position+v)) return;
 	}
-	if (checkBoundaries(objects[0], position+v)) return;
+	if (checkBoundaries(objects[1], position+v)) return;
 
 	position += v;
 
@@ -75,13 +75,13 @@ void Player::moveLeft(std::vector<Object*> objects) {
 
 	for (Object* object : objects)
 	{
-		if (object->getObjectType() == ObjectType::Object_Player) continue;
-		if (object->getObjectType() == ObjectType::Object_Bot) continue;
-		if (object->getObjectType() == ObjectType::Object_Environment) continue;
-		if (object->getObjectType() == ObjectType::Object_Bullet) continue;
+		if (object->getType() == ObjectType::Object_Player) continue;
+		//if (object->getType() == ObjectType::Object_Bot) continue;
+		if (object->getType() == ObjectType::Object_Environment) continue;
+		if (object->getType() == ObjectType::Object_Bullet) continue;
 		if (checkCollisionXY(object, position+v)) return;
 	}
-	if (checkBoundaries(objects[0], position+v)) return;
+	if (checkBoundaries(objects[1], position+v)) return;
 
 	position += v;
 
@@ -97,7 +97,7 @@ void Player::onMouseMove(float xRel, float yRel)
 Bullet* Player::shoot()
 {
 	Bullet* newBullet = new Bullet(shader, cameraposition, glm::vec3(0, -yaw, pitch - 90), lookAt);
-	newBullet->setObjectType(ObjectType::Object_Bullet);
+	newBullet->setType(ObjectType::Object_Bullet);
 	return newBullet;
 }
 

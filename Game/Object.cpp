@@ -6,7 +6,7 @@
 
 Object::Object(Shader* shader, std::string modelFileName)
 {
-	setObjectType(ObjectType::Object_Entity);
+	setType(ObjectType::Object_Entity);
 
 	position = glm::vec3(0, 0, 0);
 	rotation = glm::vec3(0, 0, 0);
@@ -153,7 +153,7 @@ bool Object::checkCollisionXY_AABB(Object* object, glm::vec3 newPosition)
 	if (playerMinZ > objectMaxZ)
 		return false;
 
-	Logger::log("AABB collision between: " + getName() + " Objecttype: " + std::to_string(getObjectType()) + "  and  " + object->getName() + " Objecttype: " + std::to_string(object->getObjectType()));
+	Logger::log("AABB collision between: [MFN: " + getName() + ",OT: " + std::to_string(getType()) + ",ON: " + std::to_string(getNumber()) + "]  and  [MFN: " + object->getName() + ",OT: " + std::to_string(object->getType()) + ",ON: " + std::to_string(object->getNumber()) + "]");
 	return true;
 }
 
@@ -219,7 +219,7 @@ bool Object::checkCollisionXY_SAT(Object* object, glm::vec3 newPosition)
 		// the given polygons cannot overlap
 		if (aMaxProj < bMinProj || aMinProj > bMaxProj)
 		{
-			Logger::log("No SAT Collision");
+			//Logger::log("No SAT Collision");
 			return false;
 		}
 	}
@@ -227,7 +227,7 @@ bool Object::checkCollisionXY_SAT(Object* object, glm::vec3 newPosition)
 
 	// at this point, we have checked all axis but found no separating axis
 	// which means that the polygons must intersect.
-	Logger::log("SAT collision between: " + getName() + " Objecttype: " + std::to_string(getObjectType()) + "  and  " + object->getName() + " Objecttype: " + std::to_string(object->getObjectType()));
+	Logger::log("SAT collision between: [MFN: " + getName() + ",OT: " + std::to_string(getType()) + ",ON: "+ std::to_string(getNumber()) + "]  and  [MFN: " + object->getName() + ",OT: " + std::to_string(object->getType()) + ",ON: " + std::to_string(object->getNumber()) + "]");
 	return true;
 
 }
@@ -292,13 +292,13 @@ bool Object::checkBoundaries(Object* map, glm::vec3 newPosition)
 	// X - Achse
 	if (newPosition.x - dimensions.x / 2 < map->getPosition().x - map->getDimensions().x / 2)
 	{
-		Logger::log("Player out of bounds. Obejctposition: x: " + std::to_string(position.x) + " y: " + std::to_string(position.y) + " z: " + std::to_string(position.z));
+		Logger::log("Object out of Bounds: [MFN: " + getName() + ",OT: " + std::to_string(getType()) + ",ON: " + std::to_string(getNumber()) + "]");
 		return true;
 	}
 
 	if (newPosition.x + dimensions.x / 2 > map->getPosition().x + map->getDimensions().x / 2)
 	{
-		Logger::log("Player out of bounds. Obejctposition: x: " + std::to_string(position.x) + " y: " + std::to_string(position.y) + " z: " + std::to_string(position.z));
+		Logger::log("Object out of Bounds: [MFN: " + getName() + ",OT: " + std::to_string(getType()) + ",ON: " + std::to_string(getNumber()) + "]"); 
 		return true;
 	}
 
@@ -320,13 +320,13 @@ bool Object::checkBoundaries(Object* map, glm::vec3 newPosition)
 	// Z - Achse
 	if (newPosition.z - dimensions.z / 2 < map->getPosition().z - map->getDimensions().z / 2)
 	{
-		Logger::log("Player out of bounds. Obejctposition: x: " + std::to_string(position.x) + " y: " + std::to_string(position.y) + " z: " + std::to_string(position.z));
+		Logger::log("Object out of Bounds: [MFN: " + getName() + ",OT: " + std::to_string(getType()) + ",ON: " + std::to_string(getNumber()) + "]");
 		return true;
 	}
 
 	if (newPosition.z + dimensions.z / 2 > map->getPosition().z + map->getDimensions().z / 2)
 	{
-		Logger::log("Player out of bounds. Obejctposition: x: " + std::to_string(position.x) + " y: " + std::to_string(position.y) + " z: " + std::to_string(position.z));
+		Logger::log("Object out of Bounds: [MFN: " + getName() + ",OT: " + std::to_string(getType()) + ",ON: " + std::to_string(getNumber()) + "]");
 		return true;
 	}
 
@@ -414,19 +414,29 @@ glm::vec3 Object::getBoundingBoxDimensions()
 	return boundingboxdimensions;
 }
 
-void Object::setObjectType(ObjectType newObjectType)
+void Object::setType(ObjectType newObjectType)
 {
-	objectType = newObjectType;
+	type = newObjectType;
 }
 
-ObjectType Object::getObjectType()
+ObjectType Object::getType()
 {
-	return objectType;
+	return type;
 }
 
 std::string Object::getName()
 {
 	return name;
+}
+
+void Object::setNumber(int32 newNumber)
+{
+	number = newNumber;
+}
+
+int32 Object::getNumber()
+{
+	return number;
 }
 
 void Object::render()

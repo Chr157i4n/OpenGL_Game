@@ -2,10 +2,8 @@
 #include "Logger.h"
 
 
-ResourceManager::ResourceManager(ConfigManager* configManager)
-{
-	this->configManager = configManager;
-}
+Shader* ResourceManager::shader;
+
 
 void ResourceManager::loadShader(std::string vertexShaderFilename, std::string fragmentShaderFilename)
 {
@@ -13,7 +11,7 @@ void ResourceManager::loadShader(std::string vertexShaderFilename, std::string f
 	shader->bind();
 }
 
-Shader* ResourceManager::getShader()
+Shader* ResourceManager::getObjectShader()
 {
 	return shader;
 }
@@ -30,6 +28,9 @@ void ResourceManager::unbindShader()
 
 void ResourceManager::loadMap(std::string mapFileName, std::vector<Object*>* objects, std::vector<Player*>* players, std::vector<NPC*>* npcs)
 {
+	int32 numObject = 0;
+	char mapFileLine[255];
+
 	std::ifstream mapFile;
 	mapFile.open(mapFileName);
 
@@ -37,47 +38,55 @@ void ResourceManager::loadMap(std::string mapFileName, std::vector<Object*>* obj
 		Logger::log("Cant open Map: " + mapFileName);
 
 		return;
-	}
+	}	
 
-	char line[255];
-
+	//Player(s)
+	float fov = std::stof(ConfigManager::readConfig("fov"));
+	Player* player = new Player(shader, fov, 800.0f, 600.0f);
+	player->setNumber(numObject);
+	objects->push_back(player);
+	players->push_back(player);
+	numObject++;
+	
+	//Enviroment and Entities
 	while (!mapFile.eof())
 	{
-		std::vector<std::string> param;
-		mapFile.getline(line, 255);
+		std::vector<std::string> mapParams;
+		mapFile.getline(mapFileLine, 255);
 
-		if (line[0] == '\0' || line[0] == '#')
+		if (mapFileLine[0] == '\0' || mapFileLine[0] == '#' || (mapFileLine[0] == '/' && mapFileLine[1] == '/'))
 		{
 			continue;
 		}
 
-		split(line, param, ',');
+		split(mapFileLine, mapParams, ',');
 
-		std::string fileName = "models/" + param[0];
+		std::string fileName = "models/" + mapParams[0];
 
 		Object* newObject = new Object(shader, fileName);
-		newObject->setPosition(glm::vec3(stof(param[1]), stof(param[2]), stof(param[3])));
-		newObject->setRotation(glm::vec3(stof(param[4]), stof(param[5]), stof(param[6])));
-		newObject->setObjectType(ObjectType::Object_Entity);
+		newObject->setPosition(glm::vec3(stof(mapParams[1]), stof(mapParams[2]), stof(mapParams[3])));
+		newObject->setRotation(glm::vec3(stof(mapParams[4]), stof(mapParams[5]), stof(mapParams[6])));
+		newObject->setType(ObjectType::Object_Entity);
+		newObject->setNumber(numObject);
 		objects->push_back(newObject);
+
+		numObject++;
 	}
+	(*objects)[1]->setType(ObjectType::Object_Environment);
 
-	(*objects)[0]->setObjectType(ObjectType::Object_Environment);
-
-	Player* player = new Player(shader, 90.0f, 800.0f, 600.0f);
-	objects->push_back(player);
-	players->push_back(player);
-
-	int botcount = std::stoi(configManager->readConfig("bots"));
+	//Bots
+	int botcount = std::stoi(ConfigManager::readConfig("bots"));
 	for (int i = 0; i < botcount; i++)
 	{
 		float x = rand() % 100 - 50;
 		float z = rand() % 100 - 50;
 
-		NPC* npc1 = new NPC(shader, 90.0f, 800.0f, 600.0f);
-		npc1->setPosition(glm::vec3(x, 0, z));
-		objects->push_back(npc1);
-		npcs->push_back(npc1);
+		NPC* npc = new NPC(shader, 90.0f, 800.0f, 600.0f);
+		npc->setPosition(glm::vec3(x, 0, z));
+		npc->setNumber(numObject);
+		objects->push_back(npc);
+		npcs->push_back(npc);
+		numObject++;
 	}
 }
 

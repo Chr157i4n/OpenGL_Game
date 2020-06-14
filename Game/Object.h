@@ -63,11 +63,15 @@ public:
 
 	glm::vec3 getBoundingBoxDimensions();
 
-	void setObjectType(ObjectType newObjectType);
+	void setType(ObjectType newObjectType);
 
-	ObjectType getObjectType();
+	ObjectType getType();
 
 	std::string getName();
+
+	void setNumber(int32 newNumber);
+
+	int32 getNumber();
 
 	void render();
 
@@ -81,7 +85,8 @@ protected:
 
 	Model* model = nullptr;
 	Shader* shader = nullptr;
-	ObjectType objectType;
+	ObjectType type;
 	std::string name="";
+	int32 number;
 };
 

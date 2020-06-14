@@ -1,13 +1,16 @@
 #include "NPC.h"
+#include "ConfigManager.h"
+#include <string>
 
 NPC::NPC(Shader* shader, float fov, float width, float height) : Character(shader)
 {
-	setObjectType(ObjectType::Object_Bot);
+	setType(ObjectType::Object_Bot);
 	lookDirection = glm::vec3(1, 0, 1);
-	forwardSpeed = forwardSpeed / 10;
+	float npc_speed_mult = std::stof(ConfigManager::readConfig("bot_speed_mult"));
+	forwardSpeed = forwardSpeed * npc_speed_mult;
 }
 
-void NPC::followCharacter(float32 deltaTime, Character* character)
+void NPC::followCharacter(float32 deltaTime, std::vector<Object*> objects, Character* character)
 {
 	glm::vec3 myPosition = position;
 	glm::vec3 targetPosition = character->getPosition();
@@ -23,5 +26,5 @@ void NPC::followCharacter(float32 deltaTime, Character* character)
 	float yaw = glm::degrees(atan2(lookDirection.x, lookDirection.z));
 	setRotation(glm::vec3(0, yaw, 0));
 
-	this->moveForward();
+	this->moveForward(objects);
 }

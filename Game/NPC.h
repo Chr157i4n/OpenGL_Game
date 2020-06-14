@@ -8,7 +8,7 @@ public:
 	
 	NPC(Shader* shader, float fov, float width, float height);
 
-	void followCharacter(float32 deltaTime, Character* character);
+	void followCharacter(float32 deltaTime, std::vector<Object*> objects, Character* character);
 
 };
 

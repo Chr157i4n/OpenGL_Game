@@ -10,13 +10,13 @@ public:
 
 	Character(Shader* shader);
 
-	void moveForward();
+	void moveForward(std::vector<Object*> objects);
 
-	void moveBackward();
+	void moveBackward(std::vector<Object*> objects);
 
-	void moveRight();
+	void moveRight(std::vector<Object*> objects);
 
-	void moveLeft();
+	void moveLeft(std::vector<Object*> objects);
 
 	void jump();
 
