@@ -4,6 +4,7 @@
 SDL_Window* Game::window;
 
 std::vector<Object*> Game::objects;
+std::vector<Character*> Game::characters;
 std::vector<Player*> Game::players;
 std::vector<NPC*> Game::npcs;
 std::vector<Bullet*> Game::bullets;
@@ -168,7 +169,7 @@ void Game::initEverythingElse()
 
 
 	std::string levelname = ConfigManager::readConfig("level");
-	ResourceManager::loadMap("levels/" + levelname, &objects, &players, &npcs);
+	ResourceManager::loadMap("levels/" + levelname, &objects, &characters, &players, &npcs);
 }
 
 void Game::gameLoop()
@@ -186,15 +187,29 @@ void Game::gameLoop()
 		for (NPC* npc : npcs)
 		{
 			//npc->followCharacter(delta / 1000, objects, players[0]);
-			npc->followNavPoints(delta / 1000, objects);
+			//npc->followNavPoints(delta / 1000, objects);
+			npc->doCurrentTask(delta / 1000, objects, characters);
+		}
+
+		for (Bullet* bullet : bullets)
+		{
+			bullet->move(delta / 1000);
+			bullet->fall(delta / 1000);
+			bullet->checkHit(objects);
+		}
+
+		for (Object* object : objects)
+		{		
+			if (object->getType() == ObjectType::Object_Environment) continue;
+			if (object->getType() == ObjectType::Object_Bullet) continue;
+
+			object->move(delta / 1000);
+			object->fall(delta / 1000, objects);
 		}
 
 		for (Object* object : objects)
 		{
-			if (object->getType() == ObjectType::Object_Environment) continue;
-
-			object->move(delta / 1000);
-			object->fall(delta / 1000);
+			object->checkCollision(objects);
 		}
 
 		for (Player* player : players)
@@ -202,6 +217,13 @@ void Game::gameLoop()
 			player->updateCameraPosition();
 			player->update();
 		}
+
+		for (Character* character : characters)
+		{
+			character->resetVerticalMovement();
+		}
+
+		deleteObjects();
 
 
 		glm::vec4 transformedSunDirection = glm::transpose(glm::inverse(players[0]->getView())) * glm::vec4(sunDirection, 1.0f);
@@ -213,39 +235,7 @@ void Game::gameLoop()
 		glUniform3fv(positionLocation, 1, (float*)&transformedPointLightPosition);
 
 
-		for (int i = 0; i < objects.size(); i++)
-		{
-			glm::mat4 model = glm::mat4(1.0f);
-			//model = glm::scale(model, glm::vec3(1.0f));
-
-			//move to position of model
-			model = glm::translate(model, objects[i]->getPosition());
-
-			//rotate model around X
-			float angle = objects[i]->getRotation().x;
-			model = glm::rotate(model, glm::radians(angle), glm::vec3(1, 0, 0));
-
-			//rotate model around Y
-			angle = objects[i]->getRotation().y;
-			model = glm::rotate(model, glm::radians(angle), glm::vec3(0, 1, 0));
-
-			//rotate model around z
-			angle = objects[i]->getRotation().z;
-			model = glm::rotate(model, glm::radians(angle), glm::vec3(0, 0, 1));
-
-			//view and projection
-			modelViewProj = players[0]->getViewProj() * model;
-			glm::mat4 modelView = players[0]->getView() * model;
-			glm::mat4 invModelView = glm::transpose(glm::inverse(modelView));
-
-			objects[i]->bindShader();
-
-			GLCALL(glUniformMatrix4fv(modelViewProjMatrixUniformIndex, 1, GL_FALSE, &modelViewProj[0][0]));
-			GLCALL(glUniformMatrix4fv(modelViewUniformIndex, 1, GL_FALSE, &modelView[0][0]));
-			GLCALL(glUniformMatrix4fv(invmodelViewUniformIndex, 1, GL_FALSE, &invModelView[0][0]));
-
-			objects[i]->render();
-		}
+		render();
 
 
 		UI::drawFPS(FPS);
@@ -261,6 +251,43 @@ void Game::gameLoop()
 		delta = ((float32)counterElasped) / (float32)perfCounterFrequency;
 		FPS = (uint32)((float32)perfCounterFrequency / (float32)counterElasped);
 		lastCounter = endCounter;
+	}
+}
+
+void Game::render()
+{
+	for (int i = 0; i < objects.size(); i++)
+	{
+		glm::mat4 model = glm::mat4(1.0f);
+		//model = glm::scale(model, glm::vec3(1.0f));
+
+		//move to position of model
+		model = glm::translate(model, objects[i]->getPosition());
+
+		//rotate model around X
+		float angle = objects[i]->getRotation().x;
+		model = glm::rotate(model, glm::radians(angle), glm::vec3(1, 0, 0));
+
+		//rotate model around Y
+		angle = objects[i]->getRotation().y;
+		model = glm::rotate(model, glm::radians(angle), glm::vec3(0, 1, 0));
+
+		//rotate model around z
+		angle = objects[i]->getRotation().z;
+		model = glm::rotate(model, glm::radians(angle), glm::vec3(0, 0, 1));
+
+		//view and projection
+		modelViewProj = players[0]->getViewProj() * model;
+		glm::mat4 modelView = players[0]->getView() * model;
+		glm::mat4 invModelView = glm::transpose(glm::inverse(modelView));
+
+		objects[i]->bindShader();
+
+		GLCALL(glUniformMatrix4fv(modelViewProjMatrixUniformIndex, 1, GL_FALSE, &modelViewProj[0][0]));
+		GLCALL(glUniformMatrix4fv(modelViewUniformIndex, 1, GL_FALSE, &modelView[0][0]));
+		GLCALL(glUniformMatrix4fv(invmodelViewUniformIndex, 1, GL_FALSE, &invModelView[0][0]));
+
+		objects[i]->render();
 	}
 }
 
@@ -395,6 +422,18 @@ void Game::input()
 	}
 	if (!buttonShift) {
 		players[0]->run(false);
+	}
+}
+
+void Game::deleteObjects()
+{
+	for (int i = objects.size()-1; i >= 0; i--)
+	{
+		if (objects[i]->getHealth() <= 0)
+		{
+			objects.erase(objects.begin() + i);
+			//i++;
+		}
 	}
 }
 

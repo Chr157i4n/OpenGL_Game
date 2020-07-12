@@ -25,7 +25,7 @@ public:
 
 	static void unbindShader();
 
-	static void loadMap(std::string mapFileName, std::vector<Object*>* objects, std::vector<Player*>* players, std::vector<NPC*>* npcs);
+	static void loadMap(std::string mapFileName, std::vector<Object*>* objects, std::vector<Character*>* characters, std::vector<Player*>* players, std::vector<NPC*>* npcs);
 
 private:
 

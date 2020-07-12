@@ -4,6 +4,7 @@
 
 NPC::NPC(Shader* shader) : Character(shader)
 {
+	currentTask = CurrentTask::Idle;
 	setType(ObjectType::Object_Bot);
 	lookDirection = glm::vec3(1, 0, 1);
 	float npc_speed_mult = std::stof(ConfigManager::readConfig("bot_speed_mult"));
@@ -66,4 +67,30 @@ void NPC::setNavPoints(std::vector<glm::vec3> newNavPoints)
 std::vector<glm::vec3> NPC::getNavPoints()
 {
 	return navPoints;
+}
+
+void NPC::doCurrentTask(float32 deltaTime, std::vector<Object*> objects, std::vector<Character*> character)
+{
+	if (currentTask == CurrentTask::Idle)
+	{
+
+	}
+	if (currentTask == CurrentTask::Follow_Character)
+	{
+		followCharacter(deltaTime, objects, character[0]);
+	}
+	if (currentTask == CurrentTask::Follow_NavPoint)
+	{
+		followNavPoints(deltaTime, objects);
+	}
+}
+
+void NPC::setCurrentTask(CurrentTask newCurrentTask)
+{
+	currentTask = newCurrentTask;
+}
+
+CurrentTask NPC::getGurrentTask()
+{
+	return currentTask;
 }

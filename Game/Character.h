@@ -10,6 +10,10 @@ public:
 
 	Character(Shader* shader);
 
+	virtual glm::vec3 getLookDirection();
+
+	void resetVerticalMovement();
+
 	void moveForward(std::vector<Object*> objects);
 
 	void moveBackward(std::vector<Object*> objects);

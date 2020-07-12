@@ -7,69 +7,50 @@ Character::Character(Shader* shader) : Object(shader, "models/character.bmf")
 	up = glm::vec3(0.0f, 1.0f, 0.0f);
 }
 
-void Character::moveForward(std::vector<Object*> objects) {
-	glm::vec3 v = glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f) * lookDirection) * forwardSpeed;
+glm::vec3 Character::getLookDirection()
+{
+	return lookDirection;
+}
 
-	for (Object* object : objects)
-	{
-		if (object->getNumber() == this->getNumber()) continue;
-		if (object->getType() == ObjectType::Object_Environment) continue;
-		if (object->getType() == ObjectType::Object_Bullet) continue;
-		if (checkCollisionXY(object, position + v))
-		{
-			moveBackward(objects);
-			moveRight(objects);
-			return;
-		}
-	}
+void Character::resetVerticalMovement()
+{
+	movement = movement * glm::vec3(0, 1, 0);
+}
+
+void Character::moveForward(std::vector<Object*> objects) {
+	glm::vec3 v = glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f) * getLookDirection()) * forwardSpeed;
+
 	if (checkBoundaries(objects[1], position + v)) return;
 
-	position += v;
+	movement.x += v.x;
+	movement.z += v.z;
 }
 
 void Character::moveBackward(std::vector<Object*> objects) {
-	glm::vec3 v = glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f) * lookDirection) * -backwardSidewaySpeed;
+	glm::vec3 v = glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f) * getLookDirection()) * -backwardSidewaySpeed;
 
-	for (Object* object : objects)
-	{
-		if (object->getNumber() == this->getNumber()) continue;
-		if (object->getType() == ObjectType::Object_Environment) continue;
-		if (object->getType() == ObjectType::Object_Bullet) continue;
-		if (checkCollisionXY(object, position + v)) return;
-	}
 	if (checkBoundaries(objects[1], position + v)) return;
 
-	position += v;
+	movement.x += v.x;
+	movement.z += v.z;
 }
 
 void Character::moveRight(std::vector<Object*> objects) {
-	glm::vec3 v = glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f) * glm::cross(lookDirection, up)) * backwardSidewaySpeed;
+	glm::vec3 v = glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f) * glm::cross(getLookDirection(), up)) * backwardSidewaySpeed;
 
-	for (Object* object : objects)
-	{
-		if (object->getNumber() == this->getNumber()) continue;
-		if (object->getType() == ObjectType::Object_Environment) continue;
-		if (object->getType() == ObjectType::Object_Bullet) continue;
-		if (checkCollisionXY(object, position + v)) return;
-	}
 	if (checkBoundaries(objects[1], position + v)) return;
 
-	position += v;
+	movement.x += v.x;
+	movement.z += v.z;
 }
 
 void Character::moveLeft(std::vector<Object*> objects) {
-	glm::vec3 v = glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f) * glm::cross(lookDirection, up)) * -backwardSidewaySpeed;
+	glm::vec3 v = glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f) * glm::cross(getLookDirection(), up)) * -backwardSidewaySpeed;
 
-	for (Object* object : objects)
-	{
-		if (object->getNumber() == this->getNumber()) continue;
-		if (object->getType() == ObjectType::Object_Environment) continue;
-		if (object->getType() == ObjectType::Object_Bullet) continue;
-		if (checkCollisionXY(object, position + v)) return;
-	}
 	if (checkBoundaries(objects[1], position + v)) return;
 
-	position += v;
+	movement.x += v.x;
+	movement.z += v.z;
 }
 
 void Character::jump()

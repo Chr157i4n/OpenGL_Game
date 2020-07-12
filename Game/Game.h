@@ -69,14 +69,19 @@ public:
 
 private:
 
+	static void render();
+
 	static void gameLoop();
 
 	static void input();
+
+	static void deleteObjects();
 
 
 	static SDL_Window* window;
 
 	static std::vector<Object*> objects;
+	static std::vector<Character*> characters;
 	static std::vector<Player*> players;
 	static std::vector<NPC*> npcs;
 	static std::vector<Bullet*> bullets;

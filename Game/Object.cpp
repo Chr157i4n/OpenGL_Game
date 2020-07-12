@@ -4,6 +4,19 @@
 #include "Logger.h"
 #include "libs/glm/gtx/rotate_vector.hpp"
 
+
+float projectedOverlap(float minA, float maxA, float minB, float maxB) {
+	if (minA < minB) {
+		return minB - maxA;
+	}
+	else {
+		return minA - maxB;
+	}
+}
+
+
+
+
 Object::Object(Shader* shader, std::string modelFileName)
 {
 	setType(ObjectType::Object_Entity);
@@ -16,8 +29,15 @@ Object::Object(Shader* shader, std::string modelFileName)
 	this->shader = shader;
 
 	model = new Model;
+	
 	loadModel(modelFileName);
-	calculateDimensions();
+	dimensions = calculateDimensions();
+	rectPoints = calculateRectPoints();
+	cubePoints = calculateCubePoints();
+	cubeNormals = calculateCubeNormals();
+
+	center = position;
+	center.y += dimensions.y / 2;
 }
 
 Shader* Object::getShader()
@@ -35,180 +55,119 @@ void Object::unbindShader()
 	shader->unbind();
 }
 
-bool Object::checkCollisionXY(Object* object, glm::vec3 newPosition)
-{
 
-	if (checkCollisionXY_AABB(object, newPosition))
+CollisionResult Object::checkCollision(std::vector<Object*> objects)
+{
+	CollisionResult collisionResult;
+	collisionResult.collided = false;
+	
+	if (this->movement == glm::vec3(0, 0, 0)) return collisionResult;
+
+	for (Object* object : objects)
 	{
-		return checkCollisionXY_SAT(object, newPosition);
+		if (object->getNumber() == this->getNumber()) continue;
+		if (object->getType() == ObjectType::Object_Environment) continue;
+		if (object->getType() == ObjectType::Object_Bullet) continue;
+		//if (object->getType() == ObjectType::Object_Player) continue;
+
+		if (checkCollision_AABB(object))
+		{
+			checkCollision_SAT(object, &collisionResult);
+
+
+		}
 	}
-	else
-	{
-		return false;
-	}
+
+	return collisionResult;
 
 }
 
-bool Object::checkCollisionXY_AABB(Object* object, glm::vec3 newPosition)
+bool Object::checkCollision_AABB(Object* object)
 {
-	float playerMaxX = newPosition.x + dimensions.x / 2;
-	float playerMinX = newPosition.x - dimensions.x / 2;
+	//calculate the min/max values for all three axis for both objects
+	float object1MaxX = this->position.x + boundingboxdimensions.x / 2;
+	float object1MinX = this->position.x - boundingboxdimensions.x / 2;
 
-	float playerMaxY = newPosition.y + dimensions.y / 2;
-	float playerMinY = newPosition.y - dimensions.y / 2;
+	float object1MaxY = this->position.y + this->dimensions.y/2 + boundingboxdimensions.y / 2;
+	float object1MinY = this->position.y + this->dimensions.y/2 - boundingboxdimensions.y / 2;
 
-	float playerMaxZ = newPosition.z + dimensions.z / 2;
-	float playerMinZ = newPosition.z - dimensions.z / 2;
+	float object1MaxZ = this->position.z + boundingboxdimensions.z / 2;
+	float object1MinZ = this->position.z - boundingboxdimensions.z / 2;
 
-	glm::vec3 objectPosition = object->getPosition();
-	glm::vec3 objectBoundingBoxDimension = object->getBoundingBoxDimensions();
-	glm::vec3 objectRotation = object->getRotation();
+	glm::vec3 object2Position = object->getPosition();
+	glm::vec3 object2BoundingBoxDimension = object->getBoundingBoxDimensions();
+	glm::vec3 object2Rotation = object->getRotation();
 
-	float objectMinX = objectPosition.x - (objectBoundingBoxDimension.x / 2);
-	float objectMaxX = objectPosition.x + (objectBoundingBoxDimension.x / 2);
+	float object2MinX = object2Position.x - (object2BoundingBoxDimension.x / 2);
+	float object2MaxX = object2Position.x + (object2BoundingBoxDimension.x / 2);
 
-	float objectMinY = objectPosition.y - (objectBoundingBoxDimension.y / 2);
-	float objectMaxY = objectPosition.y + (objectBoundingBoxDimension.y / 2);
+	float object2MinY = object2Position.y + this->dimensions.y / 2 - (object2BoundingBoxDimension.y / 2);
+	float object2MaxY = object2Position.y + this->dimensions.y / 2 + (object2BoundingBoxDimension.y / 2);
 
-	float objectMinZ = objectPosition.z - (objectBoundingBoxDimension.z / 2);
-	float objectMaxZ = objectPosition.z + (objectBoundingBoxDimension.z / 2);
+	float object2MinZ = object2Position.z - (object2BoundingBoxDimension.z / 2);
+	float object2MaxZ = object2Position.z + (object2BoundingBoxDimension.z / 2);
 
-
-#pragma region UI output
-
-	//#define DEBUG_AAB
-
-#ifdef DEBUG_AAB
-
-	std::string UI_Text = "Min: ";
-
-	std::stringstream xminss, yminss, zminss;
-	xminss << std::fixed << std::setprecision(1) << objectMinX;
-	std::string xMinString = xminss.str();
-
-	yminss << std::fixed << std::setprecision(1) << objectMinY;
-	std::string yMinString = yminss.str();
-
-	zminss << std::fixed << std::setprecision(1) << objectMinZ;
-	std::string zMinString = zminss.str();
-
-	UI_Text += "x " + xMinString + ", ";
-	UI_Text += "y " + yMinString + ", ";
-	UI_Text += "z " + zMinString;
-
-	UI_Element* objectmin = new UI_Element();
-	objectmin->posX = UI::getWidth() - 300;
-	objectmin->posY = 50;
-	objectmin->text = UI_Text;
-	UI::addElement(objectmin);
-
-
-	UI_Text = "Max: ";
-
-	std::stringstream xmaxss, ymaxss, zmaxss;
-	xmaxss << std::fixed << std::setprecision(1) << objectMaxX;
-	std::string xMaxString = xmaxss.str();
-
-	ymaxss << std::fixed << std::setprecision(1) << objectMaxY;
-	std::string yMaxString = ymaxss.str();
-
-	zmaxss << std::fixed << std::setprecision(1) << objectMaxZ;
-	std::string zMaxString = zmaxss.str();
-
-	UI_Text += "x " + xMaxString + ", ";
-	UI_Text += "y " + yMaxString + ", ";
-	UI_Text += "z " + zMaxString;
-
-	UI_Element* objectmax = new UI_Element();
-	objectmax->posX = UI::getWidth() - 300;
-	objectmax->posY = 80;
-	objectmax->text = UI_Text;
-	UI::addElement(objectmax);
-
-#endif // DEBUG_AAB
-#pragma endregion
-
-
-	// X - Achse -> von positiver Richtung
-	if (playerMaxX < objectMinX)
+	//Compare these values to check whether the BoundingBoxes collide
+	if (object1MaxX < object2MinX)
 		return false;
 
-	// X - Achse -> von negativer Richtung
-	if (playerMinX > objectMaxX)
+	if (object1MinX > object2MaxX)
 		return false;
 
-	// Y - Achse -> von positiver Richtung
-	if (playerMaxY < objectMinY)
+	if (object1MaxY < object2MinY)
 		return false;
 
-	// Y - Achse -> von negativer Richtung
-	if (playerMinY > objectMaxY)
+	if (object1MinY > object2MaxY)
 		return false;
 
-	// Z - Achse von positiver Richtung
-	if (playerMaxZ < objectMinZ)
+	if (object1MaxZ < object2MinZ)
 		return false;
 
-	// Z - Achse -> von negativer Richtung
-	if (playerMinZ > objectMaxZ)
+	if (object1MinZ > object2MaxZ)
 		return false;
 
-	Logger::log("AABB collision between: [MFN: " + getName() + ",OT: " + std::to_string(getType()) + ",ON: " + std::to_string(getNumber()) + "]  and  [MFN: " + object->getName() + ",OT: " + std::to_string(object->getType()) + ",ON: " + std::to_string(object->getNumber()) + "]");
+	//Logger::log("AABB collision between: [MFN: " + getName() + ",OT: " + std::to_string(getType()) + ",ON: " + std::to_string(getNumber()) + "]  and  [MFN: " + object->getName() + ",OT: " + std::to_string(object->getType()) + ",ON: " + std::to_string(object->getNumber()) + "]");
 	return true;
 }
 
-bool Object::checkCollisionXY_SAT(Object* object, glm::vec3 newPosition)
+bool Object::checkCollision_SAT(Object* object, CollisionResult* collisionResult)
 {
-	Object object1 = *this;
-	Object object2 = *object;
+	std::vector<std::vector<glm::vec3>> CubePoints;
+	float minOverlap = std::numeric_limits<float>::infinity();
+	glm::vec3 minOverlapAxis = glm::vec3(0,0,0);
+	onOtherObject = false;
 
-	object1.setPosition(newPosition);
+	CubePoints.push_back(this->calculateCubePoints());
+	CubePoints.push_back(object->calculateCubePoints());
 
 
-	std::vector<std::vector<glm::vec2>> RectPoints;
+	std::vector<glm::vec3> axes;
 
-	RectPoints.push_back(getRectPoints(&object1));
-	RectPoints.push_back(getRectPoints(&object2));
-
-	std::vector<glm::vec2> axes;
-
-	//get all axes of both shapes
-	for (int shape = 0; shape < 2; shape++)
+	for (glm::vec3 normal : this->calculateCubeNormals())
 	{
-		// loop over the vertices(-> edges -> axis) of the first polygon
-		for (auto i = 0u; i < RectPoints[shape].size() + 0; ++i)
-		{
-			// calculate the normal vector of the current edge
-						// this is the axis will we check in this loop
-			auto current = RectPoints[shape][i];
-			auto next = RectPoints[shape][(i + 1) % RectPoints[shape].size()];
-			auto edge = next - current;
-
-			glm::vec2 axis;
-			axis.x = -edge.y;
-			axis.y = edge.x;
-
-			axes.push_back(axis);
-		}
-
+		axes.push_back(normal);
+	}
+	for (glm::vec3 normal : object->calculateCubeNormals())
+	{
+		axes.push_back(normal);
 	}
 
 
-	for (glm::vec2 axis : axes)
+	for (glm::vec3 axis : axes)
 	{
 		// loop over all vertices of both polygons and project them
 					// onto the axis. We are only interested in max/min projections
-		auto aMaxProj = -std::numeric_limits<float>::infinity();
-		auto aMinProj = std::numeric_limits<float>::infinity();
-		auto bMaxProj = -std::numeric_limits<float>::infinity();
-		auto bMinProj = std::numeric_limits<float>::infinity();
-		for (const auto& v : RectPoints[0]) {
+		float aMaxProj = -std::numeric_limits<float>::infinity();
+		float aMinProj = std::numeric_limits<float>::infinity();
+		float bMaxProj = -std::numeric_limits<float>::infinity();
+		float bMinProj = std::numeric_limits<float>::infinity();
+		for (const auto& v : CubePoints[0]) {
 			auto proj = glm::dot(axis, v);
 			if (proj < aMinProj) aMinProj = proj;
 			if (proj > aMaxProj) aMaxProj = proj;
 		}
 
-		for (const auto& v : RectPoints[1]) {
+		for (const auto& v : CubePoints[1]) {
 			auto proj = glm::dot(axis, v);
 			if (proj < bMinProj) bMinProj = proj;
 			if (proj > bMaxProj) bMaxProj = proj;
@@ -222,67 +181,204 @@ bool Object::checkCollisionXY_SAT(Object* object, glm::vec3 newPosition)
 			//Logger::log("No SAT Collision");
 			return false;
 		}
+		//at this line the objects are colliding for this projected axis
+		float overlap = projectedOverlap(aMinProj, aMaxProj, bMinProj, bMaxProj);
+
+		overlap = std::abs(overlap);
+		if (overlap < minOverlap) {
+			minOverlap = overlap;
+			minOverlapAxis = axis;
+
+			glm::vec3 d = this->center - object->center;
+			if (glm::dot(d,minOverlapAxis) <0)
+				minOverlapAxis = -minOverlapAxis;
+		}
+
+		
 	}
 
 
 	// at this point, we have checked all axis but found no separating axis
 	// which means that the polygons must intersect.
-	Logger::log("SAT collision between: [MFN: " + getName() + ",OT: " + std::to_string(getType()) + ",ON: "+ std::to_string(getNumber()) + "]  and  [MFN: " + object->getName() + ",OT: " + std::to_string(object->getType()) + ",ON: " + std::to_string(object->getNumber()) + "]");
+	Logger::log("SAT collision between: "+this->printObject()+" and  "+object->printObject());
+	
+	
+	glm::vec3 MinimumTranslationVector = minOverlapAxis * minOverlap;
+
+	this->position += MinimumTranslationVector;
+
+	if (std::abs(glm::normalize(minOverlapAxis).y) >= 0.9)
+	{
+		Logger::log("standing on Object");
+		movement.y = 0;
+		onOtherObject = true;
+	}
+	
 	return true;
 
 }
 
-std::vector<glm::vec2> Object::getRectPoints(Object* object)
+
+glm::vec3 Object::calculateDimensions()
+{
+	dimensions = model->getDimension();
+	boundingboxdimensions = model->getBoundingBoxDimension();
+	Logger::log("Object Dimension x: " + std::to_string(dimensions.x) + " y: " + std::to_string(dimensions.y) + " z: " + std::to_string(dimensions.z));
+	return dimensions;
+}
+
+std::vector<glm::vec2> Object::calculateRectPoints()
 {
 	std::vector<glm::vec2> rectPoints;
-
-	float cosW = cos(-object->getRotation().y * 3.14 / 180);
-	float sinW = sin(-object->getRotation().y * 3.14 / 180);
-	glm::mat2 drehmatrix = glm::mat2(cosW, sinW, -sinW, cosW);
-	//Punkt
-
-	glm::vec2 newPoint = glm::vec2(object->getDimensions().x / 2, object->getDimensions().z / 2);
-
+	glm::vec2 newPoint;
 	glm::vec2 newRotatedPoint;
-	newRotatedPoint = drehmatrix * newPoint;
 
-	newRotatedPoint.x += object->getPosition().x;
-	newRotatedPoint.y += object->getPosition().z;
+	float cosW = cos(-getRotation().y * 3.14 / 180);
+	float sinW = sin(-getRotation().y * 3.14 / 180);
+	glm::mat2 rotationmatrix = glm::mat2(cosW, sinW, -sinW, cosW);
+	//point
 
-	rectPoints.push_back(newRotatedPoint);
+	newPoint = glm::vec2(getDimensions().x / 2, getDimensions().z / 2);
 
-	//Punkt
-	newPoint = glm::vec2(-object->getDimensions().x / 2, object->getDimensions().z / 2);
 
-	newRotatedPoint = drehmatrix * newPoint;
+	newRotatedPoint = rotationmatrix * newPoint;
 
-	newRotatedPoint.x += object->getPosition().x;
-	newRotatedPoint.y += object->getPosition().z;
-
-	rectPoints.push_back(newRotatedPoint);
-
-	//Punkt
-	newPoint = glm::vec2(-object->getDimensions().x / 2, -object->getDimensions().z / 2);
-
-	
-	newRotatedPoint = drehmatrix * newPoint;
-
-	newRotatedPoint.x += object->getPosition().x;
-	newRotatedPoint.y += object->getPosition().z;
+	newRotatedPoint.x += getPosition().x;
+	newRotatedPoint.y += getPosition().z;
 
 	rectPoints.push_back(newRotatedPoint);
 
-	//Punkt
-	newPoint = glm::vec2(object->getDimensions().x / 2, -object->getDimensions().z / 2);
+	//point
+	newPoint = glm::vec2(-getDimensions().x / 2, getDimensions().z / 2);
 
-	newRotatedPoint = drehmatrix * newPoint;
+	newRotatedPoint = rotationmatrix * newPoint;
 
-	newRotatedPoint.x += object->getPosition().x;
-	newRotatedPoint.y += object->getPosition().z;
+	newRotatedPoint.x += getPosition().x;
+	newRotatedPoint.y += getPosition().z;
+
+	rectPoints.push_back(newRotatedPoint);
+
+	//point
+	newPoint = glm::vec2(-getDimensions().x / 2, -getDimensions().z / 2);
+
+
+	newRotatedPoint = rotationmatrix * newPoint;
+
+	newRotatedPoint.x += getPosition().x;
+	newRotatedPoint.y += getPosition().z;
+
+	rectPoints.push_back(newRotatedPoint);
+
+	//point
+	newPoint = glm::vec2(getDimensions().x / 2, -getDimensions().z / 2);
+
+	newRotatedPoint = rotationmatrix * newPoint;
+
+	newRotatedPoint.x += getPosition().x;
+	newRotatedPoint.y += getPosition().z;
 
 	rectPoints.push_back(newRotatedPoint);
 
 	return rectPoints;
+}
+
+std::vector<glm::vec3> Object::calculateCubePoints()
+{
+	glm::vec3 newPoint;
+	glm::vec3 newRotatedPoint;
+	cubePoints.clear();
+
+	float cosW = cos(-rotation.y * 3.14 / 180);
+	float sinW = sin(-rotation.y * 3.14 / 180);
+	//glm::mat3 rotationmatrix1 = glm::mat3(1, 0, 0, 0, cosW, -sinW, 0, sinW, cosW); // around the x-axis
+	glm::mat3 rotationmatrix1 = glm::mat3(cosW, 0, sinW, 0, 1, 0, -sinW, 0, cosW); // around the y-axis
+	//glm::mat3 rotationmatrix1 = glm::mat3(cosW, -sinW, 0, sinW, cosW, 0, 0, 0, 1); // around the z-axis
+
+	//top
+	//point
+	newPoint = glm::vec3(getDimensions().x / 2, getDimensions().y, getDimensions().z / 2);
+	newRotatedPoint = rotationmatrix1 * newPoint;
+	newRotatedPoint += glm::vec3(getPosition().x, getPosition().y, getPosition().z);
+	cubePoints.push_back(newRotatedPoint);
+
+	//point
+	newPoint = glm::vec3(getDimensions().x / 2, getDimensions().y, -getDimensions().z / 2);
+	newRotatedPoint = rotationmatrix1 * newPoint;
+	newRotatedPoint += glm::vec3(getPosition().x, getPosition().y, getPosition().z);
+	cubePoints.push_back(newRotatedPoint);
+
+	//point
+	newPoint = glm::vec3(-getDimensions().x / 2, getDimensions().y, -getDimensions().z / 2);
+	newRotatedPoint = rotationmatrix1 * newPoint;
+	newRotatedPoint += glm::vec3(getPosition().x, getPosition().y, getPosition().z);
+	cubePoints.push_back(newRotatedPoint);
+
+	//point
+	newPoint = glm::vec3(-getDimensions().x / 2, getDimensions().y, getDimensions().z / 2);
+	newRotatedPoint = rotationmatrix1 * newPoint;
+	newRotatedPoint += glm::vec3(getPosition().x, getPosition().y, getPosition().z);
+	cubePoints.push_back(newRotatedPoint);
+
+
+	//bottom
+	//point
+	newPoint = glm::vec3(-getDimensions().x / 2, 0, getDimensions().z / 2);
+	newRotatedPoint = rotationmatrix1 * newPoint;
+	newRotatedPoint += glm::vec3(getPosition().x, getPosition().y, getPosition().z);
+	cubePoints.push_back(newRotatedPoint);
+
+	//point
+	newPoint = glm::vec3(-getDimensions().x / 2, 0, -getDimensions().z / 2);
+	newRotatedPoint = rotationmatrix1 * newPoint;
+	newRotatedPoint += glm::vec3(getPosition().x, getPosition().y, getPosition().z);
+	cubePoints.push_back(newRotatedPoint);
+
+	//point
+	newPoint = glm::vec3(getDimensions().x / 2, 0, -getDimensions().z / 2);
+	newRotatedPoint = rotationmatrix1 * newPoint;
+	newRotatedPoint += glm::vec3(getPosition().x, getPosition().y, getPosition().z);
+	cubePoints.push_back(newRotatedPoint);
+
+	//point
+	newPoint = glm::vec3(getDimensions().x / 2, 0, getDimensions().z / 2);
+	newRotatedPoint = rotationmatrix1 * newPoint;
+	newRotatedPoint += glm::vec3(getPosition().x, getPosition().y, getPosition().z);
+	cubePoints.push_back(newRotatedPoint);
+
+
+	return cubePoints;
+}
+
+std::vector<glm::vec3> Object::calculateCubeNormals()
+{
+	std::vector<glm::vec3> normals;
+	glm::vec3 normal;
+
+	normal = (glm::normalize(cubePoints[1] - cubePoints[0]));
+	normals.push_back(normal);
+
+	normal = (glm::normalize(cubePoints[2] - cubePoints[1]));
+	normals.push_back(normal);
+
+	normal = (glm::normalize(cubePoints[7] - cubePoints[0]));
+	normals.push_back(normal);
+
+	return normals;
+}
+
+std::vector<glm::vec2> Object::getRectPoints()
+{
+	return rectPoints;
+}
+
+std::vector<glm::vec3> Object::getCubePoints()
+{
+	return cubePoints;
+}
+
+std::vector<glm::vec3> Object::getCubeNormals()
+{
+	return cubeNormals;
 }
 
 bool Object::checkBoundaries(Object* map, glm::vec3 newPosition)
@@ -290,41 +386,41 @@ bool Object::checkBoundaries(Object* map, glm::vec3 newPosition)
 	// X - Achse
 	if (newPosition.x - dimensions.x / 2 < map->getPosition().x - map->getDimensions().x / 2)
 	{
-		Logger::log("Object out of Bounds: [MFN: " + getName() + ",OT: " + std::to_string(getType()) + ",ON: " + std::to_string(getNumber()) + "]");
+		Logger::log("Object out of Bounds: "+printObject());
 		return true;
 	}
 
 	if (newPosition.x + dimensions.x / 2 > map->getPosition().x + map->getDimensions().x / 2)
 	{
-		Logger::log("Object out of Bounds: [MFN: " + getName() + ",OT: " + std::to_string(getType()) + ",ON: " + std::to_string(getNumber()) + "]"); 
+		Logger::log("Object out of Bounds: " + printObject());
 		return true;
 	}
 
-	/*
+	
 	// Y - Achse
-	if (newPosition.y - dimensions.y / 2 < map->getPosition().y - map->getDimensions().y / 2)
+	if (newPosition.y / 2 < map->getPosition().y - 1 )
 	{
-		Logger::log("Player out of bounds. Obejctposition: x: " + std::to_string(position.x) + " y: " + std::to_string(position.y) + " z: " + std::to_string(position.z));
+		Logger::log("Object out of Bounds: " + printObject()); 
 		return true;
 	}
 
-	if (newPosition.y + dimensions.y / 2 > map->getPosition().y + map->getDimensions().y / 2)
+	if (newPosition.y + dimensions.y / 2 > map->getPosition().y + 200 / 2)
 	{
-		Logger::log("Player out of bounds. Obejctposition: x: " + std::to_string(position.x) + " y: " + std::to_string(position.y) + " z: " + std::to_string(position.z));
+		Logger::log("Object out of Bounds: " + printObject()); 
 		return true;
 	}
-	*/
+
 
 	// Z - Achse
 	if (newPosition.z - dimensions.z / 2 < map->getPosition().z - map->getDimensions().z / 2)
 	{
-		Logger::log("Object out of Bounds: [MFN: " + getName() + ",OT: " + std::to_string(getType()) + ",ON: " + std::to_string(getNumber()) + "]");
+		Logger::log("Object out of Bounds: " + printObject());
 		return true;
 	}
 
 	if (newPosition.z + dimensions.z / 2 > map->getPosition().z + map->getDimensions().z / 2)
 	{
-		Logger::log("Object out of Bounds: [MFN: " + getName() + ",OT: " + std::to_string(getType()) + ",ON: " + std::to_string(getNumber()) + "]");
+		Logger::log("Object out of Bounds: "+printObject());
 		return true;
 	}
 
@@ -332,25 +428,26 @@ bool Object::checkBoundaries(Object* map, glm::vec3 newPosition)
 	return false;
 }
 
-//deltaTime in seconds
-void Object::fall(float32 deltaTime)
+void Object::fall(float32 deltaTime, std::vector<Object*> objects)
 {
-	if (position.y > 0)
+	if (position.y > 0 && !onOtherObject)
 	{
-		movement.y -= 9.81 * 200 * deltaTime;
+		movement.y -= 9.81 * 200 * deltaTime;		
 	}
 
-	if (position.y <= 0)
+	if(position.y <= 0)
 	{
 		movement.y = 0;
 		position.y = 0;
 	}
 }
 
-//deltaTime in seconds
 void Object::move(float32 deltaTime)
 {
 	position += movement;
+
+	center = position;
+	center.y += dimensions.y / 2;
 }
 
 void Object::loadModel(std::string modelFileName)
@@ -405,13 +502,6 @@ glm::vec3 Object::getMovement()
 	return movement;
 }
 
-void Object::calculateDimensions()
-{
-	dimensions = model->getDimension();
-	boundingboxdimensions = model->getBoundingBoxDimension();
-	Logger::log("Object Dimension x: " + std::to_string(dimensions.x) + " y: " + std::to_string(dimensions.y) + " z: " + std::to_string(dimensions.z));
-}
-
 glm::vec3 Object::getDimensions()
 {
 	return dimensions;
@@ -463,4 +553,24 @@ int32 Object::getNumber()
 void Object::render()
 {
 	this->model->render();
+}
+
+void Object::registerHit()
+{
+	health = 0;
+}
+
+void Object::setHealth(float32 newHealth)
+{
+	health = newHealth;
+}
+
+float32 Object::getHealth()
+{
+	return health;
+}
+
+std::string Object::printObject()
+{
+	return "[" + std::to_string(getNumber()) + "|"+ getName() + "|" + std::to_string(getType()) + "]";
 }

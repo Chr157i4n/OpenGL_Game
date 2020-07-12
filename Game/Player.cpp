@@ -15,72 +15,9 @@ Player::Player(Shader* shader, float fov, float width, float height) : Character
 
 }
 
-void Player::moveForward(std::vector<Object*> objects) {
-
-	glm::vec3 v = glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f) * lookAt) * forwardSpeed;
-
-	for (Object* object : objects)
-	{
-		if (object->getNumber() == this->getNumber()) continue;
-		if (object->getType() == ObjectType::Object_Environment) continue;
-		if (object->getType() == ObjectType::Object_Bullet) continue;
-		if (checkCollisionXY(object, position + v)) return;
-	}
-	if (checkBoundaries(objects[1], position+v)) return;
-
-	position += v;
-
-}
-
-void Player::moveBackward(std::vector<Object*> objects) {
-
-	glm::vec3 v = glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f) * lookAt) * -backwardSidewaySpeed;
-
-	for (Object* object : objects)
-	{
-		if (object->getNumber() == this->getNumber()) continue;
-		if (object->getType() == ObjectType::Object_Environment) continue;
-		if (object->getType() == ObjectType::Object_Bullet) continue;
-		if (checkCollisionXY(object, position + v)) return;
-	}
-	if (checkBoundaries(objects[1], position+v)) return;
-
-	position += v;
-
-}
-
-void Player::moveRight(std::vector<Object*> objects) {
-	
-	glm::vec3 v = glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f) * glm::cross(lookAt, up)) * backwardSidewaySpeed;
-
-	for (Object* object : objects)
-	{
-		if (object->getNumber() == this->getNumber()) continue;
-		if (object->getType() == ObjectType::Object_Environment) continue;
-		if (object->getType() == ObjectType::Object_Bullet) continue;
-		if (checkCollisionXY(object, position + v)) return;
-	}
-	if (checkBoundaries(objects[1], position+v)) return;
-
-	position += v;
-
-}
-
-void Player::moveLeft(std::vector<Object*> objects) {
-
-	glm::vec3 v = glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f) * glm::cross(lookAt, up)) * -backwardSidewaySpeed;
-
-	for (Object* object : objects)
-	{
-		if (object->getNumber() == this->getNumber()) continue;
-		if (object->getType() == ObjectType::Object_Environment) continue;
-		if (object->getType() == ObjectType::Object_Bullet) continue;
-		if (checkCollisionXY(object, position + v)) return;
-	}
-	if (checkBoundaries(objects[1], position+v)) return;
-
-	position += v;
-
+glm::vec3 Player::getLookDirection()
+{
+	return lookAt;
 }
 
 void Player::onMouseMove(float xRel, float yRel)
@@ -88,7 +25,6 @@ void Player::onMouseMove(float xRel, float yRel)
 	onMouseMoved(xRel, yRel);
 	setRotation(glm::vec3(0, -yaw + 90, 0));
 }
-
 
 Bullet* Player::shoot()
 {

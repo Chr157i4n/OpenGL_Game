@@ -13,10 +13,10 @@ void FPSCamera::onMouseMoved(float xRel, float yRel)
 {
     yaw += xRel * mouseSensitivity;
     pitch -= yRel * mouseSensitivity;
-    if (pitch > 89.0f)
-        pitch = 89.0f;
-    if (pitch < -89.0f)
-        pitch = -89.0f;
+    if (pitch > 60)
+        pitch = 60;
+    if (pitch < -60)
+        pitch = -60;
 
     lookAt_NotNormalized.x = cos(glm::radians(pitch)) * cos(glm::radians(yaw));
     lookAt_NotNormalized.y = sin(glm::radians(pitch));

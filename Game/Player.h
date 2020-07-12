@@ -11,13 +11,7 @@ class Player : public Character, public FPSCamera
 public:
 	Player(Shader* shader, float fov, float width, float height);
 
-	void moveForward(std::vector<Object*> objects);
-
-	void moveBackward(std::vector<Object*> objects);
-
-	void moveRight(std::vector<Object*> objects);
-
-	void moveLeft(std::vector<Object*> objects);
+	glm::vec3 getLookDirection();
 
 	void onMouseMove(float xRel, float yRel);
 

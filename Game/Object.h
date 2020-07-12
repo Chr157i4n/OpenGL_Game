@@ -1,18 +1,24 @@
 #pragma once
-#include "Model.h"
-#include "Shader.h"
-#include "libs/glm/glm.hpp"
-#include "libs/glm/ext/matrix_transform.hpp"
-#include "libs/glm/gtc/matrix_transform.hpp"
+
 #include <math.h>
 #include <unordered_map>
 
+#include "libs/glm/glm.hpp"
+#include "libs/glm/ext/matrix_transform.hpp"
+#include "libs/glm/gtc/matrix_transform.hpp"
+
+#include "Model.h"
+#include "Shader.h"
+#include "Logger.h"
+
+
+
 enum ObjectType {
-	Object_Player = 0,
-	Object_Bot = 1,
-	Object_Entity = 2,
-	Object_Environment = 3,
-	Object_Bullet = 4,
+	Object_Player,
+	Object_Bot,
+	Object_Entity,
+	Object_Environment,
+	Object_Bullet
 };
 
 std::unordered_map<std::string, ObjectType> const objectTypeTable =
@@ -22,6 +28,12 @@ std::unordered_map<std::string, ObjectType> const objectTypeTable =
 	{"Entity",ObjectType::Object_Entity},
 	{"Environment",ObjectType::Object_Environment},
 	{"Player",ObjectType::Object_Player}
+};
+
+struct CollisionResult
+{
+	bool collided = false;
+	glm::vec3 MinimumTranslationVector = glm::vec3(0,0,0);
 };
 
 class Object
@@ -35,18 +47,31 @@ public:
 
 	void unbindShader();
 
-	bool checkCollisionXY(Object* object, glm::vec3 newPosition);
 
-	bool checkCollisionXY_AABB(Object* object, glm::vec3 newPosition);
+	CollisionResult checkCollision(std::vector<Object*> objects);
 
-	bool checkCollisionXY_SAT(Object* object, glm::vec3 newPosition);
+	bool checkCollision_AABB(Object* object);
 
-	std::vector<glm::vec2> getRectPoints(Object* object);
+	bool checkCollision_SAT(Object* object, CollisionResult* collisionResult);
+
+	glm::vec3 calculateDimensions();
+
+	std::vector<glm::vec2> calculateRectPoints();
+
+	std::vector<glm::vec3> calculateCubePoints();
+
+	std::vector<glm::vec3> calculateCubeNormals();
+
+	std::vector<glm::vec2> getRectPoints();
+
+	std::vector<glm::vec3> getCubePoints();
+
+	std::vector<glm::vec3> getCubeNormals();
 
 	bool checkBoundaries(Object* map, glm::vec3 newPosition);
 
 	//deltaTime in seconds
-	void fall(float32 deltaTime);
+	void fall(float32 deltaTime, std::vector<Object*> objects);
 
 	//deltaTime in seconds
 	void move(float32 deltaTime);
@@ -71,8 +96,6 @@ public:
 
 	glm::vec3 getMovement();
 
-	void calculateDimensions();
-
 	glm::vec3 getDimensions();
 
 	glm::vec3 getBoundingBoxDimensions();
@@ -93,19 +116,34 @@ public:
 
 	void render();
 
+	void registerHit();
+
+	void setHealth(float32 newHealth);
+
+	float32 getHealth();
+
+	std::string printObject();
+
 protected:
-	
-	glm::vec3 position;						//x, y, z		rechts, oben, vorne
-	glm::vec3 rotation;						//yaw, pitch, roll	gieren (360°), Steigung (360° | +-90°), Rollen (360°)
+
+	glm::vec3 position;						//x, y, z
+	glm::vec3 center;						//x, y, z
+	glm::vec3 rotation;						//yaw, pitch, roll	
 	glm::vec3 scale;
 	glm::vec3 movement;						//x, y, z
 	glm::vec3 dimensions;					//x, y, z
 	glm::vec3 boundingboxdimensions;		//x, y, z
 
+	std::vector<glm::vec2> rectPoints;
+	std::vector<glm::vec3> cubePoints;
+	std::vector<glm::vec3> cubeNormals;
+
 	Model* model = nullptr;
 	Shader* shader = nullptr;
 	ObjectType type;
-	std::string name="";
+	std::string name = "";
 	int32 number;
+	float32 health = 100;
+	bool onOtherObject=false;
 };
 

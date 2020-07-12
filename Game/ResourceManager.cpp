@@ -32,7 +32,7 @@ void ResourceManager::unbindShader()
 	shader->unbind();
 }
 
-void ResourceManager::loadMap(std::string mapFileName, std::vector<Object*>* objects, std::vector<Player*>* players, std::vector<NPC*>* npcs)
+void ResourceManager::loadMap(std::string mapFileName, std::vector<Object*>* objects, std::vector<Character*>* characters, std::vector<Player*>* players, std::vector<NPC*>* npcs)
 {
 	const char* mapFileNameC = mapFileName.c_str();
 	int32 numObject = 0;
@@ -51,9 +51,11 @@ void ResourceManager::loadMap(std::string mapFileName, std::vector<Object*>* obj
 	//Player(s)
 	float fov = std::stof(ConfigManager::readConfig("fov"));
 	Player* player = new Player(shader, fov, 800.0f, 600.0f);
+	player->setName("Player");
 	player->setNumber(numObject);
 	objects->push_back(player);
 	players->push_back(player);
+	characters->push_back(player);
 	numObject++;
 
 
@@ -117,17 +119,31 @@ void ResourceManager::loadMap(std::string mapFileName, std::vector<Object*>* obj
 		xmlNodeText = xmlNodeBot->FirstChildElement("name")->GetText();
 		newNPC->setName(xmlNodeText);
 
-		for (tinyxml2::XMLElement* xmlNodeNavPoint = xmlNodeBot->FirstChildElement("navpoints")->FirstChildElement("navpoint"); xmlNodeNavPoint != NULL; xmlNodeNavPoint = xmlNodeNavPoint->NextSiblingElement())
+		if (xmlNodeBot->FirstChildElement("navpoints"))
 		{
-			xmlNodeText = xmlNodeNavPoint->GetText();
-			split(xmlNodeText, params, ';');
-			newNPC->addNavPoint(glm::vec3(stof(params[0]), stof(params[1]), stof(params[2])));
+			if (xmlNodeBot->FirstChildElement("navpoints")->FirstChildElement("navpoint"))
+			{
+				newNPC->setCurrentTask(CurrentTask::Follow_NavPoint);
+			}
+			else
+			{
+				newNPC->setCurrentTask(CurrentTask::Follow_Character);
+			}
+
+			
+			for (tinyxml2::XMLElement* xmlNodeNavPoint = xmlNodeBot->FirstChildElement("navpoints")->FirstChildElement("navpoint"); xmlNodeNavPoint != NULL; xmlNodeNavPoint = xmlNodeNavPoint->NextSiblingElement())
+			{
+				xmlNodeText = xmlNodeNavPoint->GetText();
+				split(xmlNodeText, params, ';');
+				newNPC->addNavPoint(glm::vec3(stof(params[0]), stof(params[1]), stof(params[2])));
+			}
 		}
 
 
 		newNPC->setNumber(numObject);
 		objects->push_back(newNPC);
 		npcs->push_back(newNPC);
+		characters->push_back(newNPC);
 
 		numObject++;
 	}
@@ -141,11 +157,13 @@ void ResourceManager::loadMap(std::string mapFileName, std::vector<Object*>* obj
 		float x = rand() % 100 - 50;
 		float z = rand() % 100 - 50;
 
-		NPC* npc = new NPC(shader);
-		npc->setPosition(glm::vec3(x, 0, z));
-		npc->setNumber(numObject);
-		objects->push_back(npc);
-		npcs->push_back(npc);
+		NPC* newNpc = new NPC(shader);
+		newNpc->setPosition(glm::vec3(x, 0, z));
+		newNpc->setNumber(numObject);
+		newNpc->setCurrentTask(CurrentTask::Follow_Character);
+		objects->push_back(newNpc);
+		npcs->push_back(newNpc);
+		characters->push_back(newNpc);
 		numObject++;
 	}
 
