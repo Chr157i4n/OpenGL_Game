@@ -5,6 +5,7 @@ Character::Character(Shader* shader) : Object(shader, "models/character.bmf")
 	this->shader = shader;
 	lookDirection = glm::vec3(1.0f, 0.0f, 0.0f);
 	up = glm::vec3(0.0f, 1.0f, 0.0f);
+	this->name = "Character";
 }
 
 glm::vec3 Character::getLookDirection()
@@ -24,6 +25,7 @@ void Character::moveForward(std::vector<Object*> objects) {
 
 	movement.x += v.x;
 	movement.z += v.z;
+
 }
 
 void Character::moveBackward(std::vector<Object*> objects) {
@@ -33,6 +35,7 @@ void Character::moveBackward(std::vector<Object*> objects) {
 
 	movement.x += v.x;
 	movement.z += v.z;
+
 }
 
 void Character::moveRight(std::vector<Object*> objects) {
@@ -42,6 +45,7 @@ void Character::moveRight(std::vector<Object*> objects) {
 
 	movement.x += v.x;
 	movement.z += v.z;
+
 }
 
 void Character::moveLeft(std::vector<Object*> objects) {
@@ -51,26 +55,24 @@ void Character::moveLeft(std::vector<Object*> objects) {
 
 	movement.x += v.x;
 	movement.z += v.z;
+
 }
 
 void Character::jump()
 {
-	movement.y = 0.5;
+	if (canJump)
+	{
+		movement.y = 0.5;
+		canJump = false;
+	}
 }
 
-//deltaTime in seconds
-void Character::fall(float32 deltaTime) 
+void Character::activateJumping()
 {
-	position.y += upwardSpeed;
-
-	if (position.y > 0)
+	if (!canJump)
 	{
-		upwardSpeed -= 9.81 * 200 * deltaTime;
-	}
-
-	if (position.y <= 0)
-	{
-		upwardSpeed = 0;
+		canJump = true;
+		Logger::log("Jumping activated for: " + printObject());
 	}
 }
 

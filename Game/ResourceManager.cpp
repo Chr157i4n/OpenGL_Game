@@ -83,6 +83,9 @@ void ResourceManager::loadMap(std::string mapFileName, std::vector<Object*>* obj
 		xmlNodeText = xmlNodeObject->FirstChildElement("type")->GetText();
 		newObject->setType(Object::convertStringToType(xmlNodeText));
 
+		xmlNodeText = xmlNodeObject->FirstChildElement("collissionboxtype")->GetText();
+		newObject->setCollissionBoxType(Object::convertStringToCollissionBoxType(xmlNodeText));
+
 		xmlNodeText = xmlNodeObject->FirstChildElement("name")->GetText();
 		newObject->setName(xmlNodeText);
 

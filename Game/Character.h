@@ -24,8 +24,7 @@ public:
 
 	void jump();
 
-	//deltaTime in seconds
-	void fall(float32 deltaTime);
+	void activateJumping();
 
 	void crouch(bool crouch = true);
 
@@ -35,6 +34,7 @@ protected:
 
 	bool isCrouched = false;
 	bool isRunning = false;
+	bool canJump = true;
 
 	glm::vec3 lookDirection;
 	glm::vec3 speed;

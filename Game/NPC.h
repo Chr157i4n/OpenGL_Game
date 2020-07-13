@@ -30,6 +30,8 @@ public:
 
 	CurrentTask getGurrentTask();
 
+	void evade(float32 deltaTime, std::vector<Object*> objects);
+
 private:
 
 	std::vector<glm::vec3> navPoints;

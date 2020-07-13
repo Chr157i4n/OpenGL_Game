@@ -33,11 +33,13 @@ Object::Object(Shader* shader, std::string modelFileName)
 	loadModel(modelFileName);
 	dimensions = calculateDimensions();
 	rectPoints = calculateRectPoints();
-	cubePoints = calculateCubePoints();
-	cubeNormals = calculateCubeNormals();
+	cubePoints = calculateCollisionPoints();
+	cubeNormals = calculateCollisionNormals();
 
 	center = position;
 	center.y += dimensions.y / 2;
+
+	this->name = "Object";
 }
 
 Shader* Object::getShader()
@@ -66,15 +68,13 @@ CollisionResult Object::checkCollision(std::vector<Object*> objects)
 	for (Object* object : objects)
 	{
 		if (object->getNumber() == this->getNumber()) continue;
-		if (object->getType() == ObjectType::Object_Environment) continue;
+		//if (object->getType() == ObjectType::Object_Environment) continue;
 		if (object->getType() == ObjectType::Object_Bullet) continue;
 		//if (object->getType() == ObjectType::Object_Player) continue;
 
 		if (checkCollision_AABB(object))
 		{
 			checkCollision_SAT(object, &collisionResult);
-
-
 		}
 	}
 
@@ -132,22 +132,22 @@ bool Object::checkCollision_AABB(Object* object)
 
 bool Object::checkCollision_SAT(Object* object, CollisionResult* collisionResult)
 {
-	std::vector<std::vector<glm::vec3>> CubePoints;
+	std::vector<std::vector<glm::vec3>> CollisionPoints;
 	float minOverlap = std::numeric_limits<float>::infinity();
 	glm::vec3 minOverlapAxis = glm::vec3(0,0,0);
-	onOtherObject = false;
+	
 
-	CubePoints.push_back(this->calculateCubePoints());
-	CubePoints.push_back(object->calculateCubePoints());
+		CollisionPoints.push_back(this->calculateCollisionPoints());
+		CollisionPoints.push_back(object->calculateCollisionPoints());
 
 
 	std::vector<glm::vec3> axes;
 
-	for (glm::vec3 normal : this->calculateCubeNormals())
+	for (glm::vec3 normal : this->calculateCollisionNormals())
 	{
 		axes.push_back(normal);
 	}
-	for (glm::vec3 normal : object->calculateCubeNormals())
+	for (glm::vec3 normal : object->calculateCollisionNormals())
 	{
 		axes.push_back(normal);
 	}
@@ -161,13 +161,13 @@ bool Object::checkCollision_SAT(Object* object, CollisionResult* collisionResult
 		float aMinProj = std::numeric_limits<float>::infinity();
 		float bMaxProj = -std::numeric_limits<float>::infinity();
 		float bMinProj = std::numeric_limits<float>::infinity();
-		for (const auto& v : CubePoints[0]) {
+		for (const auto& v : CollisionPoints[0]) {
 			auto proj = glm::dot(axis, v);
 			if (proj < aMinProj) aMinProj = proj;
 			if (proj > aMaxProj) aMaxProj = proj;
 		}
 
-		for (const auto& v : CubePoints[1]) {
+		for (const auto& v : CollisionPoints[1]) {
 			auto proj = glm::dot(axis, v);
 			if (proj < bMinProj) bMinProj = proj;
 			if (proj > bMaxProj) bMaxProj = proj;
@@ -202,22 +202,44 @@ bool Object::checkCollision_SAT(Object* object, CollisionResult* collisionResult
 	// which means that the polygons must intersect.
 	Logger::log("SAT collision between: "+this->printObject()+" and  "+object->printObject());
 	
-	
+	Logger::log("minOverlapAxis:" + std::to_string(minOverlapAxis.x)+","+ std::to_string(minOverlapAxis.y) + "," + std::to_string(minOverlapAxis.z));
+	Logger::log("minOverlap:" + std::to_string(minOverlap));
+
 	glm::vec3 MinimumTranslationVector = minOverlapAxis * minOverlap;
 
-	this->position += MinimumTranslationVector;
-
-	if (std::abs(glm::normalize(minOverlapAxis).y) >= 0.9)
+	if (glm::normalize(minOverlapAxis).y >= 0.9)
 	{
 		Logger::log("standing on Object");
 		movement.y = 0;
 		onOtherObject = true;
+		collisionResult->onTop = true;
 	}
+	else if (glm::normalize(minOverlapAxis).y >= 0 && object->getCollissionBoxType() == CollissionBoxType::prism)
+	{
+		MinimumTranslationVector = MinimumTranslationVector * glm::vec3(0, 1, 0);
+	}
+
+
+	this->position += MinimumTranslationVector;
+
+	collisionResult->collided = true;
+	collisionResult->collidedWith = object;
+	collisionResult->MinimumTranslationVector = MinimumTranslationVector;
+
 	
 	return true;
 
 }
 
+void Object::calculationBeforeFrame()
+{
+	
+}
+
+void Object::calculationAfterFrame()
+{
+
+}
 
 glm::vec3 Object::calculateDimensions()
 {
@@ -282,86 +304,154 @@ std::vector<glm::vec2> Object::calculateRectPoints()
 	return rectPoints;
 }
 
-std::vector<glm::vec3> Object::calculateCubePoints()
+std::vector<glm::vec3> Object::calculateCollisionPoints()
 {
 	glm::vec3 newPoint;
 	glm::vec3 newRotatedPoint;
 	cubePoints.clear();
 
-	float cosW = cos(-rotation.y * 3.14 / 180);
-	float sinW = sin(-rotation.y * 3.14 / 180);
-	//glm::mat3 rotationmatrix1 = glm::mat3(1, 0, 0, 0, cosW, -sinW, 0, sinW, cosW); // around the x-axis
-	glm::mat3 rotationmatrix1 = glm::mat3(cosW, 0, sinW, 0, 1, 0, -sinW, 0, cosW); // around the y-axis
-	//glm::mat3 rotationmatrix1 = glm::mat3(cosW, -sinW, 0, sinW, cosW, 0, 0, 0, 1); // around the z-axis
-
-	//top
-	//point
-	newPoint = glm::vec3(getDimensions().x / 2, getDimensions().y, getDimensions().z / 2);
-	newRotatedPoint = rotationmatrix1 * newPoint;
-	newRotatedPoint += glm::vec3(getPosition().x, getPosition().y, getPosition().z);
-	cubePoints.push_back(newRotatedPoint);
-
-	//point
-	newPoint = glm::vec3(getDimensions().x / 2, getDimensions().y, -getDimensions().z / 2);
-	newRotatedPoint = rotationmatrix1 * newPoint;
-	newRotatedPoint += glm::vec3(getPosition().x, getPosition().y, getPosition().z);
-	cubePoints.push_back(newRotatedPoint);
-
-	//point
-	newPoint = glm::vec3(-getDimensions().x / 2, getDimensions().y, -getDimensions().z / 2);
-	newRotatedPoint = rotationmatrix1 * newPoint;
-	newRotatedPoint += glm::vec3(getPosition().x, getPosition().y, getPosition().z);
-	cubePoints.push_back(newRotatedPoint);
-
-	//point
-	newPoint = glm::vec3(-getDimensions().x / 2, getDimensions().y, getDimensions().z / 2);
-	newRotatedPoint = rotationmatrix1 * newPoint;
-	newRotatedPoint += glm::vec3(getPosition().x, getPosition().y, getPosition().z);
-	cubePoints.push_back(newRotatedPoint);
 
 
-	//bottom
-	//point
-	newPoint = glm::vec3(-getDimensions().x / 2, 0, getDimensions().z / 2);
-	newRotatedPoint = rotationmatrix1 * newPoint;
-	newRotatedPoint += glm::vec3(getPosition().x, getPosition().y, getPosition().z);
-	cubePoints.push_back(newRotatedPoint);
 
-	//point
-	newPoint = glm::vec3(-getDimensions().x / 2, 0, -getDimensions().z / 2);
-	newRotatedPoint = rotationmatrix1 * newPoint;
-	newRotatedPoint += glm::vec3(getPosition().x, getPosition().y, getPosition().z);
-	cubePoints.push_back(newRotatedPoint);
+	if (this->getCollissionBoxType() == CollissionBoxType::cube)
+	{
+		float cosW = cos(-rotation.y * 3.14 / 180);
+		float sinW = sin(-rotation.y * 3.14 / 180);
+		//glm::mat3 rotationmatrix1 = glm::mat3(1, 0, 0, 0, cosW, -sinW, 0, sinW, cosW); // around the x-axis
+		glm::mat3 rotationmatrix1 = glm::mat3(cosW, 0, sinW, 0, 1, 0, -sinW, 0, cosW); // around the y-axis
+		//glm::mat3 rotationmatrix1 = glm::mat3(cosW, -sinW, 0, sinW, cosW, 0, 0, 0, 1); // around the z-axis
+		
+		//bottom
+		//point
+		newPoint = glm::vec3(-getDimensions().x / 2, 0, getDimensions().z / 2);
+		newRotatedPoint = rotationmatrix1 * newPoint;
+		newRotatedPoint += glm::vec3(getPosition().x, getPosition().y, getPosition().z);
+		cubePoints.push_back(newRotatedPoint);
 
-	//point
-	newPoint = glm::vec3(getDimensions().x / 2, 0, -getDimensions().z / 2);
-	newRotatedPoint = rotationmatrix1 * newPoint;
-	newRotatedPoint += glm::vec3(getPosition().x, getPosition().y, getPosition().z);
-	cubePoints.push_back(newRotatedPoint);
+		//point
+		newPoint = glm::vec3(-getDimensions().x / 2, 0, -getDimensions().z / 2);
+		newRotatedPoint = rotationmatrix1 * newPoint;
+		newRotatedPoint += glm::vec3(getPosition().x, getPosition().y, getPosition().z);
+		cubePoints.push_back(newRotatedPoint);
 
-	//point
-	newPoint = glm::vec3(getDimensions().x / 2, 0, getDimensions().z / 2);
-	newRotatedPoint = rotationmatrix1 * newPoint;
-	newRotatedPoint += glm::vec3(getPosition().x, getPosition().y, getPosition().z);
-	cubePoints.push_back(newRotatedPoint);
+		//point
+		newPoint = glm::vec3(getDimensions().x / 2, 0, -getDimensions().z / 2);
+		newRotatedPoint = rotationmatrix1 * newPoint;
+		newRotatedPoint += glm::vec3(getPosition().x, getPosition().y, getPosition().z);
+		cubePoints.push_back(newRotatedPoint);
+
+		//point
+		newPoint = glm::vec3(getDimensions().x / 2, 0, getDimensions().z / 2);
+		newRotatedPoint = rotationmatrix1 * newPoint;
+		newRotatedPoint += glm::vec3(getPosition().x, getPosition().y, getPosition().z);
+		cubePoints.push_back(newRotatedPoint);
+
+		//top
+		//point
+		newPoint = glm::vec3(getDimensions().x / 2, getDimensions().y, getDimensions().z / 2);
+		newRotatedPoint = rotationmatrix1 * newPoint;
+		newRotatedPoint += glm::vec3(getPosition().x, getPosition().y, getPosition().z);
+		cubePoints.push_back(newRotatedPoint);
+
+		//point
+		newPoint = glm::vec3(getDimensions().x / 2, getDimensions().y, -getDimensions().z / 2);
+		newRotatedPoint = rotationmatrix1 * newPoint;
+		newRotatedPoint += glm::vec3(getPosition().x, getPosition().y, getPosition().z);
+		cubePoints.push_back(newRotatedPoint);
+
+		//point
+		newPoint = glm::vec3(-getDimensions().x / 2, getDimensions().y, -getDimensions().z / 2);
+		newRotatedPoint = rotationmatrix1 * newPoint;
+		newRotatedPoint += glm::vec3(getPosition().x, getPosition().y, getPosition().z);
+		cubePoints.push_back(newRotatedPoint);
+
+		//point
+		newPoint = glm::vec3(-getDimensions().x / 2, getDimensions().y, getDimensions().z / 2);
+		newRotatedPoint = rotationmatrix1 * newPoint;
+		newRotatedPoint += glm::vec3(getPosition().x, getPosition().y, getPosition().z);
+		cubePoints.push_back(newRotatedPoint);
+	}
+	else if (this->getCollissionBoxType() == CollissionBoxType::prism)
+	{
+		float cosW = cos((-rotation.y-90) * 3.14 / 180);
+		float sinW = sin((-rotation.y-90) * 3.14 / 180);
+		//glm::mat3 rotationmatrix1 = glm::mat3(1, 0, 0, 0, cosW, -sinW, 0, sinW, cosW); // around the x-axis
+		glm::mat3 rotationmatrix1 = glm::mat3(cosW, 0, sinW, 0, 1, 0, -sinW, 0, cosW); // around the y-axis
+		//glm::mat3 rotationmatrix1 = glm::mat3(cosW, -sinW, 0, sinW, cosW, 0, 0, 0, 1); // around the z-axis
+
+		//bottom
+		//point
+		newPoint = glm::vec3(-getDimensions().x / 2, 0, getDimensions().z / 2);
+		newRotatedPoint = rotationmatrix1 * newPoint;
+		newRotatedPoint += glm::vec3(getPosition().x, getPosition().y, getPosition().z);
+		cubePoints.push_back(newRotatedPoint);
+
+		//point
+		newPoint = glm::vec3(-getDimensions().x / 2, 0, -getDimensions().z / 2);
+		newRotatedPoint = rotationmatrix1 * newPoint;
+		newRotatedPoint += glm::vec3(getPosition().x, getPosition().y, getPosition().z);
+		cubePoints.push_back(newRotatedPoint);
+
+		//point
+		newPoint = glm::vec3(getDimensions().x / 2, 0, -getDimensions().z / 2);
+		newRotatedPoint = rotationmatrix1 * newPoint;
+		newRotatedPoint += glm::vec3(getPosition().x, getPosition().y, getPosition().z);
+		cubePoints.push_back(newRotatedPoint);
+
+		//point
+		newPoint = glm::vec3(getDimensions().x / 2, 0, getDimensions().z / 2);
+		newRotatedPoint = rotationmatrix1 * newPoint;
+		newRotatedPoint += glm::vec3(getPosition().x, getPosition().y, getPosition().z);
+		cubePoints.push_back(newRotatedPoint);
+
+		//top
+		//point
+		newPoint = glm::vec3(getDimensions().x / 2, getDimensions().y, getDimensions().z / 2);
+		newRotatedPoint = rotationmatrix1 * newPoint;
+		newRotatedPoint += glm::vec3(getPosition().x, getPosition().y, getPosition().z);
+		cubePoints.push_back(newRotatedPoint);
+
+		//point
+		newPoint = glm::vec3(-getDimensions().x / 2, getDimensions().y, getDimensions().z / 2);
+		newRotatedPoint = rotationmatrix1 * newPoint;
+		newRotatedPoint += glm::vec3(getPosition().x, getPosition().y, getPosition().z);
+		cubePoints.push_back(newRotatedPoint);
+	}
 
 
 	return cubePoints;
 }
 
-std::vector<glm::vec3> Object::calculateCubeNormals()
+std::vector<glm::vec3> Object::calculateCollisionNormals()
 {
 	std::vector<glm::vec3> normals;
 	glm::vec3 normal;
 
-	normal = (glm::normalize(cubePoints[1] - cubePoints[0]));
-	normals.push_back(normal);
+	if (this->getCollissionBoxType() == CollissionBoxType::cube)
+	{
+		normal = (glm::normalize(cubePoints[1] - cubePoints[0]));
+		normals.push_back(normal);
 
-	normal = (glm::normalize(cubePoints[2] - cubePoints[1]));
-	normals.push_back(normal);
+		normal = (glm::normalize(cubePoints[2] - cubePoints[1]));
+		normals.push_back(normal);
 
-	normal = (glm::normalize(cubePoints[7] - cubePoints[0]));
-	normals.push_back(normal);
+		normal = (glm::normalize(cubePoints[7] - cubePoints[0]));
+		normals.push_back(normal);
+	}
+	else if (this->getCollissionBoxType() == CollissionBoxType::prism)
+	{
+		normal = (glm::normalize(cubePoints[1] - cubePoints[0]));
+		normals.push_back(normal);
+
+		normal = (glm::normalize(cubePoints[2] - cubePoints[1]));
+		normals.push_back(normal);
+
+		normal = (glm::normalize(cubePoints[5] - cubePoints[0]));
+		normals.push_back(normal);
+
+		normal = (glm::normalize( glm::cross( glm::normalize(cubePoints[5] - cubePoints[4]), glm::normalize(cubePoints[4] - cubePoints[2]) ) ));
+		normals.push_back(normal);
+	}
 
 	return normals;
 }
@@ -430,16 +520,20 @@ bool Object::checkBoundaries(Object* map, glm::vec3 newPosition)
 
 void Object::fall(float32 deltaTime, std::vector<Object*> objects)
 {
+	
 	if (position.y > 0 && !onOtherObject)
 	{
+		Logger::log("Object: " +printObject()+" is falling");
 		movement.y -= 9.81 * 200 * deltaTime;		
 	}
 
-	if(position.y <= 0)
+	/*if(position.y <= 0)
 	{
 		movement.y = 0;
 		position.y = 0;
-	}
+	}*/
+
+	
 }
 
 void Object::move(float32 deltaTime)
@@ -448,6 +542,12 @@ void Object::move(float32 deltaTime)
 
 	center = position;
 	center.y += dimensions.y / 2;
+
+	//if the objects moves onOtherObject should be calculated new
+	if (movement != glm::vec3(0, 0, 0))
+	{
+		onOtherObject = false;
+	}
 }
 
 void Object::loadModel(std::string modelFileName)
@@ -573,4 +673,22 @@ float32 Object::getHealth()
 std::string Object::printObject()
 {
 	return "[" + std::to_string(getNumber()) + "|"+ getName() + "|" + std::to_string(getType()) + "]";
+}
+
+void Object::setCollissionBoxType(CollissionBoxType collissionBoxType)
+{
+	this->collissionBoxType = collissionBoxType;
+}
+
+CollissionBoxType Object::getCollissionBoxType()
+{
+	return collissionBoxType;
+}
+
+CollissionBoxType Object::convertStringToCollissionBoxType(std::string ollissionBoxTypeAsString)
+{
+	auto it = collissionBoxTypeTable.find(ollissionBoxTypeAsString);
+	if (it != collissionBoxTypeTable.end()) {
+		return it->second;
+	}
 }

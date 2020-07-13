@@ -5,6 +5,7 @@
     <object>
       <name>Ground</name>
       <type>Environment</type>
+      <collissionboxtype>cube</collissionboxtype>
       <modelfile>ground.bmf</modelfile>
       <position>0;0;0</position>
       <rotation>0;0;0</rotation>
@@ -13,6 +14,7 @@
     <object>
       <name>Box</name>
       <type>Entity</type>
+      <collissionboxtype>cube</collissionboxtype>
       <modelfile>box.bmf</modelfile>
       <position>20;10;-20</position>
       <rotation>0;0;0</rotation>
@@ -21,6 +23,7 @@
     <object>
       <name>Box</name>
       <type>Entity</type>
+      <collissionboxtype>cube</collissionboxtype>
       <modelfile>box.bmf</modelfile>
       <position>20;15;-20</position>
       <rotation>0;20;0</rotation>
@@ -29,6 +32,7 @@
     <object>
       <name>Box</name>
       <type>Entity</type>
+      <collissionboxtype>cube</collissionboxtype>
       <modelfile>box.bmf</modelfile>
       <position>20;20;-20</position>
       <rotation>0;40;0</rotation>
@@ -37,14 +41,52 @@
     <object>
       <name>Box</name>
       <type>Entity</type>
+      <collissionboxtype>cube</collissionboxtype>
       <modelfile>box.bmf</modelfile>
       <position>20;25;-20</position>
       <rotation>0;60;0</rotation>
       <scale>1;1;1</scale>
     </object>
     <object>
+      <name>Block1</name>
+      <type>Entity</type>
+      <collissionboxtype>cube</collissionboxtype>
+      <modelfile>block_low.bmf</modelfile>
+      <position>0;0;-20</position>
+      <rotation>0;0;0</rotation>
+      <scale>1;1;1</scale>
+    </object>
+    <object>
+      <name>Block1</name>
+      <type>Entity</type>
+      <collissionboxtype>cube</collissionboxtype>
+      <modelfile>block_low.bmf</modelfile>
+      <position>0;0;-24</position>
+      <rotation>0;0;0</rotation>
+      <scale>1;1;1</scale>
+    </object>
+    <object>
+      <name>Block1</name>
+      <type>Entity</type>
+      <collissionboxtype>cube</collissionboxtype>
+      <modelfile>block_low.bmf</modelfile>
+      <position>4;0;-24</position>
+      <rotation>0;0;0</rotation>
+      <scale>1;1;1</scale>
+    </object>
+    <object>
+      <name>Block2</name>
+      <type>Entity</type>
+      <collissionboxtype>prism</collissionboxtype>
+      <modelfile>block_low_ramp.bmf</modelfile>
+      <position>4;0;-20</position>
+      <rotation>0;180;0</rotation>
+      <scale>1;1;1</scale>
+    </object>
+    <!--<object>
       <name>Box</name>
       <type>Entity</type>
+      <collissionboxtype>cube</collissionboxtype>
       <modelfile>box.bmf</modelfile>
       <position>10;0;0</position>
       <rotation>0;0;0</rotation>
@@ -53,6 +95,7 @@
     <object>
       <name>Box</name>
       <type>Entity</type>
+      <collissionboxtype>cube</collissionboxtype>
       <modelfile>box.bmf</modelfile>
       <position>13;3;0</position>
       <rotation>0;45;0</rotation>
@@ -61,6 +104,7 @@
     <object>
       <name>Fence</name>
       <type>Entity</type>
+      <collissionboxtype>cube</collissionboxtype>
       <modelfile>fence.bmf</modelfile>
       <position>10;0;-20</position>
       <rotation>0;0;0</rotation>
@@ -69,6 +113,7 @@
     <object>
       <name>Fence</name>
       <type>Entity</type>
+      <collissionboxtype>cube</collissionboxtype>
       <modelfile>fence.bmf</modelfile>
       <position>15.8;0;-22.3</position>
       <rotation>0;45;0</rotation>
@@ -77,6 +122,7 @@
     <object>
       <name>Fence</name>
       <type>Entity</type>
+      <collissionboxtype>cube</collissionboxtype>
       <modelfile>fence.bmf</modelfile>
       <position>18.7;0;-28</position>
       <rotation>0;80;0</rotation>
@@ -85,6 +131,7 @@
     <object>
       <name>Fence</name>
       <type>Entity</type>
+      <collissionboxtype>cube</collissionboxtype>
       <modelfile>fence.bmf</modelfile>
       <position>18;0;-35</position>
       <rotation>0;120;0</rotation>
@@ -93,14 +140,15 @@
     <object>
       <name>Fence</name>
       <type>Entity</type>
+      <collissionboxtype>cube</collissionboxtype>
       <modelfile>fence.bmf</modelfile>
       <position>10;0;-42</position>
       <rotation>0;180;0</rotation>
       <scale>1;1;1</scale>
-    </object>
+    </object>-->
   </objects>
   <bots>
-    <bot>
+    <!--<bot>
       <name>Bot0</name>
       <type>Bot</type>
       <modelfile>character.bmf</modelfile>
@@ -158,6 +206,6 @@
         <navpoint>-70;0;-40</navpoint>
         <navpoint>-70;0;-45</navpoint>
       </navpoints>
-    </bot>
+    </bot>-->
   </bots>
 </map>

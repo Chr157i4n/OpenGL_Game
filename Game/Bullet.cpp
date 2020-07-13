@@ -6,6 +6,7 @@ Bullet::Bullet(Shader* shader, glm::vec3 position, glm::vec3 rotation, glm::vec3
 	this->position = position;
 	this->rotation = rotation;
 	this->movement = glm::normalize(direction)*speed;
+	this->name = "Bullet";
 }
 
 void Bullet::fall(float32 deltaTime)
@@ -35,20 +36,21 @@ void Bullet::move(float32 deltaTime)
 
 void Bullet::checkHit(std::vector<Object*> objects)
 {
-	for (Object* object : objects)
-	{
+
 		if (movement.x == 0 && movement.z == 0) return;
 
-		if (checkCollision(objects).collided)
+		CollisionResult collisionresult = checkCollision(objects);
+
+		if(collisionresult.collided)
 		{
-			if (object->getType() == ObjectType::Object_Bullet) continue;
-			if (object->getType() == ObjectType::Object_Environment) continue;
-			if (object->getType() == ObjectType::Object_Player) continue;
-			if (object->getType() == ObjectType::Object_Entity) continue;
+			if (collisionresult.collidedWith->getType() == ObjectType::Object_Bullet) return;
+			if (collisionresult.collidedWith->getType() == ObjectType::Object_Environment) return;
+			if (collisionresult.collidedWith->getType() == ObjectType::Object_Player) return;
+			if (collisionresult.collidedWith->getType() == ObjectType::Object_Entity) return;
 
 			this->registerHit();
-			object->registerHit();
+			collisionresult.collidedWith->registerHit();
 			Logger::log("Hit");
 		}
-	}
+
 }

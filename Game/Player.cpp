@@ -2,7 +2,7 @@
 
 Player::Player(Shader* shader, float fov, float width, float height) : Character(shader), FPSCamera(fov, width, height)
 {
-	setType(ObjectType::Object_Player);
+	setType(ObjectType::Object_Player | ObjectType::Object_Character);
 	
 
 	position.x = 20;
@@ -12,6 +12,8 @@ Player::Player(Shader* shader, float fov, float width, float height) : Character
 	cameraposition.x = position.x;
 	cameraposition.y = position.y + 4;
 	cameraposition.z = position.z;
+
+	this->name = "Player";
 
 }
 

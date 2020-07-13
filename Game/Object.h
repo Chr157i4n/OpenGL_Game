@@ -11,28 +11,49 @@
 #include "Shader.h"
 #include "Logger.h"
 
-
+class Object;
 
 enum ObjectType {
-	Object_Player,
-	Object_Bot,
-	Object_Entity,
-	Object_Environment,
-	Object_Bullet
+	Object_Player = 1,
+	Object_NPC = 2,
+	Object_Character = 4,
+	Object_Entity = 8,
+	Object_Environment = 16,
+	Object_Bullet = 32
 };
+
+inline ObjectType operator|(ObjectType a, ObjectType b)
+{
+	return static_cast<ObjectType>(static_cast<int>(a) | static_cast<int>(b));
+}
 
 std::unordered_map<std::string, ObjectType> const objectTypeTable =
 {
-	{"Bot",ObjectType::Object_Bot},
+	{"Bot",ObjectType::Object_NPC},
 	{"Bullet",ObjectType::Object_Bullet},
 	{"Entity",ObjectType::Object_Entity},
 	{"Environment",ObjectType::Object_Environment},
 	{"Player",ObjectType::Object_Player}
 };
 
+enum CollissionBoxType {
+	cube,
+	prism,
+};
+
+std::unordered_map<std::string, CollissionBoxType> const collissionBoxTypeTable =
+{
+	{"cube",CollissionBoxType::cube},
+	{"prism",CollissionBoxType::prism},
+};
+
+
+
 struct CollisionResult
 {
 	bool collided = false;
+	bool onTop = false;
+	Object* collidedWith = nullptr;
 	glm::vec3 MinimumTranslationVector = glm::vec3(0,0,0);
 };
 
@@ -54,13 +75,17 @@ public:
 
 	bool checkCollision_SAT(Object* object, CollisionResult* collisionResult);
 
+	void calculationBeforeFrame();
+
+	void calculationAfterFrame();
+
 	glm::vec3 calculateDimensions();
 
 	std::vector<glm::vec2> calculateRectPoints();
 
-	std::vector<glm::vec3> calculateCubePoints();
+	std::vector<glm::vec3> calculateCollisionPoints();
 
-	std::vector<glm::vec3> calculateCubeNormals();
+	std::vector<glm::vec3> calculateCollisionNormals();
 
 	std::vector<glm::vec2> getRectPoints();
 
@@ -124,6 +149,12 @@ public:
 
 	std::string printObject();
 
+	void setCollissionBoxType(CollissionBoxType collissionBoxType);
+
+	CollissionBoxType getCollissionBoxType();
+
+	static CollissionBoxType convertStringToCollissionBoxType(std::string ollissionBoxTypeAsString);
+
 protected:
 
 	glm::vec3 position;						//x, y, z
@@ -141,6 +172,7 @@ protected:
 	Model* model = nullptr;
 	Shader* shader = nullptr;
 	ObjectType type;
+	CollissionBoxType collissionBoxType;
 	std::string name = "";
 	int32 number;
 	float32 health = 100;

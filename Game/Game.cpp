@@ -180,6 +180,11 @@ void Game::gameLoop()
 		GLCALL(glClearColor(0.0f, 0.0f, 0.8f, 1.0f));
 		GLCALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
+		for (Object* object : objects)
+		{
+			object->calculationBeforeFrame();
+		}
+
 
 		ResourceManager::bindShader();
 		input();
@@ -198,6 +203,7 @@ void Game::gameLoop()
 			bullet->checkHit(objects);
 		}
 
+		//Move every Object
 		for (Object* object : objects)
 		{		
 			if (object->getType() == ObjectType::Object_Environment) continue;
@@ -207,9 +213,24 @@ void Game::gameLoop()
 			object->fall(delta / 1000, objects);
 		}
 
+		//Check every Object for collision
 		for (Object* object : objects)
 		{
-			object->checkCollision(objects);
+			CollisionResult collisionResult = object->checkCollision(objects);
+
+			if (object->getType() & ObjectType::Object_Character && collisionResult.onTop == true)
+			{
+				Character* character= static_cast<Character*>(object);
+				character->activateJumping();
+			}
+
+			if (object->getType() & ObjectType::Object_NPC && collisionResult.collidedWith->getType() & ObjectType::Object_Entity)
+			{
+				Logger::log("test");
+				NPC* npc = static_cast<NPC*>(object);
+				npc->evade(delta / 1000, objects);
+			}
+
 		}
 
 		for (Player* player : players)
@@ -242,15 +263,23 @@ void Game::gameLoop()
 		UI::drawPos(players[0]);
 		UI::drawUI();
 
-		SDL_GL_SwapWindow(window);
 
-		//Sleep(100);
+		for (Object* object : objects)
+		{
+			object->calculationAfterFrame();
+		}
+
+
+
+
+		SDL_GL_SwapWindow(window);
 
 		uint64 endCounter = SDL_GetPerformanceCounter();
 		uint64 counterElasped = endCounter - lastCounter;
 		delta = ((float32)counterElasped) / (float32)perfCounterFrequency;
 		FPS = (uint32)((float32)perfCounterFrequency / (float32)counterElasped);
 		lastCounter = endCounter;
+
 	}
 }
 
