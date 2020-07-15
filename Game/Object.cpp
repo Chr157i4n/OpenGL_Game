@@ -471,51 +471,58 @@ std::vector<glm::vec3> Object::getCubeNormals()
 	return cubeNormals;
 }
 
-bool Object::checkBoundaries(Object* map, glm::vec3 newPosition)
+bool Object::checkBoundaries(Object* map)
 {
+	bool outOfBounds = false;
+	glm::vec3 newPosition = position + movement;
+
 	// X - Achse
 	if (newPosition.x - dimensions.x / 2 < map->getPosition().x - map->getDimensions().x / 2)
 	{
-		Logger::log("Object out of Bounds: "+printObject());
-		return true;
+		outOfBounds = true;
+		movement.x = 0;
 	}
 
 	if (newPosition.x + dimensions.x / 2 > map->getPosition().x + map->getDimensions().x / 2)
 	{
-		Logger::log("Object out of Bounds: " + printObject());
-		return true;
+		outOfBounds = true;
+		movement.x = 0;
 	}
 
 	
 	// Y - Achse
 	if (newPosition.y / 2 < map->getPosition().y - 1 )
 	{
-		Logger::log("Object out of Bounds: " + printObject()); 
-		return true;
+		outOfBounds = true;
+		position.y = 0;
+		movement.y = 0;
 	}
 
 	if (newPosition.y + dimensions.y / 2 > map->getPosition().y + 200 / 2)
 	{
-		Logger::log("Object out of Bounds: " + printObject()); 
-		return true;
+		outOfBounds = true;
+		movement.y = 0;
 	}
 
 
 	// Z - Achse
 	if (newPosition.z - dimensions.z / 2 < map->getPosition().z - map->getDimensions().z / 2)
 	{
-		Logger::log("Object out of Bounds: " + printObject());
-		return true;
+		outOfBounds = true;
+		movement.z = 0;
 	}
 
 	if (newPosition.z + dimensions.z / 2 > map->getPosition().z + map->getDimensions().z / 2)
 	{
-		Logger::log("Object out of Bounds: "+printObject());
-		return true;
+		outOfBounds = true;
+		movement.z = 0;
 	}
 
-
-	return false;
+	if (outOfBounds)
+	{
+		Logger::log("Object out of Bounds: " + printObject());
+	}
+	return outOfBounds;
 }
 
 void Object::fall(float32 deltaTime, std::vector<Object*> objects)

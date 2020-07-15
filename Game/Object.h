@@ -93,7 +93,7 @@ public:
 
 	std::vector<glm::vec3> getCubeNormals();
 
-	bool checkBoundaries(Object* map, glm::vec3 newPosition);
+	bool checkBoundaries(Object* map);
 
 	//deltaTime in seconds
 	void fall(float32 deltaTime, std::vector<Object*> objects);

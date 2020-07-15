@@ -21,40 +21,43 @@ void Character::resetVerticalMovement()
 void Character::moveForward(std::vector<Object*> objects) {
 	glm::vec3 v = glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f) * getLookDirection()) * forwardSpeed;
 
-	if (checkBoundaries(objects[1], position + v)) return;
+	
 
 	movement.x += v.x;
 	movement.z += v.z;
+
+	checkBoundaries(objects[1]);
 
 }
 
 void Character::moveBackward(std::vector<Object*> objects) {
 	glm::vec3 v = glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f) * getLookDirection()) * -backwardSidewaySpeed;
 
-	if (checkBoundaries(objects[1], position + v)) return;
 
 	movement.x += v.x;
 	movement.z += v.z;
 
+	checkBoundaries(objects[1]);
 }
 
 void Character::moveRight(std::vector<Object*> objects) {
 	glm::vec3 v = glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f) * glm::cross(getLookDirection(), up)) * backwardSidewaySpeed;
 
-	if (checkBoundaries(objects[1], position + v)) return;
 
 	movement.x += v.x;
 	movement.z += v.z;
+
+	checkBoundaries(objects[1]);
 
 }
 
 void Character::moveLeft(std::vector<Object*> objects) {
 	glm::vec3 v = glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f) * glm::cross(getLookDirection(), up)) * -backwardSidewaySpeed;
 
-	if (checkBoundaries(objects[1], position + v)) return;
-
 	movement.x += v.x;
 	movement.z += v.z;
+
+	checkBoundaries(objects[1]);
 
 }
 
