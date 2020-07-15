@@ -13,7 +13,20 @@ struct Position {
     float x, y, z;
 };
 
+struct Position2D {
+    float x, y;
+};
+
 struct Material {
+    Position diffuse;
+    Position specular;
+    Position emissive;
+    float shininess;
+    aiString diffuseMapName;
+    aiString normalMapName;
+};
+
+struct BMFMaterial {
     Position diffuse;
     Position specular;
     Position emissive;
@@ -23,8 +36,9 @@ struct Material {
 struct Mesh {
     std::vector<Position> positions;
     std::vector<Position> normals;
+    std::vector<Position2D> uvs;
     std::vector<uint32_t> indices;
-    Material material;
+    int materialIndex;
 };
 
 std::vector<Mesh> meshes;
@@ -44,6 +58,12 @@ void processMesh(aiMesh* mesh, const aiScene* scene) {
         normal.y = mesh->mNormals[i].y;
         normal.z = mesh->mNormals[i].z;
         m.normals.push_back(normal);
+
+        Position2D uv;
+        assert(mesh->mNumUVComponents > 0);
+        uv.x = mesh->mTextureCoords[0][i].x;
+        uv.y = mesh->mTextureCoords[0][i].y;
+        m.uvs.push_back(uv);
     }
 
     for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
@@ -54,7 +74,7 @@ void processMesh(aiMesh* mesh, const aiScene* scene) {
         }
     }
 
-    m.material = materials[mesh->mMaterialIndex];
+    m.materialIndex = mesh->mMaterialIndex;
     meshes.push_back(m);
 }
 
@@ -123,6 +143,13 @@ void processMaterials(const aiScene* scene) {
         mat.specular.y *= shininessStrength;
         mat.specular.z *= shininessStrength;
 
+        uint32_t numDiffuseMaps = material->GetTextureCount(aiTextureType_DIFFUSE);
+        uint32_t numNormalMaps = material->GetTextureCount(aiTextureType_NORMALS);
+        assert(numDiffuseMaps > 0);
+        material->GetTexture(aiTextureType_DIFFUSE, 0, &mat.diffuseMapName);
+        assert(numNormalMaps > 0);
+        material->GetTexture(aiTextureType_NORMALS, 0, &mat.normalMapName);
+
         materials.push_back(mat);
     }
 }
@@ -145,7 +172,7 @@ int main(int argc, char** argv) {
     }
 
     Assimp::Importer importer;
-    const aiScene* scene = importer.ReadFile(argv[argc - 1], aiProcess_PreTransformVertices | aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_OptimizeMeshes | aiProcess_OptimizeGraph | aiProcess_JoinIdenticalVertices | aiProcess_ImproveCacheLocality);
+    const aiScene* scene = importer.ReadFile(inputfilename, aiProcess_PreTransformVertices | aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_OptimizeMeshes | aiProcess_OptimizeGraph | aiProcess_JoinIdenticalVertices | aiProcess_ImproveCacheLocality);
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE, !scene->mRootNode) {
         std::cout << "Error while loading model with assimp: " << importer.GetErrorString() << std::endl;
         return 1;
@@ -161,6 +188,30 @@ int main(int argc, char** argv) {
     std::ofstream output(outputFilename, std::ios::out | std::ios::binary);
     std::cout << "Writing bmf file..." << std::endl;
 
+
+    // Materials
+    uint64_t numMaterials = materials.size();
+    output.write((char*)&numMaterials, sizeof(uint64_t));
+    for (Material material : materials) {
+        output.write((char*)&material, sizeof(BMFMaterial));
+        std::string pathPrefix = "textures\\";
+
+        // Diffuse map
+        std::string diffuseMapName = pathPrefix+getFilename((char*)&material.diffuseMapName.data);
+        uint64_t diffuesMapNameLength = diffuseMapName.length();
+        output.write((char*)&diffuesMapNameLength, sizeof(uint64_t));
+        output.write(diffuseMapName.c_str(), diffuesMapNameLength);
+        std::cout << "DiffuseMap Name: " << diffuseMapName << std::endl;
+
+        // Normal map
+        std::string normalMapName = pathPrefix + getFilename((char*)&material.normalMapName.data);
+        uint64_t normalMapNameLength = normalMapName.length();
+        output.write((char*)&normalMapNameLength, sizeof(uint64_t));
+        output.write(normalMapName.c_str(), normalMapNameLength);
+        std::cout << "NormalMap Name: " << normalMapName << std::endl;
+    }
+
+
     // Meshes
     uint64_t numMeshes = meshes.size();
     std::cout << "Mesh Count:" << numMeshes << std::endl;
@@ -168,8 +219,10 @@ int main(int argc, char** argv) {
     for (Mesh& mesh : meshes) {
         uint64_t numVertices = mesh.positions.size();
         uint64_t numIndices = mesh.indices.size();
+        uint64_t materialIndex = mesh.materialIndex;
 
-        output.write((char*)&mesh.material, sizeof(Material));
+        std::cout << "materialIndex: " << materialIndex << std::endl;
+        output.write((char*)&materialIndex, sizeof(uint64_t));
 
         std::cout << "Vertex Count: " << numVertices << std::endl;
         output.write((char*)&numVertices, sizeof(uint64_t));
@@ -185,6 +238,9 @@ int main(int argc, char** argv) {
             output.write((char*)&mesh.normals[i].x, sizeof(float));
             output.write((char*)&mesh.normals[i].y, sizeof(float));
             output.write((char*)&mesh.normals[i].z, sizeof(float));
+
+            output.write((char*)&mesh.uvs[i].x, sizeof(float));
+            output.write((char*)&mesh.uvs[i].y, sizeof(float));
         }
         for (uint64_t i = 0; i < numIndices; i++) {
             output.write((char*)&mesh.indices[i], sizeof(uint32_t));

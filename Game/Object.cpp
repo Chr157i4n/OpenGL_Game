@@ -245,7 +245,7 @@ glm::vec3 Object::calculateDimensions()
 {
 	dimensions = model->getDimension();
 	boundingboxdimensions = model->getBoundingBoxDimension();
-	Logger::log("Object Dimension x: " + std::to_string(dimensions.x) + " y: " + std::to_string(dimensions.y) + " z: " + std::to_string(dimensions.z));
+	Logger::log(printObject()+" Dimensions: x: " + std::to_string(dimensions.x) + " y: " + std::to_string(dimensions.y) + " z: " + std::to_string(dimensions.z));
 	return dimensions;
 }
 

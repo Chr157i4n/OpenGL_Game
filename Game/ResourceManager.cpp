@@ -47,7 +47,7 @@ void ResourceManager::loadMap(std::string mapFileName, std::vector<Object*>* obj
 	std::string title = doc.FirstChildElement("map")->FirstChildElement("name")->GetText();
 
 
-
+	
 	//Player(s)
 	float fov = std::stof(ConfigManager::readConfig("fov"));
 	Player* player = new Player(shader, fov, 800.0f, 600.0f);
@@ -57,7 +57,7 @@ void ResourceManager::loadMap(std::string mapFileName, std::vector<Object*>* obj
 	players->push_back(player);
 	characters->push_back(player);
 	numObject++;
-
+	
 
 
 

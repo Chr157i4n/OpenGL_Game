@@ -1,6 +1,10 @@
 #include "Game.h"
 
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "libs/stb_image.h"
+#undef STB_IMAGE_IMPLEMENTATION
+
 SDL_Window* Game::window;
 
 std::vector<Object*> Game::objects;

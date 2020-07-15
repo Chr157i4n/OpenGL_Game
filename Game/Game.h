@@ -12,9 +12,7 @@
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
 
-//#define STB_IMAGE_IMPLEMENTATION
-//#include "libs/stb_image.h"
-//#undef STB_IMAGE_IMPLEMENTATION
+
 
 #include "libs/glm/glm.hpp"
 #include "libs/glm/ext/matrix_transform.hpp"

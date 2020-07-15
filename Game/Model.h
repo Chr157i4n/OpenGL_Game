@@ -11,6 +11,7 @@
 #include "IndexBuffer.h"
 
 
+
 #ifdef _DEBUG123
 void _GLGetError(const char* file, int line, const char* call);
 #define GLCALL(call) call; _GLGetError(__FILE__, __LINE__, #call)
@@ -18,13 +19,17 @@ void _GLGetError(const char* file, int line, const char* call);
 #define GLCALL(call) call
 #endif
 
-
-
-struct Material {
+struct BMFMaterial {
     glm::vec3 diffuse;
     glm::vec3 specular;
     glm::vec3 emissive;
     float shininess;
+};
+
+struct Material {
+    BMFMaterial material;
+    GLuint diffuseMap;
+    GLuint normalMap;
 };
 
 class Mesh {
@@ -50,7 +55,7 @@ private:
     int specularLocation;
     int emissiveLocation;
     int shininessLocation;
-    int positionLocation;
+    int diffuseMapLocation;
 
     glm::vec3 dimension = glm::vec3(0.0f, 0.0f, 0.0f);
 };
@@ -69,6 +74,8 @@ public:
 
 private:
     std::vector<Mesh*> meshes;
+    std::vector<Material> materials;
+
     glm::vec3 dimension = glm::vec3(0.0f, 0.0f, 0.0f);
     glm::vec3 boundingBoxDimension = glm::vec3(0.0f, 0.0f, 0.0f);
 };
