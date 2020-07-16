@@ -99,5 +99,5 @@ void NPC::evade(float32 deltaTime, std::vector<Object*> objects)
 {
 	this->moveBackward(objects);
 	this->moveRight(objects);
-	this->move(deltaTime);
+	this->move(deltaTime, objects[0]);
 }

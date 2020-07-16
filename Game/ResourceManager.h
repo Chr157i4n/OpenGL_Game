@@ -17,7 +17,7 @@ public:
 
 	static void init();
 
-	static void loadShader(std::string vertexShaderFilename, std::string fragmentShaderFilename);
+	static Shader* loadShader(std::string vertexShaderFilename, std::string fragmentShaderFilename);
 
 	static Shader* getObjectShader();
 
@@ -27,13 +27,15 @@ public:
 
 	static void loadMap(std::string mapFileName, std::vector<Object*>* objects, std::vector<Character*>* characters, std::vector<Player*>* players, std::vector<NPC*>* npcs);
 
+	static Shader* shader;
+
 private:
 
 	static size_t split(const std::string& txt, std::vector<std::string>& strs, char ch);
 
 
 
-	static Shader* shader;
+	
 	static std::string modelFolder;
 };
 

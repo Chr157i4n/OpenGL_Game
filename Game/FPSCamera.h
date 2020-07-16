@@ -21,7 +21,7 @@ protected:
     float pitch;
     glm::vec3 lookAt_NotNormalized;
     glm::vec3 lookAt;
-    const float mouseSensitivity = 0.3f;
+    float mouseSensitivity = 0.3f;
     glm::vec3 up1;
 };
 

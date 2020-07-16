@@ -8,13 +8,14 @@ std::string ResourceManager::modelFolder = "models";
 
 void ResourceManager::init()
 {
-
+	shader = loadShader("shaders/basic.vert", "shaders/basic.frag");
 }
 
-void ResourceManager::loadShader(std::string vertexShaderFilename, std::string fragmentShaderFilename)
+Shader* ResourceManager::loadShader(std::string vertexShaderFilename, std::string fragmentShaderFilename)
 {
-	shader = new Shader(vertexShaderFilename, fragmentShaderFilename);
-	shader->bind();
+	Shader* newShader = new Shader(vertexShaderFilename, fragmentShaderFilename);
+	newShader->bind();
+	return newShader;
 }
 
 Shader* ResourceManager::getObjectShader()
@@ -51,6 +52,7 @@ void ResourceManager::loadMap(std::string mapFileName, std::vector<Object*>* obj
 	//Player(s)
 	float fov = std::stof(ConfigManager::readConfig("fov"));
 	Player* player = new Player(shader, fov, 800.0f, 600.0f);
+	player->setCollisionBoxType(CollisionBoxType::cube);
 	player->setName("Player");
 	player->setNumber(numObject);
 	objects->push_back(player);
@@ -83,8 +85,12 @@ void ResourceManager::loadMap(std::string mapFileName, std::vector<Object*>* obj
 		xmlNodeText = xmlNodeObject->FirstChildElement("type")->GetText();
 		newObject->setType(Object::convertStringToType(xmlNodeText));
 
-		xmlNodeText = xmlNodeObject->FirstChildElement("collissionboxtype")->GetText();
-		newObject->setCollissionBoxType(Object::convertStringToCollissionBoxType(xmlNodeText));
+		xmlNodeText = xmlNodeObject->FirstChildElement("collisionboxtype")->GetText();
+		newObject->setCollisionBoxType(Object::convertStringToCollisionBoxType(xmlNodeText));
+
+		xmlNodeText = xmlNodeObject->FirstChildElement("gravity")->GetText();
+		if (xmlNodeText == "true") { newObject->setGravity(true); }
+		else { newObject->setGravity(false); }
 
 		xmlNodeText = xmlNodeObject->FirstChildElement("name")->GetText();
 		newObject->setName(xmlNodeText);

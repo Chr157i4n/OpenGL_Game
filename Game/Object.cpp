@@ -6,12 +6,7 @@
 
 
 float projectedOverlap(float minA, float maxA, float minB, float maxB) {
-	if (minA < minB) {
-		return minB - maxA;
-	}
-	else {
-		return minA - maxB;
-	}
+	return std::max(0.0f, std::min(maxA, maxB) - std::max(minA, minB));
 }
 
 
@@ -71,6 +66,7 @@ CollisionResult Object::checkCollision(std::vector<Object*> objects)
 		//if (object->getType() == ObjectType::Object_Environment) continue;
 		if (object->getType() == ObjectType::Object_Bullet) continue;
 		//if (object->getType() == ObjectType::Object_Player) continue;
+		if (object->getCollisionBoxType() == CollisionBoxType::none) continue;
 
 		if (checkCollision_AABB(object))
 		{
@@ -132,13 +128,13 @@ bool Object::checkCollision_AABB(Object* object)
 
 bool Object::checkCollision_SAT(Object* object, CollisionResult* collisionResult)
 {
-	std::vector<std::vector<glm::vec3>> CollisionPoints;
+	std::vector<std::vector<glm::vec3>> collisionPoints;
 	float minOverlap = std::numeric_limits<float>::infinity();
 	glm::vec3 minOverlapAxis = glm::vec3(0,0,0);
-	
+	//Logger::log("SAT calculation");
 
-		CollisionPoints.push_back(this->calculateCollisionPoints());
-		CollisionPoints.push_back(object->calculateCollisionPoints());
+		collisionPoints.push_back(this->calculateCollisionPoints());
+		collisionPoints.push_back(object->calculateCollisionPoints());
 
 
 	std::vector<glm::vec3> axes;
@@ -161,13 +157,13 @@ bool Object::checkCollision_SAT(Object* object, CollisionResult* collisionResult
 		float aMinProj = std::numeric_limits<float>::infinity();
 		float bMaxProj = -std::numeric_limits<float>::infinity();
 		float bMinProj = std::numeric_limits<float>::infinity();
-		for (const auto& v : CollisionPoints[0]) {
+		for (const auto& v : collisionPoints[0]) {
 			auto proj = glm::dot(axis, v);
 			if (proj < aMinProj) aMinProj = proj;
 			if (proj > aMaxProj) aMaxProj = proj;
 		}
 
-		for (const auto& v : CollisionPoints[1]) {
+		for (const auto& v : collisionPoints[1]) {
 			auto proj = glm::dot(axis, v);
 			if (proj < bMinProj) bMinProj = proj;
 			if (proj > bMaxProj) bMaxProj = proj;
@@ -184,6 +180,7 @@ bool Object::checkCollision_SAT(Object* object, CollisionResult* collisionResult
 		//at this line the objects are colliding for this projected axis
 		float overlap = projectedOverlap(aMinProj, aMaxProj, bMinProj, bMaxProj);
 
+		//Logger::log("overlap: "+ std::to_string(overlap));
 		overlap = std::abs(overlap);
 		if (overlap < minOverlap) {
 			minOverlap = overlap;
@@ -200,7 +197,7 @@ bool Object::checkCollision_SAT(Object* object, CollisionResult* collisionResult
 
 	// at this point, we have checked all axis but found no separating axis
 	// which means that the polygons must intersect.
-	Logger::log("SAT collision between: "+this->printObject()+" and  "+object->printObject());
+	Logger::log("SAT collision between: "+this->printObject()+this->printPosition()+ " and  "+object->printObject() + object->printPosition());
 	
 	Logger::log("minOverlapAxis:" + std::to_string(minOverlapAxis.x)+","+ std::to_string(minOverlapAxis.y) + "," + std::to_string(minOverlapAxis.z));
 	Logger::log("minOverlap:" + std::to_string(minOverlap));
@@ -214,7 +211,7 @@ bool Object::checkCollision_SAT(Object* object, CollisionResult* collisionResult
 		onOtherObject = true;
 		collisionResult->onTop = true;
 	}
-	else if (glm::normalize(minOverlapAxis).y >= 0 && object->getCollissionBoxType() == CollissionBoxType::prism)
+	else if (glm::normalize(minOverlapAxis).y >= 0 && object->getCollisionBoxType() == CollisionBoxType::prism)
 	{
 		MinimumTranslationVector = MinimumTranslationVector * glm::vec3(0, 1, 0);
 	}
@@ -313,7 +310,7 @@ std::vector<glm::vec3> Object::calculateCollisionPoints()
 
 
 
-	if (this->getCollissionBoxType() == CollissionBoxType::cube)
+	if (this->getCollisionBoxType() == CollisionBoxType::cube)
 	{
 		float cosW = cos(-rotation.y * 3.14 / 180);
 		float sinW = sin(-rotation.y * 3.14 / 180);
@@ -371,7 +368,7 @@ std::vector<glm::vec3> Object::calculateCollisionPoints()
 		newRotatedPoint += glm::vec3(getPosition().x, getPosition().y, getPosition().z);
 		cubePoints.push_back(newRotatedPoint);
 	}
-	else if (this->getCollissionBoxType() == CollissionBoxType::prism)
+	else if (this->getCollisionBoxType() == CollisionBoxType::prism)
 	{
 		float cosW = cos((-rotation.y-90) * 3.14 / 180);
 		float sinW = sin((-rotation.y-90) * 3.14 / 180);
@@ -427,7 +424,7 @@ std::vector<glm::vec3> Object::calculateCollisionNormals()
 	std::vector<glm::vec3> normals;
 	glm::vec3 normal;
 
-	if (this->getCollissionBoxType() == CollissionBoxType::cube)
+	if (this->getCollisionBoxType() == CollisionBoxType::cube)
 	{
 		normal = (glm::normalize(cubePoints[1] - cubePoints[0]));
 		normals.push_back(normal);
@@ -438,7 +435,7 @@ std::vector<glm::vec3> Object::calculateCollisionNormals()
 		normal = (glm::normalize(cubePoints[7] - cubePoints[0]));
 		normals.push_back(normal);
 	}
-	else if (this->getCollissionBoxType() == CollissionBoxType::prism)
+	else if (this->getCollisionBoxType() == CollisionBoxType::prism)
 	{
 		normal = (glm::normalize(cubePoints[1] - cubePoints[0]));
 		normals.push_back(normal);
@@ -525,9 +522,10 @@ bool Object::checkBoundaries(Object* map)
 	return outOfBounds;
 }
 
-void Object::fall(float32 deltaTime, std::vector<Object*> objects)
+void Object::fall(float32 deltaTime)
 {
-	
+	if (!this->getGravity()) return;
+
 	if (position.y > 0 && !onOtherObject)
 	{
 		Logger::log("Object: " +printObject()+" is falling");
@@ -543,8 +541,10 @@ void Object::fall(float32 deltaTime, std::vector<Object*> objects)
 	
 }
 
-void Object::move(float32 deltaTime)
+void Object::move(float32 deltaTime, Object* map)
 {
+	checkBoundaries(map);
+
 	position += movement;
 
 	center = position;
@@ -659,7 +659,9 @@ int32 Object::getNumber()
 
 void Object::render()
 {
+	this->bindShader();
 	this->model->render();
+	this->unbindShader();
 }
 
 void Object::registerHit()
@@ -682,20 +684,35 @@ std::string Object::printObject()
 	return "[" + std::to_string(getNumber()) + "|"+ getName() + "|" + std::to_string(getType()) + "]";
 }
 
-void Object::setCollissionBoxType(CollissionBoxType collissionBoxType)
+std::string Object::printPosition()
 {
-	this->collissionBoxType = collissionBoxType;
+	return "[" + std::to_string(position.x) + "|" + std::to_string(position.y) + "|" + std::to_string(position.z) + "]";
 }
 
-CollissionBoxType Object::getCollissionBoxType()
+void Object::setCollisionBoxType(CollisionBoxType collisionBoxType)
 {
-	return collissionBoxType;
+	this->collisionBoxType = collisionBoxType;
 }
 
-CollissionBoxType Object::convertStringToCollissionBoxType(std::string ollissionBoxTypeAsString)
+CollisionBoxType Object::getCollisionBoxType()
 {
-	auto it = collissionBoxTypeTable.find(ollissionBoxTypeAsString);
-	if (it != collissionBoxTypeTable.end()) {
+	return collisionBoxType;
+}
+
+CollisionBoxType Object::convertStringToCollisionBoxType(std::string collissionBoxTypeAsString)
+{
+	auto it = CollisionBoxTypeTable.find(collissionBoxTypeAsString);
+	if (it != CollisionBoxTypeTable.end()) {
 		return it->second;
 	}
+}
+
+void Object::setGravity(bool enable)
+{
+	gravity = enable;
+}
+
+bool Object::getGravity()
+{
+	return gravity;
 }

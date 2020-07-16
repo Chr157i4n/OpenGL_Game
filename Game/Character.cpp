@@ -6,6 +6,7 @@ Character::Character(Shader* shader) : Object(shader, "models/character.bmf")
 	lookDirection = glm::vec3(1.0f, 0.0f, 0.0f);
 	up = glm::vec3(0.0f, 1.0f, 0.0f);
 	this->name = "Character";
+	this->setCollisionBoxType(CollisionBoxType::cube);
 }
 
 glm::vec3 Character::getLookDirection()
@@ -25,9 +26,6 @@ void Character::moveForward(std::vector<Object*> objects) {
 
 	movement.x += v.x;
 	movement.z += v.z;
-
-	checkBoundaries(objects[1]);
-
 }
 
 void Character::moveBackward(std::vector<Object*> objects) {
@@ -36,8 +34,6 @@ void Character::moveBackward(std::vector<Object*> objects) {
 
 	movement.x += v.x;
 	movement.z += v.z;
-
-	checkBoundaries(objects[1]);
 }
 
 void Character::moveRight(std::vector<Object*> objects) {
@@ -46,9 +42,6 @@ void Character::moveRight(std::vector<Object*> objects) {
 
 	movement.x += v.x;
 	movement.z += v.z;
-
-	checkBoundaries(objects[1]);
-
 }
 
 void Character::moveLeft(std::vector<Object*> objects) {
@@ -56,9 +49,6 @@ void Character::moveLeft(std::vector<Object*> objects) {
 
 	movement.x += v.x;
 	movement.z += v.z;
-
-	checkBoundaries(objects[1]);
-
 }
 
 void Character::jump()

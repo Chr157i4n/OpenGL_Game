@@ -1,5 +1,7 @@
 #include "Game.h"
 
+//#include <chrono>
+//#include <thread>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "libs/stb_image.h"
@@ -40,7 +42,6 @@ int Game::directionLocation;
 glm::vec3 Game::sunDirection;
 glm::vec3 Game::spotLightPosition;
 glm::vec4 Game::pointLightPosition;
-
 int Game::positionLocation;
 
 glm::mat4 Game::modelViewProj;
@@ -133,12 +134,11 @@ void Game::initEverythingElse()
 
 	UI::init(window);
 
-	ResourceManager::loadShader("shaders/basic.vert", "shaders/basic.frag");
-
+	ResourceManager::init();
 	ResourceManager::bindShader();
 
 	directionLocation = GLCALL(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_directional_light.direction"));
-	glm::vec3 sunColor = glm::vec3(0.98f, 0.83f, 0.25f);
+	glm::vec3 sunColor = glm::vec3(0.98f, 0.83f, 0.30f);
 	//sunColor *= 0.4f;
 	sunDirection = glm::vec3(-1.0f);
 	GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_directional_light.diffuse"), 1, (float*)&sunColor));
@@ -174,6 +174,8 @@ void Game::initEverythingElse()
 
 	std::string levelname = ConfigManager::readConfig("level");
 	ResourceManager::loadMap("levels/" + levelname, &objects, &characters, &players, &npcs);
+
+	Renderer::init();
 }
 
 void Game::gameLoop()
@@ -213,14 +215,15 @@ void Game::gameLoop()
 			if (object->getType() == ObjectType::Object_Environment) continue;
 			if (object->getType() == ObjectType::Object_Bullet) continue;
 
-			object->move(delta / 1000);
-			object->fall(delta / 1000, objects);
+			object->move(delta / 1000, objects[1]);
+			object->fall(delta / 1000);
 		}
 
 		//Check every Object for collision
 		for (Object* object : objects)
 		{
 			CollisionResult collisionResult = object->checkCollision(objects);
+			if (!collisionResult.collided) continue;
 
 			if (object->getType() & ObjectType::Object_Character && collisionResult.onTop == true)
 			{
@@ -228,7 +231,7 @@ void Game::gameLoop()
 				character->activateJumping();
 			}
 
-			if (object->getType() & ObjectType::Object_NPC && collisionResult.collidedWith->getType() & ObjectType::Object_Entity)
+			if ((object->getType() & ObjectType::Object_NPC) && (collisionResult.collidedWith->getType() & ObjectType::Object_Entity | ObjectType::Object_Character))
 			{
 				Logger::log("test");
 				NPC* npc = static_cast<NPC*>(object);
@@ -278,6 +281,9 @@ void Game::gameLoop()
 
 		SDL_GL_SwapWindow(window);
 
+		//std::chrono::duration<int, std::milli> timespan(100);
+		//std::this_thread::sleep_for(timespan);
+
 		uint64 endCounter = SDL_GetPerformanceCounter();
 		uint64 counterElasped = endCounter - lastCounter;
 		delta = ((float32)counterElasped) / (float32)perfCounterFrequency;
@@ -289,24 +295,26 @@ void Game::gameLoop()
 
 void Game::render()
 {
-	for (int i = 0; i < objects.size(); i++)
+	Renderer::renderSkybox(players[0]);
+
+	for (Object* object: objects)
 	{
 		glm::mat4 model = glm::mat4(1.0f);
 		//model = glm::scale(model, glm::vec3(1.0f));
 
 		//move to position of model
-		model = glm::translate(model, objects[i]->getPosition());
+		model = glm::translate(model, object->getPosition());
 
 		//rotate model around X
-		float angle = objects[i]->getRotation().x;
+		float angle = object->getRotation().x;
 		model = glm::rotate(model, glm::radians(angle), glm::vec3(1, 0, 0));
 
 		//rotate model around Y
-		angle = objects[i]->getRotation().y;
+		angle = object->getRotation().y;
 		model = glm::rotate(model, glm::radians(angle), glm::vec3(0, 1, 0));
 
 		//rotate model around z
-		angle = objects[i]->getRotation().z;
+		angle = object->getRotation().z;
 		model = glm::rotate(model, glm::radians(angle), glm::vec3(0, 0, 1));
 
 		//view and projection
@@ -314,13 +322,13 @@ void Game::render()
 		glm::mat4 modelView = players[0]->getView() * model;
 		glm::mat4 invModelView = glm::transpose(glm::inverse(modelView));
 
-		objects[i]->bindShader();
+		object->bindShader();
 
 		GLCALL(glUniformMatrix4fv(modelViewProjMatrixUniformIndex, 1, GL_FALSE, &modelViewProj[0][0]));
 		GLCALL(glUniformMatrix4fv(modelViewUniformIndex, 1, GL_FALSE, &modelView[0][0]));
 		GLCALL(glUniformMatrix4fv(invmodelViewUniformIndex, 1, GL_FALSE, &invModelView[0][0]));
 
-		objects[i]->render();
+		object->render();
 	}
 }
 

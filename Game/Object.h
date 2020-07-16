@@ -36,15 +36,17 @@ std::unordered_map<std::string, ObjectType> const objectTypeTable =
 	{"Player",ObjectType::Object_Player}
 };
 
-enum CollissionBoxType {
+enum CollisionBoxType {
+	none,
 	cube,
 	prism,
 };
 
-std::unordered_map<std::string, CollissionBoxType> const collissionBoxTypeTable =
+std::unordered_map<std::string, CollisionBoxType> const CollisionBoxTypeTable =
 {
-	{"cube",CollissionBoxType::cube},
-	{"prism",CollissionBoxType::prism},
+	{"none",CollisionBoxType::none},
+	{"cube",CollisionBoxType::cube},
+	{"prism",CollisionBoxType::prism},
 };
 
 
@@ -96,10 +98,10 @@ public:
 	bool checkBoundaries(Object* map);
 
 	//deltaTime in seconds
-	void fall(float32 deltaTime, std::vector<Object*> objects);
+	void fall(float32 deltaTime);
 
 	//deltaTime in seconds
-	void move(float32 deltaTime);
+	void move(float32 deltaTime, Object* map);
 
 	void loadModel(std::string modelFileName);
 
@@ -149,11 +151,17 @@ public:
 
 	std::string printObject();
 
-	void setCollissionBoxType(CollissionBoxType collissionBoxType);
+	std::string printPosition();
 
-	CollissionBoxType getCollissionBoxType();
+	void setCollisionBoxType(CollisionBoxType collisionBoxType);
 
-	static CollissionBoxType convertStringToCollissionBoxType(std::string ollissionBoxTypeAsString);
+	CollisionBoxType getCollisionBoxType();
+
+	static CollisionBoxType convertStringToCollisionBoxType(std::string collissionBoxTypeAsString);
+
+	void setGravity(bool enable);
+
+	bool getGravity();
 
 protected:
 
@@ -172,10 +180,11 @@ protected:
 	Model* model = nullptr;
 	Shader* shader = nullptr;
 	ObjectType type;
-	CollissionBoxType collissionBoxType;
+	CollisionBoxType collisionBoxType;
 	std::string name = "";
 	int32 number;
 	float32 health = 100;
 	bool onOtherObject=false;
+	bool gravity = true;
 };
 

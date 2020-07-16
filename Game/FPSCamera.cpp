@@ -1,5 +1,8 @@
 #include "FPSCamera.h"
 
+#include <string>     // std::string, std::stof
+#include "ConfigManager.h"
+
 FPSCamera::FPSCamera(float fov, float width, float height) : Camera(fov, width, height) 
 {
     up1 = glm::vec3(0.0f, 1.0f, 0.0f);
@@ -7,6 +10,7 @@ FPSCamera::FPSCamera(float fov, float width, float height) : Camera(fov, width, 
     pitch = 0.0f;
     onMouseMoved(0.0f, 0.0f);
     update();
+    mouseSensitivity = mouseSensitivity * std::stof(ConfigManager::readConfig("mouse_sensitivity"));
 }
 
 void FPSCamera::onMouseMoved(float xRel, float yRel) 

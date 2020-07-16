@@ -53,6 +53,10 @@ void _GLGetError(const char* file, int line, const char* call) {
 #include "ConfigManager.h"
 #include "Bullet.h"
 #include "UI.h"
+#include "Renderer.h"
+
+
+
 
 
 static class Game
@@ -117,5 +121,7 @@ private:
 	static glm::vec4 pointLightPosition;
 
 	static glm::mat4 modelViewProj;
+
+
 
 };

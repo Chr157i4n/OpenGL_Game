@@ -56,6 +56,7 @@ private:
     int emissiveLocation;
     int shininessLocation;
     int diffuseMapLocation;
+    int normalMapLocation;
 
     glm::vec3 dimension = glm::vec3(0.0f, 0.0f, 0.0f);
 };

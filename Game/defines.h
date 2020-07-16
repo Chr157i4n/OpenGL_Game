@@ -15,6 +15,10 @@ typedef uint64_t uint64;
 typedef float float32;
 typedef double float64;
 
+struct VertexP {
+	glm::vec3 position;
+};
+
 struct Vertex {
 	glm::vec3 position;
 	glm::vec3 normal;
