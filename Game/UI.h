@@ -9,6 +9,7 @@
 #include "Font.h"
 #include "Shader.h"
 #include "Object.h"
+#include "Player.h"
 
 struct UI_Element
 {
@@ -25,6 +26,8 @@ public:
 	static void drawFPS(int fps);
 
 	static void drawPos(Object* object);
+
+	static void drawRot(Player* object);
 
 	static void drawString(float x, float y, std::string text);
 

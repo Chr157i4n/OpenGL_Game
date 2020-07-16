@@ -50,6 +50,27 @@ void UI::drawPos(Object* object)
 	drawString(w - 300, 20, posString);
 }
 
+void UI::drawRot(Player* object)
+{
+	std::string rotString = "Rot: ";
+
+	std::stringstream xss, yss, zss;
+	xss << std::fixed << std::setprecision(1) << object->getLookDirection().x;
+	std::string xRotString = xss.str();
+
+	yss << std::fixed << std::setprecision(1) << object->getLookDirection().y;
+	std::string yRotString = yss.str();
+
+	zss << std::fixed << std::setprecision(1) << object->getLookDirection().z;
+	std::string zRotString = zss.str();
+
+	rotString += "x " + xRotString + ", ";
+	rotString += "y " + yRotString + ", ";
+	rotString += "z " + zRotString;
+
+	drawString(w - 300, 50, rotString);
+}
+
 void UI::drawString(float x, float y, std::string text)
 {
 	GLCALL(glDisable(GL_CULL_FACE));

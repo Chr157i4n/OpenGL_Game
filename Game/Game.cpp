@@ -138,16 +138,16 @@ void Game::initEverythingElse()
 	ResourceManager::bindShader();
 
 	directionLocation = GLCALL(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_directional_light.direction"));
-	glm::vec3 sunColor = glm::vec3(0.98f, 0.83f, 0.30f);
-	//sunColor *= 0.4f;
-	sunDirection = glm::vec3(-1.0f);
+	//glm::vec3 sunColor = glm::vec3(0.98f, 0.83f, 0.30f);
+	glm::vec3 sunColor = glm::vec3(0.5);
+	sunDirection = glm::vec3(0.8,-0.4,-0.4);
 	GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_directional_light.diffuse"), 1, (float*)&sunColor));
 	GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_directional_light.specular"), 1, (float*)&sunColor));
-	sunColor *= 0.2f;
+	sunColor = glm::vec3(0.5);
 	GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_directional_light.ambient"), 1, (float*)&sunColor));
 
 
-	glm::vec3 pointLightColor = glm::vec3(0, 0, 1);
+	glm::vec3 pointLightColor = glm::vec3(0, 0, 0);
 	GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_point_light.diffuse"), 1, (float*)&pointLightColor));
 	GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_point_light.specular"), 1, (float*)&pointLightColor));
 	pointLightColor *= 0.2f;
@@ -268,6 +268,7 @@ void Game::gameLoop()
 
 		UI::drawFPS(FPS);
 		UI::drawPos(players[0]);
+		UI::drawRot(players[0]);
 		UI::drawUI();
 
 
