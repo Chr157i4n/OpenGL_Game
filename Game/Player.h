@@ -23,6 +23,8 @@ public:
 
 	void setCameraPosition(glm::vec3 newPosition);
 
+	void activateFlashlight(bool enabled);
+
 
 private:
 	

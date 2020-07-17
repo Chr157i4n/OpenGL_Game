@@ -15,15 +15,7 @@ static class ResourceManager
 {
 public:
 
-	static void init();
-
 	static Shader* loadShader(std::string vertexShaderFilename, std::string fragmentShaderFilename);
-
-	static Shader* getShaderBasic();
-
-	static void bindShaderBasic();
-
-	static void unbindShaderBasic();
 
 	static std::vector<Model*> loadModels(tinyxml2::XMLDocument* doc);
 
@@ -45,6 +37,6 @@ private:
 	
 	static std::string modelFolder;
 
-	static Shader* shaderBasic;
+	
 };
 

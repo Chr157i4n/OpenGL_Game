@@ -66,7 +66,9 @@ float skyboxVertices[] = {
 	 400.0f, -400.0f,  400.0f
 };
 
-Shader* Renderer::skyboxShader = nullptr;
+Shader* Renderer::shaderSkybox = nullptr;
+Shader* Renderer::shaderBasic = nullptr;
+
 unsigned int Renderer::cubemapTexture;
 VertexBuffer* Renderer::skyboxVertexBuffer;
 IndexBuffer* Renderer::skyboxIndexBuffer;
@@ -86,32 +88,6 @@ glm::vec4 Renderer::pointLightPosition;
 
 glm::mat4 Renderer::modelViewProj;
 
-void Renderer::init(Player* player)
-{
-
-	skyboxShader = ResourceManager::loadShader("shaders/skybox.vert", "shaders/skybox.frag");
-
-
-
-	skyboxVertexBuffer = new VertexBuffer(skyboxVertices, 36, 1);
-
-	std::vector<std::string> faces
-	{
-			"textures/skybox/skybox1_right.jpg",
-			"textures/skybox/skybox1_left.jpg",
-			"textures/skybox/skybox1_top.jpg",
-			"textures/skybox/skybox1_bottom.jpg",
-			"textures/skybox/skybox1_front.jpg",
-			"textures/skybox/skybox1_back.jpg"
-	};
-	cubemapTexture = ResourceManager::loadCubemap(faces);
-
-	//get Uniform location indices for passing data to the GPU
-	skyboxViewProjectionUniformIndex = GLCALL(glGetUniformLocation(skyboxShader->getShaderId(), "u_viewprojection"));
-	modelViewProjMatrixUniformIndex = GLCALL(glGetUniformLocation(ResourceManager::getShaderBasic()->getShaderId(), "u_modelViewProj"));
-	modelViewUniformIndex = GLCALL(glGetUniformLocation(ResourceManager::getShaderBasic()->getShaderId(), "u_modelView"));
-	invmodelViewUniformIndex = GLCALL(glGetUniformLocation(ResourceManager::getShaderBasic()->getShaderId(), "u_invModelView"));
-}
 
 void Renderer::initOpenGL(SDL_Window** window)
 {
@@ -125,8 +101,8 @@ void Renderer::initOpenGL(SDL_Window** window)
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetSwapInterval(1);
 
-	/*SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 8);*/
+	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 8);
 
 	SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
 
@@ -171,43 +147,75 @@ void Renderer::initOpenGL(SDL_Window** window)
 	GLCALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 }
 
+void Renderer::initShader()
+{
+	shaderSkybox = ResourceManager::loadShader("shaders/skybox.vert", "shaders/skybox.frag");
+	shaderBasic = ResourceManager::loadShader("shaders/basic.vert", "shaders/basic.frag");
+}
+
+void Renderer::init(Player* player)
+{
+	skyboxVertexBuffer = new VertexBuffer(skyboxVertices, 36, 1);
+
+	std::vector<std::string> faces
+	{
+			"textures/skybox/skybox1_right.jpg",
+			"textures/skybox/skybox1_left.jpg",
+			"textures/skybox/skybox1_top.jpg",
+			"textures/skybox/skybox1_bottom.jpg",
+			"textures/skybox/skybox1_front.jpg",
+			"textures/skybox/skybox1_back.jpg"
+	};
+	cubemapTexture = ResourceManager::loadCubemap(faces);
+
+	//get Uniform location indices for passing data to the GPU
+	skyboxViewProjectionUniformIndex = GLCALL(glGetUniformLocation(shaderSkybox->getShaderId(), "u_viewprojection"));
+	modelViewProjMatrixUniformIndex = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_modelViewProj"));
+	modelViewUniformIndex = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_modelView"));
+	invmodelViewUniformIndex = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_invModelView"));
+
+	initLight();
+}
+
 void Renderer::initLight()
 {
-	ResourceManager::bindShaderBasic();
+	shaderBasic->bind();
 
-	lightdirectionUniformIndex = GLCALL(glGetUniformLocation(ResourceManager::getShaderBasic()->getShaderId(), "u_directional_light.direction"));
+	lightdirectionUniformIndex = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_directional_light.direction"));
 	//glm::vec3 sunColor = glm::vec3(0.98f, 0.83f, 0.30f);
 	glm::vec3 sunColor = glm::vec3(0.5);
 	sunDirection = glm::vec3(0.8, -0.4, -0.4);
-	GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getShaderBasic()->getShaderId(), "u_directional_light.diffuse"), 1, (float*)&sunColor));
-	GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getShaderBasic()->getShaderId(), "u_directional_light.specular"), 1, (float*)&sunColor));
+	GLCALL(glUniform3fv(glGetUniformLocation(shaderBasic->getShaderId(), "u_directional_light.diffuse"), 1, (float*)&sunColor));
+	GLCALL(glUniform3fv(glGetUniformLocation(shaderBasic->getShaderId(), "u_directional_light.specular"), 1, (float*)&sunColor));
 	sunColor = glm::vec3(0.5);
-	GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getShaderBasic()->getShaderId(), "u_directional_light.ambient"), 1, (float*)&sunColor));
+	GLCALL(glUniform3fv(glGetUniformLocation(shaderBasic->getShaderId(), "u_directional_light.ambient"), 1, (float*)&sunColor));
 
 
 	glm::vec3 pointLightColor = glm::vec3(0, 0, 0);
-	GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getShaderBasic()->getShaderId(), "u_point_light.diffuse"), 1, (float*)&pointLightColor));
-	GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getShaderBasic()->getShaderId(), "u_point_light.specular"), 1, (float*)&pointLightColor));
+	GLCALL(glUniform3fv(glGetUniformLocation(shaderBasic->getShaderId(), "u_point_light.diffuse"), 1, (float*)&pointLightColor));
+	GLCALL(glUniform3fv(glGetUniformLocation(shaderBasic->getShaderId(), "u_point_light.specular"), 1, (float*)&pointLightColor));
 	pointLightColor *= 0.2f;
-	GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getShaderBasic()->getShaderId(), "u_point_light.ambient"), 1, (float*)&pointLightColor));
-	GLCALL(glUniform1f(glGetUniformLocation(ResourceManager::getShaderBasic()->getShaderId(), "u_point_light.linear"), 0.007f));
-	GLCALL(glUniform1f(glGetUniformLocation(ResourceManager::getShaderBasic()->getShaderId(), "u_point_light.quadratic"), 0.0002));
+	GLCALL(glUniform3fv(glGetUniformLocation(shaderBasic->getShaderId(), "u_point_light.ambient"), 1, (float*)&pointLightColor));
+	GLCALL(glUniform1f(glGetUniformLocation(shaderBasic->getShaderId(), "u_point_light.linear"), 0.007f));
+	GLCALL(glUniform1f(glGetUniformLocation(shaderBasic->getShaderId(), "u_point_light.quadratic"), 0.0002));
 	pointLightPosition = glm::vec4(80, 2.5, 10, 1.0f);
-	lightpositionUniformIndex = GLCALL(glGetUniformLocation(ResourceManager::getShaderBasic()->getShaderId(), "u_point_light.position"));
+	lightpositionUniformIndex = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_point_light.position"));
 
 
 	glm::vec3 spotLightColor = glm::vec3(0);
-	GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getShaderBasic()->getShaderId(), "u_spot_light.diffuse"), 1, (float*)&spotLightColor));
-	GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getShaderBasic()->getShaderId(), "u_spot_light.specular"), 1, (float*)&spotLightColor));
+	GLCALL(glUniform3fv(glGetUniformLocation(shaderBasic->getShaderId(), "u_spot_light.diffuse"), 1, (float*)&spotLightColor));
+	GLCALL(glUniform3fv(glGetUniformLocation(shaderBasic->getShaderId(), "u_spot_light.specular"), 1, (float*)&spotLightColor));
 	spotLightColor *= 0.2f;
-	GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getShaderBasic()->getShaderId(), "u_spot_light.ambient"), 1, (float*)&spotLightColor));
+	GLCALL(glUniform3fv(glGetUniformLocation(shaderBasic->getShaderId(), "u_spot_light.ambient"), 1, (float*)&spotLightColor));
 	spotLightPosition = glm::vec3(0.0f);
-	GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getShaderBasic()->getShaderId(), "u_spot_light.position"), 1, (float*)&spotLightPosition));
+	GLCALL(glUniform3fv(glGetUniformLocation(shaderBasic->getShaderId(), "u_spot_light.position"), 1, (float*)&spotLightPosition));
 	spotLightPosition.z = 1.0f;
-	GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getShaderBasic()->getShaderId(), "u_spot_light.direction"), 1, (float*)&spotLightPosition));
-	GLCALL(glUniform1f(glGetUniformLocation(ResourceManager::getShaderBasic()->getShaderId(), "u_spot_light.innerCone"), 0.95f));
-	GLCALL(glUniform1f(glGetUniformLocation(ResourceManager::getShaderBasic()->getShaderId(), "u_spot_light.outerCone"), 0.80f));
+	GLCALL(glUniform3fv(glGetUniformLocation(shaderBasic->getShaderId(), "u_spot_light.direction"), 1, (float*)&spotLightPosition));
+	GLCALL(glUniform1f(glGetUniformLocation(shaderBasic->getShaderId(), "u_spot_light.innerCone"), 0.95f));
+	GLCALL(glUniform1f(glGetUniformLocation(shaderBasic->getShaderId(), "u_spot_light.outerCone"), 0.80f));
 }
+
+
 
 void Renderer::calcLight(Player* player)
 {
@@ -225,7 +233,7 @@ void Renderer::calcLight(Player* player)
 
 void Renderer::renderSkybox(Player* player)
 {
-	skyboxShader->bind();
+	shaderSkybox->bind();
 	skyboxVertexBuffer->bind();
 
 	glDepthMask(GL_FALSE);
@@ -239,7 +247,7 @@ void Renderer::renderSkybox(Player* player)
 	glDepthMask(GL_TRUE);
 
 	skyboxVertexBuffer->unbind();
-	skyboxShader->unbind();
+	shaderSkybox->unbind();
 }
 
 void Renderer::renderObjects(Player* player, std::vector<Object*> objects)
@@ -287,6 +295,17 @@ void Renderer::setModels(std::vector<Model*> newModels)
 std::vector<Model*> Renderer::getModels()
 {
 	return models;
+}
+
+Shader* Renderer::getShader(ShaderType shadertype)
+{
+	switch (shadertype)
+	{
+	case ShaderType::basic:
+		return shaderBasic;
+	case ShaderType::skybox:
+		return shaderSkybox;
+	}
 }
 
 

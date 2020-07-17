@@ -22,7 +22,7 @@
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
     </object>
-    <!--<object>
+    <object>
       <name>Box</name>
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
@@ -201,10 +201,10 @@
       <position>10;0;-42</position>
       <rotation>0;180;0</rotation>
       <scale>1;1;1</scale>
-    </object>-->
+    </object>
   </objects>
   <bots>
-    <!--<bot>
+    <bot>
       <name>Bot0</name>
       <type>Bot</type>
       <modelfile>character.bmf</modelfile>
@@ -262,6 +262,6 @@
         <navpoint>-70;0;-40</navpoint>
         <navpoint>-70;0;-45</navpoint>
       </navpoints>
-    </bot>-->
+    </bot>
   </bots>
 </map>

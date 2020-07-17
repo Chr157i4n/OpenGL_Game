@@ -7,12 +7,6 @@
 
 
 std::string ResourceManager::modelFolder = "models";
-Shader* ResourceManager::shaderBasic;
-
-void ResourceManager::init()
-{
-	shaderBasic = loadShader("shaders/basic.vert", "shaders/basic.frag");
-}
 
 
 Shader* ResourceManager::loadShader(std::string vertexShaderFilename, std::string fragmentShaderFilename)
@@ -20,21 +14,6 @@ Shader* ResourceManager::loadShader(std::string vertexShaderFilename, std::strin
 	Shader* newShader = new Shader(vertexShaderFilename, fragmentShaderFilename);
 	newShader->bind();
 	return newShader;
-}
-
-Shader* ResourceManager::getShaderBasic()
-{
-	return shaderBasic;
-}
-
-void ResourceManager::bindShaderBasic()
-{
-	shaderBasic->bind();
-}
-
-void ResourceManager::unbindShaderBasic()
-{
-	shaderBasic->unbind();
 }
 
 
@@ -65,7 +44,7 @@ Model* ResourceManager::loadModel(std::string modelFileName)
 	Model* newModel = new Model();
 
 	const char* fileNameChar = modelFileName.c_str();
-	newModel->init(fileNameChar, shaderBasic);
+	newModel->init(fileNameChar, Renderer::getShader(ShaderType::basic));
 
 	return newModel;
 }
@@ -101,7 +80,7 @@ void ResourceManager::loadMap(std::string mapFileName, std::vector<Object*>* obj
 
 	//Player(s)
 	float fov = std::stof(ConfigManager::readConfig("fov"));
-	Player* player = new Player(shaderBasic, fov, 800.0f, 600.0f);
+	Player* player = new Player(Renderer::getShader(ShaderType::basic), fov, 800.0f, 600.0f);
 	player->setCollisionBoxType(CollisionBoxType::cube);
 	player->setName("Player");
 	player->setNumber(numObject);
@@ -117,7 +96,7 @@ void ResourceManager::loadMap(std::string mapFileName, std::vector<Object*>* obj
 	{
 		xmlNodeText = xmlNodeObject->FirstChildElement("modelfile")->GetText();
 
-		Object* newObject = new Object(shaderBasic, xmlNodeText);
+		Object* newObject = new Object(Renderer::getShader(ShaderType::basic), xmlNodeText);
 
 		xmlNodeText = xmlNodeObject->FirstChildElement("position")->GetText();
 		split(xmlNodeText, params, ';');
@@ -156,7 +135,7 @@ void ResourceManager::loadMap(std::string mapFileName, std::vector<Object*>* obj
 	{
 		xmlNodeText = xmlNodeBot->FirstChildElement("modelfile")->GetText();
 
-		NPC* newNPC = new NPC(shaderBasic);
+		NPC* newNPC = new NPC(Renderer::getShader(ShaderType::basic));
 
 		xmlNodeText = xmlNodeBot->FirstChildElement("position")->GetText();
 		split(xmlNodeText, params, ';');
@@ -214,7 +193,7 @@ void ResourceManager::loadMap(std::string mapFileName, std::vector<Object*>* obj
 		float x = rand() % 100 - 50;
 		float z = rand() % 100 - 50;
 
-		NPC* newNpc = new NPC(shaderBasic);
+		NPC* newNpc = new NPC(Renderer::getShader(ShaderType::basic));
 		newNpc->setPosition(glm::vec3(x, 0, z));
 		newNpc->setNumber(numObject);
 		newNpc->setCurrentTask(CurrentTask::Follow_Character);

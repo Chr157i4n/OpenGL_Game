@@ -7,37 +7,32 @@
 #include <fstream>
 #include <vector>
 #include <cmath>
-#define GLEW_STATIC
+
+//#define GLEW_STATIC
 #include <GL/glew.h>
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
-
 
 
 #include "libs/glm/glm.hpp"
 #include "libs/glm/ext/matrix_transform.hpp"
 #include "libs/glm/gtc/matrix_transform.hpp"
 
-
-#include "Logger.h"
-
-
+#include "UI.h"
+#include "Renderer.h"
 
 #include "defines.h"
-#include "VertexBuffer.h"
-#include "IndexBuffer.h"
+
 #include "Shader.h"
-#include "FloatingCamera.h"
-#include "FPSCamera.h"
-#include "Camera.h"
 #include "Object.h"
 #include "Player.h"
 #include "NPC.h"
+#include "Bullet.h"
+
 #include "ResourceManager.h"
 #include "ConfigManager.h"
-#include "Bullet.h"
-#include "UI.h"
-#include "Renderer.h"
+
+
 
 
 
@@ -79,8 +74,6 @@ private:
 	static bool buttonSpace;
 	static bool buttonShift;
 	static bool buttonCtrl;
-
-	static bool spaceReleased;
 
 	static float time;
 	static uint32 FPS;

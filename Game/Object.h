@@ -11,7 +11,7 @@
 #include "Shader.h"
 #include "Logger.h"
 
-class Object;
+
 
 enum ObjectType {
 	Object_Player = 1,
@@ -49,7 +49,7 @@ std::unordered_map<std::string, CollisionBoxType> const CollisionBoxTypeTable =
 	{"prism",CollisionBoxType::prism},
 };
 
-
+class Object;
 
 struct CollisionResult
 {

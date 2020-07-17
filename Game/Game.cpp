@@ -3,9 +3,13 @@
 //#include <chrono>
 //#include <thread>
 
+
+
 #define STB_IMAGE_IMPLEMENTATION
 #include "libs/stb_image.h"
 #undef STB_IMAGE_IMPLEMENTATION
+
+
 
 SDL_Window* Game::window;
 
@@ -14,7 +18,6 @@ std::vector<Character*> Game::characters;
 std::vector<Player*> Game::players;
 std::vector<NPC*> Game::npcs;
 std::vector<Bullet*> Game::bullets;
-
 
 
 bool  Game::buttonW = false;
@@ -50,16 +53,14 @@ void Game::startGame()
 void Game::init()
 {
 	Renderer::initOpenGL(&window);
+	Renderer::initShader();
 
 	UI::init(window);
-
-	ResourceManager::init();
 
 	std::string levelname = ConfigManager::readConfig("level");
 	ResourceManager::loadMap("levels/" + levelname, &objects, &characters, &players, &npcs);
 
 	Renderer::init(players[0]);
-	Renderer::initLight();
 }
 
 void Game::gameLoop()
@@ -75,7 +76,8 @@ void Game::gameLoop()
 		}
 
 
-		ResourceManager::bindShaderBasic();
+		Renderer::getShader(ShaderType::basic)->bind();
+
 		input();
 
 		for (NPC* npc : npcs)
@@ -209,11 +211,7 @@ void Game::input()
 				GLCALL(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
 				break;
 			case SDLK_f:
-				glm::vec3 spotLightColor = glm::vec3(1.0f);
-				GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getShaderBasic()->getShaderId(), "u_spot_light.diffuse"), 1, (float*)&spotLightColor));
-				GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getShaderBasic()->getShaderId(), "u_spot_light.specular"), 1, (float*)&spotLightColor));
-				spotLightColor *= 0.2f;
-				GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getShaderBasic()->getShaderId(), "u_spot_light.ambient"), 1, (float*)&spotLightColor));
+				players[0]->activateFlashlight(true);
 				break;
 			case SDLK_ESCAPE:
 				SDL_SetRelativeMouseMode(SDL_FALSE);
@@ -251,10 +249,7 @@ void Game::input()
 				GLCALL(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
 				break;
 			case SDLK_f:
-				glm::vec3 spotLightColor = glm::vec3(0);
-				GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getShaderBasic()->getShaderId(), "u_spot_light.diffuse"), 1, (float*)&spotLightColor));
-				GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getShaderBasic()->getShaderId(), "u_spot_light.specular"), 1, (float*)&spotLightColor));
-				GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getShaderBasic()->getShaderId(), "u_spot_light.ambient"), 1, (float*)&spotLightColor));
+				players[0]->activateFlashlight(false);
 				break;
 			}
 		}

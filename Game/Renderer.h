@@ -7,16 +7,20 @@
 #include "ResourceManager.h"
 #include "VertexBuffer.h"
 
-
+enum ShaderType {
+	basic,
+	skybox,
+};
 
 static class Renderer
 {
 public:
-	static void init(Player* player);
-
 	static void initOpenGL(SDL_Window** window);
 
-	static void initLight();
+	static void initShader();
+
+	static void init(Player* player);
+
 
 	static void calcLight(Player* player);
 
@@ -28,9 +32,14 @@ public:
 
 	static std::vector<Model*> getModels();
 
+	static Shader* getShader(ShaderType shadertype);
+
 private:
+	static void initLight();
 	
-	static Shader* skyboxShader;
+	static Shader* shaderSkybox;
+	static Shader* shaderBasic;
+
 	static unsigned int cubemapTexture;
 	static VertexBuffer* skyboxVertexBuffer;
 	static IndexBuffer* skyboxIndexBuffer;
