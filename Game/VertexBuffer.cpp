@@ -12,7 +12,16 @@ VertexBuffer::VertexBuffer(void* data, uint32 numVertices, int numElements) {
         glBufferData(GL_ARRAY_BUFFER, numVertices * sizeof(VertexP), data, GL_STATIC_DRAW);
 
         glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(VertexP), (void*)offsetof(struct Vertex, position));
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(VertexP), (void*)offsetof(struct VertexP, position));
+    }
+    if (numElements == 2)
+    {
+        glBufferData(GL_ARRAY_BUFFER, numVertices * sizeof(VertexI), data, GL_STATIC_DRAW);
+
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(VertexI), (void*)offsetof(struct VertexI, position));
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(VertexI), (void*)offsetof(struct VertexI, textureCoord));
     }
     if (numElements == 4)
     {

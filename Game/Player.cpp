@@ -73,12 +73,12 @@ void Player::activateFlashlight(bool enabled)
 	else {
 		spotLightColor = glm::vec3(0);
 	}
-	
+	shader->bind();
 	GLCALL(glUniform3fv(glGetUniformLocation(shader->getShaderId(), "u_spot_light.diffuse"), 1, (float*)&spotLightColor));
 	GLCALL(glUniform3fv(glGetUniformLocation(shader->getShaderId(), "u_spot_light.specular"), 1, (float*)&spotLightColor));
 	spotLightColor *= 0.2f;
 	GLCALL(glUniform3fv(glGetUniformLocation(shader->getShaderId(), "u_spot_light.ambient"), 1, (float*)&spotLightColor));
-
+	shader->unbind();
 }
 
 

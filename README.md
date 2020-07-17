@@ -45,8 +45,4 @@ https://github.com/nothings/stb/blob/master/stb_truetype.h
 https://github.com/leethomason/tinyxml2
 
 used Textures from:
-https://opengameart.org/
 https://3dtextures.me
-http://www.texturise.club
-
-

@@ -20,13 +20,7 @@ std::vector<NPC*> Game::npcs;
 std::vector<Bullet*> Game::bullets;
 
 
-bool  Game::buttonW = false;
-bool  Game::buttonS = false;
-bool  Game::buttonA = false;
-bool  Game::buttonD = false;
-bool  Game::buttonSpace = false;
-bool  Game::buttonShift = false;
-bool  Game::buttonCtrl = false;
+bool Game::pressedKeys[20];
 
 float Game::time = 0.0f;
 uint32  Game::FPS = 0;
@@ -35,7 +29,6 @@ bool  Game::close = false;
 uint64 Game::perfCounterFrequency;
 uint64 Game::lastCounter;
 float32 Game::delta;
-
 
 void Game::startGame()
 {
@@ -57,6 +50,10 @@ void Game::init()
 
 	UI::init(window);
 
+	Renderer::showLoadingScreen();
+
+
+
 	std::string levelname = ConfigManager::readConfig("level");
 	ResourceManager::loadMap("levels/" + levelname, &objects, &characters, &players, &npcs);
 
@@ -68,17 +65,14 @@ void Game::gameLoop()
 	while (!close)
 	{
 		time += delta;
-		
+
 
 		for (Object* object : objects)
 		{
 			object->calculationBeforeFrame();
 		}
 
-
-		Renderer::getShader(ShaderType::basic)->bind();
-
-		input();
+		processInput();
 
 		for (NPC* npc : npcs)
 		{
@@ -96,7 +90,7 @@ void Game::gameLoop()
 
 		//Move every Object
 		for (Object* object : objects)
-		{		
+		{
 			if (object->getType() == ObjectType::Object_Environment) continue; //Environment doesnt move
 			if (object->getType() == ObjectType::Object_Bullet) continue; //Bullets have their own move function
 
@@ -112,7 +106,7 @@ void Game::gameLoop()
 
 			if (object->getType() & ObjectType::Object_Character && collisionResult.onTop == true)
 			{
-				Character* character= static_cast<Character*>(object);
+				Character* character = static_cast<Character*>(object);
 				character->activateJumping();
 			}
 
@@ -159,6 +153,9 @@ void Game::gameLoop()
 
 void Game::render()
 {
+	GLCALL(glClearColor(0.0f, 0.0f, 0.8f, 1.0f));
+	GLCALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+
 	Renderer::calcLight(players[0]);
 
 	Renderer::renderSkybox(players[0]);
@@ -173,7 +170,7 @@ void Game::render()
 	SDL_GL_SwapWindow(window);
 }
 
-void Game::input()
+void Game::processInput()
 {
 	SDL_Event event;
 	while (SDL_PollEvent(&event))
@@ -184,74 +181,11 @@ void Game::input()
 		}
 		else if (event.type == SDL_KEYDOWN)
 		{
-			switch (event.key.keysym.sym)
-			{
-			case SDLK_w:
-				buttonW = true;
-				break;
-			case SDLK_s:
-				buttonS = true;
-				break;
-			case SDLK_a:
-				buttonA = true;
-				break;
-			case SDLK_d:
-				buttonD = true;
-				break;
-			case SDLK_SPACE:
-				buttonSpace = true;
-				break;
-			case SDLK_LCTRL:
-				buttonCtrl = true;
-				break;
-			case SDLK_LSHIFT:
-				buttonShift = true;
-				break;
-			case SDLK_p:
-				GLCALL(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
-				break;
-			case SDLK_f:
-				players[0]->activateFlashlight(true);
-				break;
-			case SDLK_ESCAPE:
-				SDL_SetRelativeMouseMode(SDL_FALSE);
-				break;
-
-
-			}
+			keyPressed(event.key.keysym.sym);
 		}
 		else if (event.type == SDL_KEYUP)
 		{
-			switch (event.key.keysym.sym)
-			{
-			case SDLK_w:
-				buttonW = false;
-				break;
-			case SDLK_s:
-				buttonS = false;
-				break;
-			case SDLK_a:
-				buttonA = false;
-				break;
-			case SDLK_d:
-				buttonD = false;
-				break;
-			case SDLK_SPACE:
-				buttonSpace = false;
-				break;
-			case SDLK_LSHIFT:
-				buttonShift = false;
-				break;
-			case SDLK_LCTRL:
-				buttonCtrl = false;
-				break;
-			case SDLK_p:
-				GLCALL(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
-				break;
-			case SDLK_f:
-				players[0]->activateFlashlight(false);
-				break;
-			}
+			keyReleased(event.key.keysym.sym);
 		}
 		else if (event.type == SDL_MOUSEMOTION) {
 			if (SDL_GetRelativeMouseMode()) {
@@ -260,47 +194,112 @@ void Game::input()
 		}
 		else if (event.type == SDL_MOUSEBUTTONDOWN) {
 			if (event.button.button == SDL_BUTTON_LEFT) {
+				if (SDL_GetRelativeMouseMode()) {
+					Bullet* newBullet = players[0]->shoot();
+					objects.push_back(newBullet);
+					bullets.push_back(newBullet);
+				}
+
 				SDL_SetRelativeMouseMode(SDL_TRUE);
-				Bullet* newBullet = players[0]->shoot();
-				objects.push_back(newBullet);
-				bullets.push_back(newBullet);
 			}
 		}
-
 	}
 
-	if (buttonW) {
-		players[0]->moveForward(objects);
+	if (pressedKeys[PlayerAction::moveForward])
+	{
+		players[0]->moveForward();
 	}
-	if (buttonS) {
-		players[0]->moveBackward(objects);
+	if (pressedKeys[PlayerAction::moveBackward])
+	{
+		players[0]->moveBackward();
 	}
-	if (buttonA) {
-		players[0]->moveLeft(objects);
+	if (pressedKeys[PlayerAction::moveLeft])
+	{
+		players[0]->moveLeft();
 	}
-	if (buttonD) {
-		players[0]->moveRight(objects);
+	if (pressedKeys[PlayerAction::moveRight])
+	{
+		players[0]->moveRight();
 	}
-	if (buttonSpace) {
+	if (pressedKeys[PlayerAction::jump])
+	{
 		players[0]->jump();
 	}
-	if (buttonCtrl) {
-		players[0]->crouch(true);
-	}
-	if (!buttonCtrl) {
-		players[0]->crouch(false);
-	}
-	if (buttonShift) {
+	if (pressedKeys[PlayerAction::sprint])
+	{
 		players[0]->run(true);
 	}
-	if (!buttonShift) {
+	if (!pressedKeys[PlayerAction::sprint])
+	{
 		players[0]->run(false);
 	}
+	if (pressedKeys[PlayerAction::crouch])
+	{
+		players[0]->crouch(true);
+	}
+	if (!pressedKeys[PlayerAction::crouch])
+	{
+		players[0]->crouch(false);
+	}
+	if (pressedKeys[PlayerAction::toggleFlashlight])
+	{
+		players[0]->activateFlashlight(true);
+	}
+	if (!pressedKeys[PlayerAction::toggleFlashlight])
+	{
+		players[0]->activateFlashlight(false);
+	}
+	if (pressedKeys[PlayerAction::toggleInfo])
+	{
+
+	}
+	if (pressedKeys[PlayerAction::toggleWireframe])
+	{
+		GLCALL(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
+	}
+	if (!pressedKeys[PlayerAction::toggleWireframe])
+	{
+		GLCALL(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
+	}
+	if (pressedKeys[PlayerAction::pause])
+	{
+
+	}
+	if (pressedKeys[PlayerAction::menu])
+	{
+		SDL_SetRelativeMouseMode(SDL_FALSE);
+	}
+}
+
+void Game::keyPressed(SDL_Keycode key)
+{
+	PlayerAction action = PlayerAction::None;
+
+	auto it = keybindings.find(key);
+	if (it != keybindings.end()) {
+		action = it->second;
+	}
+	if (action == PlayerAction::None) { Logger::log("Keybinding not found!"); return; }
+
+	pressedKeys[action] = true;
+}
+
+void Game::keyReleased(SDL_Keycode key)
+{
+	PlayerAction action = PlayerAction::None;
+
+	auto it = keybindings.find(key);
+	if (it != keybindings.end()) {
+		action = it->second;
+	}
+	if (action == PlayerAction::None) { Logger::log("Keybinding not found!"); return; }
+
+	pressedKeys[action] = false;
 }
 
 void Game::deleteObjects()
 {
-	for (int i = objects.size()-1; i >= 0; i--)
+	for (int i = objects.size() - 1; i >= 0; i--)
 	{
 		if (objects[i]->getHealth() <= 0)
 		{
@@ -309,4 +308,3 @@ void Game::deleteObjects()
 		}
 	}
 }
-

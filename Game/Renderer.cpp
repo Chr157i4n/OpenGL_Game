@@ -19,7 +19,16 @@ void _GLGetError(const char* file, int line, const char* call) {
 #define GLCALL(call) call
 #endif
 
-
+float screenVertices[] = {
+	// positions          
+	-1.0f,	-1.0f,	0.0f,	0.0f, 0.0f,
+	-1.0f,	+1.0f,	0.0f,	0.0f, 1.0f,
+	1.0f,	-1.0f,	0.0f,	1.0f, 0.0f,
+	
+	1.0f,	-1.0f,	0.0f,	1.0f, 0.0f,
+	-1.0f,	+1.0f,	0.0f,	0.0f, 1.0f,
+	1.0f,   1.0f,	0.0f,	1.0f, 1.0f,
+};	 
 
 float skyboxVertices[] = {
 	// positions          
@@ -66,10 +75,15 @@ float skyboxVertices[] = {
 	 400.0f, -400.0f,  400.0f
 };
 
+SDL_Window** Renderer::window;
+
 Shader* Renderer::shaderSkybox = nullptr;
 Shader* Renderer::shaderBasic = nullptr;
+Shader* Renderer::shaderImage = nullptr;
 
-unsigned int Renderer::cubemapTexture;
+unsigned int Renderer::loadingScreenTexture;
+
+unsigned int Renderer::skyboxTexture;
 VertexBuffer* Renderer::skyboxVertexBuffer;
 IndexBuffer* Renderer::skyboxIndexBuffer;
 
@@ -91,6 +105,8 @@ glm::mat4 Renderer::modelViewProj;
 
 void Renderer::initOpenGL(SDL_Window** window)
 {
+	Renderer::window = window;
+
 	SDL_Init(SDL_INIT_EVERYTHING);
 
 	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
@@ -101,8 +117,8 @@ void Renderer::initOpenGL(SDL_Window** window)
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetSwapInterval(1);
 
-	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 8);
+	/*SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 8);*/
 
 	SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
 
@@ -151,6 +167,7 @@ void Renderer::initShader()
 {
 	shaderSkybox = ResourceManager::loadShader("shaders/skybox.vert", "shaders/skybox.frag");
 	shaderBasic = ResourceManager::loadShader("shaders/basic.vert", "shaders/basic.frag");
+	shaderImage = ResourceManager::loadShader("shaders/image.vert", "shaders/image.frag");
 }
 
 void Renderer::init(Player* player)
@@ -166,7 +183,7 @@ void Renderer::init(Player* player)
 			"textures/skybox/skybox1_front.jpg",
 			"textures/skybox/skybox1_back.jpg"
 	};
-	cubemapTexture = ResourceManager::loadCubemap(faces);
+	skyboxTexture = ResourceManager::loadCubemap(faces);
 
 	//get Uniform location indices for passing data to the GPU
 	skyboxViewProjectionUniformIndex = GLCALL(glGetUniformLocation(shaderSkybox->getShaderId(), "u_viewprojection"));
@@ -216,12 +233,25 @@ void Renderer::initLight()
 }
 
 
+void Renderer::showLoadingScreen() {
+	
+	GLCALL(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
+	GLCALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+
+
+	VertexBuffer* loadingScreenVertexBuffer = new VertexBuffer(screenVertices, 6, 2);
+	loadingScreenTexture = ResourceManager::loadImage("images/loading_screen.png");
+	
+	renderImage(loadingScreenVertexBuffer, loadingScreenTexture);
+
+	SDL_GL_SwapWindow(*window);
+
+	delete loadingScreenVertexBuffer;
+}
+
 
 void Renderer::calcLight(Player* player)
 {
-	GLCALL(glClearColor(0.0f, 0.0f, 0.8f, 1.0f));
-	GLCALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-
 	glm::vec4 transformedSunDirection = glm::transpose(glm::inverse(player->getView())) * glm::vec4(sunDirection, 1.0f);
 	glUniform3fv(lightdirectionUniformIndex, 1, (float*)&transformedSunDirection);
 
@@ -242,12 +272,34 @@ void Renderer::renderSkybox(Player* player)
 
 	glUniformMatrix4fv(skyboxViewProjectionUniformIndex, 1, GL_FALSE, &viewproj[0][0]);
 
-	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 	glDepthMask(GL_TRUE);
 
 	skyboxVertexBuffer->unbind();
 	shaderSkybox->unbind();
+}
+
+void Renderer::renderImage(VertexBuffer* imageVertexBuffer, int imageIndex)
+{
+	shaderImage->bind();
+	imageVertexBuffer->bind();
+
+
+	GLCALL(glDepthMask(GL_FALSE));
+	GLCALL(glDisable(GL_CULL_FACE));
+	GLCALL(glDisable(GL_DEPTH_TEST));
+
+	glBindTexture(GL_TEXTURE_2D, imageIndex);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+	glDepthMask(GL_TRUE);
+	GLCALL(glEnable(GL_CULL_FACE));
+	GLCALL(glEnable(GL_DEPTH_TEST));
+
+
+	imageVertexBuffer->unbind();
+	shaderImage->unbind();
 }
 
 void Renderer::renderObjects(Player* player, std::vector<Object*> objects)

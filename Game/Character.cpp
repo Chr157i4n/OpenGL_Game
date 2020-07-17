@@ -19,32 +19,28 @@ void Character::resetVerticalMovement()
 	movement = movement * glm::vec3(0, 1, 0);
 }
 
-void Character::moveForward(std::vector<Object*> objects) {
+void Character::moveForward() {
 	glm::vec3 v = glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f) * getLookDirection()) * forwardSpeed;
 
-	
-
 	movement.x += v.x;
 	movement.z += v.z;
 }
 
-void Character::moveBackward(std::vector<Object*> objects) {
+void Character::moveBackward() {
 	glm::vec3 v = glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f) * getLookDirection()) * -backwardSidewaySpeed;
 
-
 	movement.x += v.x;
 	movement.z += v.z;
 }
 
-void Character::moveRight(std::vector<Object*> objects) {
+void Character::moveRight() {
 	glm::vec3 v = glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f) * glm::cross(getLookDirection(), up)) * backwardSidewaySpeed;
 
-
 	movement.x += v.x;
 	movement.z += v.z;
 }
 
-void Character::moveLeft(std::vector<Object*> objects) {
+void Character::moveLeft() {
 	glm::vec3 v = glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f) * glm::cross(getLookDirection(), up)) * -backwardSidewaySpeed;
 
 	movement.x += v.x;

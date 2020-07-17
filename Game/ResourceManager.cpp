@@ -20,7 +20,7 @@ Shader* ResourceManager::loadShader(std::string vertexShaderFilename, std::strin
 std::vector<Model*> ResourceManager::loadModels(tinyxml2::XMLDocument* doc)
 {
 	std::vector<Model*> models;
-	
+
 	std::string xmlNodeText;
 	int id = 0;
 
@@ -88,9 +88,9 @@ void ResourceManager::loadMap(std::string mapFileName, std::vector<Object*>* obj
 	players->push_back(player);
 	characters->push_back(player);
 	numObject++;
-	
 
-	
+
+
 
 	for (tinyxml2::XMLElement* xmlNodeObject = doc.FirstChildElement("map")->FirstChildElement("objects")->FirstChildElement("object"); xmlNodeObject != NULL; xmlNodeObject = xmlNodeObject->NextSiblingElement())
 	{
@@ -166,7 +166,7 @@ void ResourceManager::loadMap(std::string mapFileName, std::vector<Object*>* obj
 				newNPC->setCurrentTask(CurrentTask::Follow_Character);
 			}
 
-			
+
 			for (tinyxml2::XMLElement* xmlNodeNavPoint = xmlNodeBot->FirstChildElement("navpoints")->FirstChildElement("navpoint"); xmlNodeNavPoint != NULL; xmlNodeNavPoint = xmlNodeNavPoint->NextSiblingElement())
 			{
 				xmlNodeText = xmlNodeNavPoint->GetText();
@@ -256,6 +256,37 @@ int ResourceManager::loadCubemap(std::vector<std::string> faces)
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+	return textureID;
+}
+
+int ResourceManager::loadImage(std::string fileName)
+{
+	unsigned int textureID;
+	GLCALL(glGenTextures(1, &textureID));
+	GLCALL(glBindTexture(GL_TEXTURE_2D, textureID));
+
+	stbi_set_flip_vertically_on_load(true);
+
+	int width, height, nrChannels;
+
+	unsigned char* imageData = stbi_load(fileName.c_str(), &width, &height, &nrChannels, 0);
+	if (imageData)
+	{
+		GLCALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageData));
+
+		stbi_image_free(imageData);
+	}
+	else
+	{
+		std::cout << "Image " << fileName << " failed to load" << std::endl;
+		stbi_image_free(imageData);
+	}
+
+	GLCALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+	GLCALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+	GLCALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+	GLCALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
 
 	return textureID;
 }

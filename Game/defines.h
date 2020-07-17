@@ -19,6 +19,11 @@ struct VertexP {
 	glm::vec3 position;
 };
 
+struct VertexI {
+	glm::vec3 position;
+	glm::vec2 textureCoord;
+};
+
 struct Vertex {
 	glm::vec3 position;
 	glm::vec3 normal;

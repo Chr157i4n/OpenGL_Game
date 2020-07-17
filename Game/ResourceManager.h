@@ -27,6 +27,8 @@ public:
 
 	static int loadCubemap(std::vector<std::string> faces);
 
+	static int loadImage(std::string fileName);
+
 
 
 	

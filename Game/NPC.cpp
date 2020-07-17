@@ -27,7 +27,7 @@ void NPC::followCharacter(float32 deltaTime, std::vector<Object*> objects, Chara
 	float yaw = glm::degrees(atan2(lookDirection.x, lookDirection.z));
 	setRotation(glm::vec3(0, yaw, 0));
 
-	this->moveForward(objects);
+	this->moveForward();
 }
 
 void NPC::followNavPoints(float32 deltaTime, std::vector<Object*> objects)
@@ -51,7 +51,7 @@ void NPC::followNavPoints(float32 deltaTime, std::vector<Object*> objects)
 	float yaw = glm::degrees(atan2(lookDirection.x, lookDirection.z));
 	setRotation(glm::vec3(0, yaw, 0));
 
-	this->moveForward(objects);
+	this->moveForward();
 }
 
 void NPC::addNavPoint(glm::vec3 newNavPoint)
@@ -97,7 +97,7 @@ CurrentTask NPC::getGurrentTask()
 
 void NPC::evade(float32 deltaTime, std::vector<Object*> objects)
 {
-	this->moveBackward(objects);
-	this->moveRight(objects);
+	this->moveBackward();
+	this->moveRight();
 	this->move(deltaTime, objects[0]);
 }

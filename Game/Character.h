@@ -14,13 +14,13 @@ public:
 
 	void resetVerticalMovement();
 
-	void moveForward(std::vector<Object*> objects);
+	void moveForward();
 
-	void moveBackward(std::vector<Object*> objects);
+	void moveBackward();
 
-	void moveRight(std::vector<Object*> objects);
+	void moveRight();
 
-	void moveLeft(std::vector<Object*> objects);
+	void moveLeft();
 
 	void jump();
 

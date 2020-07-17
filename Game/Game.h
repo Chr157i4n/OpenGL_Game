@@ -35,7 +35,43 @@
 
 
 
+enum GameState {
+	GAME_ACTIVE,
+	GAME_PAUSED,
+	GAME_MENU
+};
 
+enum PlayerAction {
+	None,
+	moveForward,
+	moveBackward,
+	moveLeft,
+	moveRight,
+	jump,
+	sprint,
+	crouch,
+	toggleFlashlight,
+	toggleInfo,
+	toggleWireframe,
+	pause,
+	menu,
+};
+
+std::unordered_map<SDL_Keycode, PlayerAction> const keybindings =
+{
+	{SDLK_w,		moveForward},
+	{SDLK_s,		moveBackward},
+	{SDLK_a,		moveLeft},
+	{SDLK_d,		moveRight},
+	{SDLK_SPACE,	jump},
+	{SDLK_LSHIFT,	sprint},
+	{SDLK_LCTRL,	crouch},
+	{SDLK_f,		toggleFlashlight},
+	{SDLK_F3,		toggleInfo},
+	{SDLK_F4,		toggleWireframe},
+	{SDLK_p,		pause},
+	{SDLK_ESCAPE,	menu},
+};
 
 
 static class Game
@@ -53,9 +89,14 @@ private:
 
 	static void gameLoop();
 
-	static void input();
+	static void processInput();
+
+	static void keyPressed(SDL_Keycode key);
+
+	static void keyReleased(SDL_Keycode key);
 
 	static void deleteObjects();
+
 
 
 	static SDL_Window* window;
@@ -67,13 +108,7 @@ private:
 	static std::vector<Bullet*> bullets;
 
 
-	static bool buttonW;
-	static bool buttonS;
-	static bool buttonA;
-	static bool buttonD;
-	static bool buttonSpace;
-	static bool buttonShift;
-	static bool buttonCtrl;
+	static bool pressedKeys[20];
 
 	static float time;
 	static uint32 FPS;

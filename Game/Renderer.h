@@ -6,6 +6,7 @@
 #include "Shader.h"
 #include "ResourceManager.h"
 #include "VertexBuffer.h"
+#include "UI.h"
 
 enum ShaderType {
 	basic,
@@ -22,9 +23,14 @@ public:
 	static void init(Player* player);
 
 
+	static void showLoadingScreen();
+
+
 	static void calcLight(Player* player);
 
 	static void renderSkybox(Player* player);
+
+	static void renderImage(VertexBuffer* imageVertexBuffer, int imageIndex);
 
 	static void renderObjects(Player* player, std::vector<Object*> objects);
 
@@ -36,11 +42,16 @@ public:
 
 private:
 	static void initLight();
+
+	static SDL_Window** window;
 	
 	static Shader* shaderSkybox;
 	static Shader* shaderBasic;
+	static Shader* shaderImage;
 
-	static unsigned int cubemapTexture;
+	static unsigned int loadingScreenTexture;
+
+	static unsigned int skyboxTexture;
 	static VertexBuffer* skyboxVertexBuffer;
 	static IndexBuffer* skyboxIndexBuffer;
 
