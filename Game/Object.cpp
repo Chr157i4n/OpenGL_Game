@@ -3,6 +3,7 @@
 #include <algorithm>
 #include "Logger.h"
 #include "libs/glm/gtx/rotate_vector.hpp"
+#include "ResourceManager.h"
 
 
 float projectedOverlap(float minA, float maxA, float minB, float maxB) {
@@ -22,10 +23,9 @@ Object::Object(Shader* shader, std::string modelFileName)
 	dimensions = glm::vec3(2, 2, 2);
 
 	this->shader = shader;
-
-	model = new Model;
+	this->model = ResourceManager::getModelByName(modelFileName);
 	
-	loadModel(modelFileName);
+	
 	dimensions = calculateDimensions();
 	rectPoints = calculateRectPoints();
 	cubePoints = calculateCollisionPoints();
@@ -557,18 +557,6 @@ void Object::move(float32 deltaTime, Object* map)
 	}
 }
 
-void Object::loadModel(std::string modelFileName)
-{
-	const char* fileNameChar = modelFileName.c_str();
-	name = modelFileName;
-	model->init(fileNameChar, shader);
-}
-
-Model* Object::getModel()
-{
-	return model;
-}
-
 void Object::setPosition(glm::vec3 newPosition)
 {
 	position = newPosition;
@@ -715,4 +703,14 @@ void Object::setGravity(bool enable)
 bool Object::getGravity()
 {
 	return gravity;
+}
+
+void Object::setModel(Model* newModel)
+{
+	model = newModel;
+}
+
+Model* Object::getModel()
+{
+	return model;
 }

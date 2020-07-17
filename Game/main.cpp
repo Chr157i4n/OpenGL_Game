@@ -28,8 +28,7 @@ int main(int argc, char* argv[])
 		ShowWindow(console, 0);
 	}
 
-	Game::initOpenGL();
-	Game::initEverythingElse();
+	Game::init();
 
 	Game::startGame();
 

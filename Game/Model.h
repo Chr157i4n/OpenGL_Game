@@ -73,10 +73,21 @@ public:
 
     ~Model();
 
+    void setModelName(std::string newModelName);
+
+    std::string getModelName();
+
+    void setModelID(int newModelID);
+
+    int getModelID();
+
 private:
     std::vector<Mesh*> meshes;
     std::vector<Material> materials;
 
     glm::vec3 dimension = glm::vec3(0.0f, 0.0f, 0.0f);
     glm::vec3 boundingBoxDimension = glm::vec3(0.0f, 0.0f, 0.0f);
+
+    std::string modelName="";
+    int modelID=-1;
 };

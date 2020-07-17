@@ -103,10 +103,6 @@ public:
 	//deltaTime in seconds
 	void move(float32 deltaTime, Object* map);
 
-	void loadModel(std::string modelFileName);
-
-	Model* getModel();
-
 	void setPosition(glm::vec3 newPosition);
 
 	glm::vec3 getPosition();
@@ -163,6 +159,10 @@ public:
 
 	bool getGravity();
 
+	void setModel(Model* newModel);
+
+	Model* getModel();
+
 protected:
 
 	glm::vec3 position;						//x, y, z
@@ -177,8 +177,9 @@ protected:
 	std::vector<glm::vec3> cubePoints;
 	std::vector<glm::vec3> cubeNormals;
 
-	Model* model = nullptr;
+	int modelIndex = -1;
 	Shader* shader = nullptr;
+	Model* model = nullptr;
 	ObjectType type;
 	CollisionBoxType collisionBoxType;
 	std::string name = "";

@@ -1,6 +1,6 @@
 #include "Character.h"
 
-Character::Character(Shader* shader) : Object(shader, "models/character.bmf")
+Character::Character(Shader* shader) : Object(shader, "character.bmf")
 {
 	this->shader = shader;
 	lookDirection = glm::vec3(1.0f, 0.0f, 0.0f);

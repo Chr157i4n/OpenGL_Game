@@ -19,23 +19,32 @@ public:
 
 	static Shader* loadShader(std::string vertexShaderFilename, std::string fragmentShaderFilename);
 
-	static Shader* getObjectShader();
+	static Shader* getShaderBasic();
 
-	static void bindShader();
+	static void bindShaderBasic();
 
-	static void unbindShader();
+	static void unbindShaderBasic();
+
+	static std::vector<Model*> loadModels(tinyxml2::XMLDocument* doc);
+
+	static Model* loadModel(std::string modelFileName);
+
+	static Model* getModelByName(std::string modelFileName);
 
 	static void loadMap(std::string mapFileName, std::vector<Object*>* objects, std::vector<Character*>* characters, std::vector<Player*>* players, std::vector<NPC*>* npcs);
 
-	static Shader* shader;
-
-private:
-
-	static size_t split(const std::string& txt, std::vector<std::string>& strs, char ch);
+	static int loadCubemap(std::vector<std::string> faces);
 
 
 
 	
+
+private:
+
+	static size_t split(const std::string& txt, std::vector<std::string>& strs, char ch);
+	
 	static std::string modelFolder;
+
+	static Shader* shaderBasic;
 };
 

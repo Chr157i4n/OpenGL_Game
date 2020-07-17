@@ -21,23 +21,7 @@
 
 #include "Logger.h"
 
-#ifdef _DEBUG123
-void openGLDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
-{
-	std::string messageS = message;
-	Logger::log("[OpenGL Callback] " + messageS);
-}
 
-void _GLGetError(const char* file, int line, const char* call) {
-	while (GLenum error = glGetError())
-	{
-		Logger::log("[OpenGL Error] " + std::string((char*)glewGetErrorString(error)) + " in " + std::string(file) + ":" + std::to_string(line) + " Call: " + std::string(call));
-	}
-}
-#define GLCALL(call) call; _GLGetError(__FILE__, __LINE__, #call)
-#else
-#define GLCALL(call) call
-#endif
 
 #include "defines.h"
 #include "VertexBuffer.h"
@@ -65,9 +49,8 @@ public:
 
 	static void startGame();
 
-	static void initOpenGL();
+	static void init();
 
-	static void initEverythingElse();
 
 private:
 
@@ -107,20 +90,6 @@ private:
 	static uint64 lastCounter;
 	static float32 delta;
 
-	static int modelViewProjMatrixUniformIndex;
-	static int modelViewUniformIndex;
-	static int invmodelViewUniformIndex;
-
-	static int directionLocation;
-
-	static glm::vec3 sunDirection;
-	static glm::vec3 spotLightPosition;
-
-	static int positionLocation;
-
-	static glm::vec4 pointLightPosition;
-
-	static glm::mat4 modelViewProj;
 
 
 

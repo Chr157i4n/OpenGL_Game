@@ -1,6 +1,16 @@
 <?xml version="1.0"?>
 <map>
   <name>Test Level</name>
+  <models>
+    <model>character.bmf</model>
+    <model>arrow.bmf</model>
+    <model>ground.bmf</model>
+    <model>box.bmf</model>
+    <model>wall.bmf</model>
+    <model>block_low.bmf</model>
+    <model>block_low_ramp.bmf</model>
+    <model>fence.bmf</model>
+  </models>
   <objects>
     <object>
       <name>Ground</name>
@@ -12,7 +22,7 @@
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
     </object>
-    <object>
+    <!--<object>
       <name>Box</name>
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
@@ -191,7 +201,7 @@
       <position>10;0;-42</position>
       <rotation>0;180;0</rotation>
       <scale>1;1;1</scale>
-    </object>
+    </object>-->
   </objects>
   <bots>
     <!--<bot>

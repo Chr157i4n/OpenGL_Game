@@ -1,15 +1,19 @@
 #include "ResourceManager.h"
+
 #include "Logger.h"
+#include "Renderer.h"
+
+#include "libs/stb_image.h"
 
 
-
-Shader* ResourceManager::shader;
 std::string ResourceManager::modelFolder = "models";
+Shader* ResourceManager::shaderBasic;
 
 void ResourceManager::init()
 {
-	shader = loadShader("shaders/basic.vert", "shaders/basic.frag");
+	shaderBasic = loadShader("shaders/basic.vert", "shaders/basic.frag");
 }
+
 
 Shader* ResourceManager::loadShader(std::string vertexShaderFilename, std::string fragmentShaderFilename)
 {
@@ -18,20 +22,65 @@ Shader* ResourceManager::loadShader(std::string vertexShaderFilename, std::strin
 	return newShader;
 }
 
-Shader* ResourceManager::getObjectShader()
+Shader* ResourceManager::getShaderBasic()
 {
-	return shader;
+	return shaderBasic;
 }
 
-void ResourceManager::bindShader()
+void ResourceManager::bindShaderBasic()
 {
-	shader->bind();
+	shaderBasic->bind();
 }
 
-void ResourceManager::unbindShader()
+void ResourceManager::unbindShaderBasic()
 {
-	shader->unbind();
+	shaderBasic->unbind();
 }
+
+
+std::vector<Model*> ResourceManager::loadModels(tinyxml2::XMLDocument* doc)
+{
+	std::vector<Model*> models;
+	
+	std::string xmlNodeText;
+	int id = 0;
+
+	for (tinyxml2::XMLElement* xmlNodeObject = doc->FirstChildElement("map")->FirstChildElement("models")->FirstChildElement("model"); xmlNodeObject != NULL; xmlNodeObject = xmlNodeObject->NextSiblingElement())
+	{
+		xmlNodeText = xmlNodeObject->GetText();
+
+		Model* newModel = loadModel(modelFolder + "/" + xmlNodeText);
+		newModel->setModelName(xmlNodeText);
+		newModel->setModelID(id++);
+
+
+		models.push_back(newModel);
+	}
+
+	return models;
+}
+
+Model* ResourceManager::loadModel(std::string modelFileName)
+{
+	Model* newModel = new Model();
+
+	const char* fileNameChar = modelFileName.c_str();
+	newModel->init(fileNameChar, shaderBasic);
+
+	return newModel;
+}
+
+Model* ResourceManager::getModelByName(std::string modelFileName)
+{
+	for (Model* model : Renderer::getModels())
+	{
+		if (model->getModelName() == modelFileName)
+		{
+			return model;
+		}
+	}
+}
+
 
 void ResourceManager::loadMap(std::string mapFileName, std::vector<Object*>* objects, std::vector<Character*>* characters, std::vector<Player*>* players, std::vector<NPC*>* npcs)
 {
@@ -47,11 +96,12 @@ void ResourceManager::loadMap(std::string mapFileName, std::vector<Object*>* obj
 
 	std::string title = doc.FirstChildElement("map")->FirstChildElement("name")->GetText();
 
+	std::vector<Model*> models = loadModels(&doc);
+	Renderer::setModels(models);
 
-	
 	//Player(s)
 	float fov = std::stof(ConfigManager::readConfig("fov"));
-	Player* player = new Player(shader, fov, 800.0f, 600.0f);
+	Player* player = new Player(shaderBasic, fov, 800.0f, 600.0f);
 	player->setCollisionBoxType(CollisionBoxType::cube);
 	player->setName("Player");
 	player->setNumber(numObject);
@@ -61,14 +111,13 @@ void ResourceManager::loadMap(std::string mapFileName, std::vector<Object*>* obj
 	numObject++;
 	
 
-
+	
 
 	for (tinyxml2::XMLElement* xmlNodeObject = doc.FirstChildElement("map")->FirstChildElement("objects")->FirstChildElement("object"); xmlNodeObject != NULL; xmlNodeObject = xmlNodeObject->NextSiblingElement())
 	{
 		xmlNodeText = xmlNodeObject->FirstChildElement("modelfile")->GetText();
-		xmlNodeText = modelFolder + "/" + xmlNodeText;
 
-		Object* newObject = new Object(shader, xmlNodeText);
+		Object* newObject = new Object(shaderBasic, xmlNodeText);
 
 		xmlNodeText = xmlNodeObject->FirstChildElement("position")->GetText();
 		split(xmlNodeText, params, ';');
@@ -106,9 +155,8 @@ void ResourceManager::loadMap(std::string mapFileName, std::vector<Object*>* obj
 	for (tinyxml2::XMLElement* xmlNodeBot = doc.FirstChildElement("map")->FirstChildElement("bots")->FirstChildElement("bot"); xmlNodeBot != NULL; xmlNodeBot = xmlNodeBot->NextSiblingElement())
 	{
 		xmlNodeText = xmlNodeBot->FirstChildElement("modelfile")->GetText();
-		xmlNodeText = modelFolder + "/" + xmlNodeText;
 
-		NPC* newNPC = new NPC(shader);
+		NPC* newNPC = new NPC(shaderBasic);
 
 		xmlNodeText = xmlNodeBot->FirstChildElement("position")->GetText();
 		split(xmlNodeText, params, ';');
@@ -166,7 +214,7 @@ void ResourceManager::loadMap(std::string mapFileName, std::vector<Object*>* obj
 		float x = rand() % 100 - 50;
 		float z = rand() % 100 - 50;
 
-		NPC* newNpc = new NPC(shader);
+		NPC* newNpc = new NPC(shaderBasic);
 		newNpc->setPosition(glm::vec3(x, 0, z));
 		newNpc->setNumber(numObject);
 		newNpc->setCurrentTask(CurrentTask::Follow_Character);
@@ -177,6 +225,7 @@ void ResourceManager::loadMap(std::string mapFileName, std::vector<Object*>* obj
 	}
 
 }
+
 
 size_t ResourceManager::split(const std::string& txt, std::vector<std::string>& strs, char ch)
 {
@@ -196,4 +245,38 @@ size_t ResourceManager::split(const std::string& txt, std::vector<std::string>& 
 	strs.push_back(txt.substr(initialPos, std::min(pos, txt.size()) - initialPos + 1));
 
 	return strs.size();
+}
+
+int ResourceManager::loadCubemap(std::vector<std::string> faces)
+{
+	unsigned int textureID;
+	glGenTextures(1, &textureID);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+
+	stbi_set_flip_vertically_on_load(false);
+
+	int width, height, nrChannels;
+	for (unsigned int i = 0; i < faces.size(); i++)
+	{
+		unsigned char* data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
+		if (data)
+		{
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+				0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data
+			);
+			stbi_image_free(data);
+		}
+		else
+		{
+			std::cout << "Cubemap tex failed to load at path: " << faces[i] << std::endl;
+			stbi_image_free(data);
+		}
+	}
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+	return textureID;
 }

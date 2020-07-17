@@ -234,3 +234,23 @@ Model::~Model() {
 		delete mesh;
 	}
 }
+
+void Model::setModelName(std::string newModelName)
+{
+	modelName = newModelName;
+}
+
+std::string Model::getModelName()
+{
+	return modelName;
+}
+
+void Model::setModelID(int newModelID)
+{
+	modelID = newModelID;
+}
+
+int Model::getModelID()
+{
+	return modelID;
+}

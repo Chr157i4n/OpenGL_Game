@@ -15,6 +15,8 @@ std::vector<Player*> Game::players;
 std::vector<NPC*> Game::npcs;
 std::vector<Bullet*> Game::bullets;
 
+
+
 bool  Game::buttonW = false;
 bool  Game::buttonS = false;
 bool  Game::buttonA = false;
@@ -22,8 +24,6 @@ bool  Game::buttonD = false;
 bool  Game::buttonSpace = false;
 bool  Game::buttonShift = false;
 bool  Game::buttonCtrl = false;
-
-bool  Game::spaceReleased = true;
 
 float Game::time = 0.0f;
 uint32  Game::FPS = 0;
@@ -33,20 +33,6 @@ uint64 Game::perfCounterFrequency;
 uint64 Game::lastCounter;
 float32 Game::delta;
 
-int Game::modelViewProjMatrixUniformIndex;
-int Game::modelViewUniformIndex;
-int Game::invmodelViewUniformIndex;
-
-int Game::directionLocation;
-
-glm::vec3 Game::sunDirection;
-glm::vec3 Game::spotLightPosition;
-glm::vec4 Game::pointLightPosition;
-int Game::positionLocation;
-
-glm::mat4 Game::modelViewProj;
-
-
 
 void Game::startGame()
 {
@@ -54,128 +40,26 @@ void Game::startGame()
 	lastCounter = SDL_GetPerformanceCounter();
 	delta = 0.0f;
 
-	glm::mat4 model = glm::mat4(1.0f);
-	model = glm::scale(model, glm::vec3(1.0f));
-
-	modelViewProj = players[0]->getViewProj() * model;
-
-
-	modelViewProjMatrixUniformIndex = GLCALL(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_modelViewProj"));
-	modelViewUniformIndex = GLCALL(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_modelView"));
-	invmodelViewUniformIndex = GLCALL(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_invModelView"));
 
 	SDL_SetRelativeMouseMode(SDL_TRUE);
 
 	gameLoop();
 }
 
-void Game::initOpenGL()
+
+void Game::init()
 {
-	SDL_Init(SDL_INIT_EVERYTHING);
-
-	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32);
-	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-	SDL_GL_SetSwapInterval(1);
-
-	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 8);
-
-	SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
-
-
-#ifdef _DEBUG
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
-#endif // DEBUG
-
-	uint32 flags = SDL_WINDOW_OPENGL;
-	int fullscreen = std::stoi(ConfigManager::readConfig("fullscreen"));
-	if (fullscreen == 1)
-	{
-		flags += SDL_WINDOW_FULLSCREEN_DESKTOP;
-	}
-
-	int resolution_width = std::stoi(ConfigManager::readConfig("resolution_width"));
-	int resolution_height = std::stoi(ConfigManager::readConfig("resolution_height"));
-
-	window = SDL_CreateWindow("OpenGL-Test", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, resolution_width, resolution_height, flags);
-	SDL_GLContext glContext = SDL_GL_CreateContext(window);
-
-	GLenum err = glewInit();
-	if (err != GLEW_OK)
-	{
-		Logger::log("Error: " + std::string((char*)glewGetErrorString(err)));
-		std::cin.get();
-		exit;
-	}
-	Logger::log("OpenGL version: " + std::string((char*)glGetString(GL_VERSION)));
-
-#ifdef _DEBUG123
-	glEnable(GL_DEBUG_OUTPUT);
-	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-	glDebugMessageCallback(openGLDebugCallback, 0);
-#endif // DEBUG
-
-	GLCALL(glEnable(GL_CULL_FACE));
-	GLCALL(glEnable(GL_DEPTH_TEST));
-	GLCALL(glFrontFace(GL_CCW));
-
-	GLCALL(glEnable(GL_BLEND));
-	GLCALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-
-}
-
-void Game::initEverythingElse()
-{
-
+	Renderer::initOpenGL(&window);
 
 	UI::init(window);
 
 	ResourceManager::init();
-	ResourceManager::bindShader();
-
-	directionLocation = GLCALL(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_directional_light.direction"));
-	//glm::vec3 sunColor = glm::vec3(0.98f, 0.83f, 0.30f);
-	glm::vec3 sunColor = glm::vec3(0.5);
-	sunDirection = glm::vec3(0.8,-0.4,-0.4);
-	GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_directional_light.diffuse"), 1, (float*)&sunColor));
-	GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_directional_light.specular"), 1, (float*)&sunColor));
-	sunColor = glm::vec3(0.5);
-	GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_directional_light.ambient"), 1, (float*)&sunColor));
-
-
-	glm::vec3 pointLightColor = glm::vec3(0, 0, 0);
-	GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_point_light.diffuse"), 1, (float*)&pointLightColor));
-	GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_point_light.specular"), 1, (float*)&pointLightColor));
-	pointLightColor *= 0.2f;
-	GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_point_light.ambient"), 1, (float*)&pointLightColor));
-	GLCALL(glUniform1f(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_point_light.linear"), 0.007f));
-	GLCALL(glUniform1f(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_point_light.quadratic"), 0.0002));
-	pointLightPosition = glm::vec4(80, 2.5, 10, 1.0f);
-	positionLocation = GLCALL(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_point_light.position"));
-
-
-	glm::vec3 spotLightColor = glm::vec3(0);
-	GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_spot_light.diffuse"), 1, (float*)&spotLightColor));
-	GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_spot_light.specular"), 1, (float*)&spotLightColor));
-	spotLightColor *= 0.2f;
-	GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_spot_light.ambient"), 1, (float*)&spotLightColor));
-	spotLightPosition = glm::vec3(0.0f);
-	GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_spot_light.position"), 1, (float*)&spotLightPosition));
-	spotLightPosition.z = 1.0f;
-	GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_spot_light.direction"), 1, (float*)&spotLightPosition));
-	GLCALL(glUniform1f(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_spot_light.innerCone"), 0.95f));
-	GLCALL(glUniform1f(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_spot_light.outerCone"), 0.80f));
-
-
 
 	std::string levelname = ConfigManager::readConfig("level");
 	ResourceManager::loadMap("levels/" + levelname, &objects, &characters, &players, &npcs);
 
-	Renderer::init();
+	Renderer::init(players[0]);
+	Renderer::initLight();
 }
 
 void Game::gameLoop()
@@ -183,8 +67,7 @@ void Game::gameLoop()
 	while (!close)
 	{
 		time += delta;
-		GLCALL(glClearColor(0.0f, 0.0f, 0.8f, 1.0f));
-		GLCALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+		
 
 		for (Object* object : objects)
 		{
@@ -192,7 +75,7 @@ void Game::gameLoop()
 		}
 
 
-		ResourceManager::bindShader();
+		ResourceManager::bindShaderBasic();
 		input();
 
 		for (NPC* npc : npcs)
@@ -212,8 +95,8 @@ void Game::gameLoop()
 		//Move every Object
 		for (Object* object : objects)
 		{		
-			if (object->getType() == ObjectType::Object_Environment) continue;
-			if (object->getType() == ObjectType::Object_Bullet) continue;
+			if (object->getType() == ObjectType::Object_Environment) continue; //Environment doesnt move
+			if (object->getType() == ObjectType::Object_Bullet) continue; //Bullets have their own move function
 
 			object->move(delta / 1000, objects[1]);
 			object->fall(delta / 1000);
@@ -243,7 +126,7 @@ void Game::gameLoop()
 		for (Player* player : players)
 		{
 			player->updateCameraPosition();
-			player->update();
+			//player->update();
 		}
 
 		for (Character* character : characters)
@@ -253,34 +136,12 @@ void Game::gameLoop()
 
 		deleteObjects();
 
-
-		glm::vec4 transformedSunDirection = glm::transpose(glm::inverse(players[0]->getView())) * glm::vec4(sunDirection, 1.0f);
-		glUniform3fv(directionLocation, 1, (float*)&transformedSunDirection);
-
-		glm::mat4 pointLightMatrix = glm::mat4(1.0f);
-		pointLightPosition = pointLightMatrix * pointLightPosition;
-		glm::vec3 transformedPointLightPosition = (glm::vec3) (players[0]->getView() * pointLightPosition);
-		glUniform3fv(positionLocation, 1, (float*)&transformedPointLightPosition);
-
-
 		render();
-
-
-		UI::drawFPS(FPS);
-		UI::drawPos(players[0]);
-		UI::drawRot(players[0]);
-		UI::drawUI();
-
 
 		for (Object* object : objects)
 		{
 			object->calculationAfterFrame();
 		}
-
-
-
-
-		SDL_GL_SwapWindow(window);
 
 		//std::chrono::duration<int, std::milli> timespan(100);
 		//std::this_thread::sleep_for(timespan);
@@ -296,41 +157,18 @@ void Game::gameLoop()
 
 void Game::render()
 {
+	Renderer::calcLight(players[0]);
+
 	Renderer::renderSkybox(players[0]);
 
-	for (Object* object: objects)
-	{
-		glm::mat4 model = glm::mat4(1.0f);
-		//model = glm::scale(model, glm::vec3(1.0f));
+	Renderer::renderObjects(players[0], objects);
 
-		//move to position of model
-		model = glm::translate(model, object->getPosition());
+	UI::drawFPS(FPS);
+	UI::drawPos(players[0]);
+	UI::drawRot(players[0]);
+	UI::drawUI();
 
-		//rotate model around X
-		float angle = object->getRotation().x;
-		model = glm::rotate(model, glm::radians(angle), glm::vec3(1, 0, 0));
-
-		//rotate model around Y
-		angle = object->getRotation().y;
-		model = glm::rotate(model, glm::radians(angle), glm::vec3(0, 1, 0));
-
-		//rotate model around z
-		angle = object->getRotation().z;
-		model = glm::rotate(model, glm::radians(angle), glm::vec3(0, 0, 1));
-
-		//view and projection
-		modelViewProj = players[0]->getViewProj() * model;
-		glm::mat4 modelView = players[0]->getView() * model;
-		glm::mat4 invModelView = glm::transpose(glm::inverse(modelView));
-
-		object->bindShader();
-
-		GLCALL(glUniformMatrix4fv(modelViewProjMatrixUniformIndex, 1, GL_FALSE, &modelViewProj[0][0]));
-		GLCALL(glUniformMatrix4fv(modelViewUniformIndex, 1, GL_FALSE, &modelView[0][0]));
-		GLCALL(glUniformMatrix4fv(invmodelViewUniformIndex, 1, GL_FALSE, &invModelView[0][0]));
-
-		object->render();
-	}
+	SDL_GL_SwapWindow(window);
 }
 
 void Game::input()
@@ -372,10 +210,10 @@ void Game::input()
 				break;
 			case SDLK_f:
 				glm::vec3 spotLightColor = glm::vec3(1.0f);
-				GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_spot_light.diffuse"), 1, (float*)&spotLightColor));
-				GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_spot_light.specular"), 1, (float*)&spotLightColor));
+				GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getShaderBasic()->getShaderId(), "u_spot_light.diffuse"), 1, (float*)&spotLightColor));
+				GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getShaderBasic()->getShaderId(), "u_spot_light.specular"), 1, (float*)&spotLightColor));
 				spotLightColor *= 0.2f;
-				GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_spot_light.ambient"), 1, (float*)&spotLightColor));
+				GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getShaderBasic()->getShaderId(), "u_spot_light.ambient"), 1, (float*)&spotLightColor));
 				break;
 			case SDLK_ESCAPE:
 				SDL_SetRelativeMouseMode(SDL_FALSE);
@@ -402,7 +240,6 @@ void Game::input()
 				break;
 			case SDLK_SPACE:
 				buttonSpace = false;
-				spaceReleased = true;
 				break;
 			case SDLK_LSHIFT:
 				buttonShift = false;
@@ -415,9 +252,9 @@ void Game::input()
 				break;
 			case SDLK_f:
 				glm::vec3 spotLightColor = glm::vec3(0);
-				GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_spot_light.diffuse"), 1, (float*)&spotLightColor));
-				GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_spot_light.specular"), 1, (float*)&spotLightColor));
-				GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getObjectShader()->getShaderId(), "u_spot_light.ambient"), 1, (float*)&spotLightColor));
+				GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getShaderBasic()->getShaderId(), "u_spot_light.diffuse"), 1, (float*)&spotLightColor));
+				GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getShaderBasic()->getShaderId(), "u_spot_light.specular"), 1, (float*)&spotLightColor));
+				GLCALL(glUniform3fv(glGetUniformLocation(ResourceManager::getShaderBasic()->getShaderId(), "u_spot_light.ambient"), 1, (float*)&spotLightColor));
 				break;
 			}
 		}
@@ -449,9 +286,8 @@ void Game::input()
 	if (buttonD) {
 		players[0]->moveRight(objects);
 	}
-	if (buttonSpace && spaceReleased) {
+	if (buttonSpace) {
 		players[0]->jump();
-		spaceReleased = false;
 	}
 	if (buttonCtrl) {
 		players[0]->crouch(true);
