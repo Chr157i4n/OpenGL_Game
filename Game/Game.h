@@ -55,6 +55,8 @@ enum PlayerAction {
 	toggleWireframe,
 	pause,
 	menu,
+	toggleFullscreen,
+	enter,
 };
 
 std::unordered_map<SDL_Keycode, PlayerAction> const keybindings =
@@ -71,6 +73,8 @@ std::unordered_map<SDL_Keycode, PlayerAction> const keybindings =
 	{SDLK_F4,		toggleWireframe},
 	{SDLK_p,		pause},
 	{SDLK_ESCAPE,	menu},
+	{SDLK_F11,		toggleFullscreen},	
+	{SDLK_RETURN,	enter},
 };
 
 
@@ -97,6 +101,12 @@ private:
 
 	static void deleteObjects();
 
+	static void togglePause();
+
+	static void toggleMenu();
+
+	static void toggleFullscreen();
+
 
 
 	static SDL_Window* window;
@@ -117,6 +127,9 @@ private:
 	static uint64 perfCounterFrequency;
 	static uint64 lastCounter;
 	static float32 delta;
+
+	static bool showInfo;
+	static GameState gameState;
 
 
 

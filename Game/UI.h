@@ -17,6 +17,21 @@ struct UI_Element
 	std::string text;
 };
 
+enum class MenuItemType
+{
+	resume,
+	options,
+	restart,
+	exit,
+};
+
+struct MenuItem
+{
+	bool selected = false;
+	std::string text = "";
+	MenuItemType type;
+};
+
 static class UI
 {
 public:
@@ -29,7 +44,9 @@ public:
 
 	static void drawRot(Player* object);
 
-	static void drawString(float x, float y, std::string text);
+	static void drawString(float x, float y, std::string text, glm::vec4 color);
+
+	static void drawVec3(glm::vec3 vector, int precision, std::string text, float x, float y);
 
 	static int getHeight();
 
@@ -39,14 +56,27 @@ public:
 
 	static void addElement(UI_Element* newElement);
 
+	static void drawMenu();
+
+	static std::vector<MenuItem*> getMenuItemList()
+	{
+		return menuItemList;
+	}
+
+	static MenuItem* getSelectedMenuItem();
+
 private:
 	static SDL_Window* window;
 	static Shader* fontShader;
 	static Font* font;
 
+	static int fontColorUniformIndex;
+
 	static int w, h;
 
 	static std::vector<UI_Element*> ui_elements;
+
+	static std::vector<MenuItem*> menuItemList;
 
 };
 

@@ -5,9 +5,15 @@
 #include <stddef.h>
 #include <vector>
 
+enum VertexType {
+    _Vertex,
+    _VertexPos,
+    _VertexPosCol,
+    _VertexPosTex,
+};
 
 struct VertexBuffer {
-    VertexBuffer(void* data, uint32 numVertices, int numElements);
+    VertexBuffer(void* data, uint32 numVertices, VertexType vertexType);
 
     virtual ~VertexBuffer();
 

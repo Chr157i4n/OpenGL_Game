@@ -75,17 +75,30 @@ float skyboxVertices[] = {
 	 400.0f, -400.0f,  400.0f
 };
 
+float axisVertices[] = {
+	// positions										//colors
+	0.0f * 9 / 16,		0.0f,		0.0f * 9 / 16,		1.0f,	0.0f,	0.0f,	1.0f,
+	1.0f * 9 / 16,		0.0f,		0.0f * 9 / 16,		1.0f,	0.0f,	0.0f,	1.0f,
+
+	0.0f * 9 / 16,		0.0f,		0.0f * 9 / 16,		0.0f,	1.0f,	0.0f,	1.0f,
+	0.0f * 9 / 16,		1.0f,		0.0f * 9 / 16,		0.0f,	1.0f,	0.0f,	1.0f,
+
+	0.0f * 9 / 16,		0.0f,		0.0f * 9 / 16,		0.0f,	0.0f,	1.0f,	1.0f,
+	0.0f * 9 / 16,		0.0f,		1.0f * 9 / 16,		0.0f,	0.0f,	1.0f,	1.0f,
+};
+
 SDL_Window** Renderer::window;
 
 Shader* Renderer::shaderSkybox = nullptr;
 Shader* Renderer::shaderBasic = nullptr;
 Shader* Renderer::shaderImage = nullptr;
+Shader* Renderer::shaderGeometry = nullptr;
 
 unsigned int Renderer::loadingScreenTexture;
 
 unsigned int Renderer::skyboxTexture;
 VertexBuffer* Renderer::skyboxVertexBuffer;
-IndexBuffer* Renderer::skyboxIndexBuffer;
+VertexBuffer* Renderer::axisVertexBuffer;
 
 std::vector<Model*> Renderer::models;
 
@@ -101,6 +114,8 @@ glm::vec3 Renderer::spotLightPosition;
 glm::vec4 Renderer::pointLightPosition;
 
 glm::mat4 Renderer::modelViewProj;
+
+bool Renderer::wireframeMode = false;
 
 
 void Renderer::initOpenGL(SDL_Window** window)
@@ -168,11 +183,13 @@ void Renderer::initShader()
 	shaderSkybox = ResourceManager::loadShader("shaders/skybox.vert", "shaders/skybox.frag");
 	shaderBasic = ResourceManager::loadShader("shaders/basic.vert", "shaders/basic.frag");
 	shaderImage = ResourceManager::loadShader("shaders/image.vert", "shaders/image.frag");
+	shaderGeometry = ResourceManager::loadShader("shaders/geometry.vert", "shaders/geometry.frag");
 }
 
 void Renderer::init(Player* player)
 {
-	skyboxVertexBuffer = new VertexBuffer(skyboxVertices, 36, 1);
+	skyboxVertexBuffer = new VertexBuffer(skyboxVertices, 36, VertexType::_VertexPos);
+	axisVertexBuffer = new VertexBuffer(axisVertices, 6, VertexType::_VertexPosCol);
 
 	std::vector<std::string> faces
 	{
@@ -198,13 +215,28 @@ void Renderer::initLight()
 {
 	shaderBasic->bind();
 
+	/*GLCALL(glEnable(GL_LIGHTING));
+	GLCALL(glEnable(GL_LIGHT0));
+	glColorMaterial(GL_FRONT_AND_BACK, GL_EMISSION);
+	GLCALL(glEnable(GL_COLOR_MATERIAL));
+
+	GLfloat light_ambient[] =	{ 0.3 , 0.3, 0.3, 1.0 };
+	GLfloat light_diffuse[] =	{ 0.8 , 0.8, 0.8, 1.0 };
+	GLfloat light_specular[] =	{ 0.8 , 0.8, 0.8, 1.0 };
+	GLfloat light_position[] =	{ 0.8, -0.4, -0.4  , 0.0 };
+
+	GLCALL(glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient));
+	GLCALL(glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse));
+	GLCALL(glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular));
+	GLCALL(glLightfv(GL_LIGHT0, GL_POSITION, light_position));*/
+
 	lightdirectionUniformIndex = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_directional_light.direction"));
 	//glm::vec3 sunColor = glm::vec3(0.98f, 0.83f, 0.30f);
-	glm::vec3 sunColor = glm::vec3(0.5);
+	glm::vec3 sunColor = glm::vec3(0.8);
 	sunDirection = glm::vec3(0.8, -0.4, -0.4);
 	GLCALL(glUniform3fv(glGetUniformLocation(shaderBasic->getShaderId(), "u_directional_light.diffuse"), 1, (float*)&sunColor));
 	GLCALL(glUniform3fv(glGetUniformLocation(shaderBasic->getShaderId(), "u_directional_light.specular"), 1, (float*)&sunColor));
-	sunColor = glm::vec3(0.5);
+	sunColor = glm::vec3(0.3);
 	GLCALL(glUniform3fv(glGetUniformLocation(shaderBasic->getShaderId(), "u_directional_light.ambient"), 1, (float*)&sunColor));
 
 
@@ -239,7 +271,7 @@ void Renderer::showLoadingScreen() {
 	GLCALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
 
-	VertexBuffer* loadingScreenVertexBuffer = new VertexBuffer(screenVertices, 6, 2);
+	VertexBuffer* loadingScreenVertexBuffer = new VertexBuffer(screenVertices, 6, VertexType::_VertexPosTex);
 	loadingScreenTexture = ResourceManager::loadImage("images/loading_screen.png");
 	
 	renderImage(loadingScreenVertexBuffer, loadingScreenTexture);
@@ -252,13 +284,22 @@ void Renderer::showLoadingScreen() {
 
 void Renderer::calcLight(Player* player)
 {
+	shaderBasic->bind();
+	
+	//Directionallight
+	//glm::vec4 transformedSunDirection = glm::vec4(sunDirection, 1.0f);
 	glm::vec4 transformedSunDirection = glm::transpose(glm::inverse(player->getView())) * glm::vec4(sunDirection, 1.0f);
+	Logger::log("Sun Direction: x:"+std::to_string(transformedSunDirection.x)+" y:" + std::to_string(transformedSunDirection.y) + " z:" + std::to_string(transformedSunDirection.y));
+	
 	glUniform3fv(lightdirectionUniformIndex, 1, (float*)&transformedSunDirection);
 
+	//Pointlight
 	glm::mat4 pointLightMatrix = glm::mat4(1.0f);
 	pointLightPosition = pointLightMatrix * pointLightPosition;
 	glm::vec3 transformedPointLightPosition = (glm::vec3) (player->getView() * pointLightPosition);
 	glUniform3fv(lightpositionUniformIndex, 1, (float*)&transformedPointLightPosition);
+
+	shaderBasic->unbind();
 }
 
 void Renderer::renderSkybox(Player* player)
@@ -339,6 +380,50 @@ void Renderer::renderObjects(Player* player, std::vector<Object*> objects)
 	}
 }
 
+void Renderer::renderAxis(Player* player)
+{
+	shaderGeometry->bind();
+	axisVertexBuffer->bind();
+
+	GLCALL(glDepthMask(GL_FALSE));
+	GLCALL(glDisable(GL_CULL_FACE));
+	GLCALL(glDisable(GL_DEPTH_TEST));
+
+
+	glm::mat4 model = glm::mat4(1.0f);
+	model = glm::scale(model, glm::vec3(0.1f));
+
+	//move to position of model
+	model = glm::translate(model, glm::vec3(8,5,0));
+
+	//rotate model around X
+	float gegk = player->getLookDirection().y;
+	float ank = sqrt(pow(player->getLookDirection().x, 2) + pow(player->getLookDirection().z, 2));
+
+	float angle = -atan(gegk / ank) * 180 / 3.14;
+	//float angle = player->getRotation().x;
+	model = glm::rotate(model, glm::radians(angle), glm::vec3(1, 0, 0));
+
+	//rotate model around Y
+	angle = -player->getRotation().y;
+	model = glm::rotate(model, glm::radians(angle), glm::vec3(0, 1, 0));
+
+
+	int modelUniformIndex = GLCALL(glGetUniformLocation(shaderGeometry->getShaderId(), "u_model"));
+	GLCALL(glUniformMatrix4fv(modelUniformIndex, 1, GL_FALSE, &model[0][0]));
+
+
+	GLCALL(glDrawArrays(GL_LINES, 0, 6));
+	
+	GLCALL(glDepthMask(GL_TRUE));
+	GLCALL(glEnable(GL_CULL_FACE));
+	GLCALL(glEnable(GL_DEPTH_TEST));
+
+
+	axisVertexBuffer->unbind();
+	shaderGeometry->unbind();
+}
+
 void Renderer::setModels(std::vector<Model*> newModels)
 {
 	models = newModels;
@@ -358,6 +443,19 @@ Shader* Renderer::getShader(ShaderType shadertype)
 	case ShaderType::skybox:
 		return shaderSkybox;
 	}
+}
+
+void Renderer::toggleWireframe()
+{
+	if (wireframeMode)
+	{
+		GLCALL(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
+	}
+	else
+	{
+		GLCALL(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));	
+	}
+	wireframeMode = !wireframeMode;
 }
 
 

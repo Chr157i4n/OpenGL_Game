@@ -30,12 +30,15 @@ uint64 Game::perfCounterFrequency;
 uint64 Game::lastCounter;
 float32 Game::delta;
 
+bool Game::showInfo=false;
+GameState Game::gameState;
+
 void Game::startGame()
 {
 	perfCounterFrequency = SDL_GetPerformanceFrequency();
 	lastCounter = SDL_GetPerformanceCounter();
 	delta = 0.0f;
-
+	gameState = GameState::GAME_ACTIVE;
 
 	SDL_SetRelativeMouseMode(SDL_TRUE);
 
@@ -66,81 +69,100 @@ void Game::gameLoop()
 	{
 		time += delta;
 
-
-		for (Object* object : objects)
-		{
-			object->calculationBeforeFrame();
-		}
-
 		processInput();
 
-		for (NPC* npc : npcs)
+		if (gameState == GameState::GAME_ACTIVE)
 		{
-			//npc->followCharacter(delta / 1000, objects, players[0]);
-			//npc->followNavPoints(delta / 1000, objects);
-			npc->doCurrentTask(delta / 1000, objects, characters);
-		}
+			GLCALL(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
+			GLCALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
-		for (Bullet* bullet : bullets)
-		{
-			bullet->move(delta / 1000);
-			bullet->fall(delta / 1000);
-			bullet->checkHit(objects);
-		}
-
-		//Move every Object
-		for (Object* object : objects)
-		{
-			if (object->getType() == ObjectType::Object_Environment) continue; //Environment doesnt move
-			if (object->getType() == ObjectType::Object_Bullet) continue; //Bullets have their own move function
-
-			object->move(delta / 1000, objects[1]);
-			object->fall(delta / 1000);
-		}
-
-		//Check every Object for collision
-		for (Object* object : objects)
-		{
-			CollisionResult collisionResult = object->checkCollision(objects);
-			if (!collisionResult.collided) continue;
-
-			if (object->getType() & ObjectType::Object_Character && collisionResult.onTop == true)
+			for (Object* object : objects)
 			{
-				Character* character = static_cast<Character*>(object);
-				character->activateJumping();
+				object->calculationBeforeFrame();
 			}
 
-			if ((object->getType() & ObjectType::Object_NPC) && (collisionResult.collidedWith->getType() & ObjectType::Object_Entity | ObjectType::Object_Character))
+			
+
+			for (NPC* npc : npcs)
 			{
-				Logger::log("test");
-				NPC* npc = static_cast<NPC*>(object);
-				npc->evade(delta / 1000, objects);
+				//npc->followCharacter(delta / 1000, objects, players[0]);
+				//npc->followNavPoints(delta / 1000, objects);
+				npc->doCurrentTask(delta / 1000, objects, characters);
 			}
 
+			for (Bullet* bullet : bullets)
+			{
+				bullet->move(delta / 1000);
+				bullet->fall(delta / 1000);
+				bullet->checkHit(objects);
+			}
+
+			//Move every Object
+			for (Object* object : objects)
+			{
+				if (object->getType() == ObjectType::Object_Environment) continue; //Environment doesnt move
+				if (object->getType() == ObjectType::Object_Bullet) continue; //Bullets have their own move function
+
+				object->move(delta / 1000, objects[1]);
+				object->fall(delta / 1000);
+			}
+
+			//Check every Object for collision
+			for (Object* object : objects)
+			{
+				CollisionResult collisionResult = object->checkCollision(objects);
+				if (!collisionResult.collided) continue;
+
+				if (object->getType() & ObjectType::Object_Character && collisionResult.onTop == true)
+				{
+					Character* character = static_cast<Character*>(object);
+					character->activateJumping();
+				}
+
+				if ((object->getType() & ObjectType::Object_NPC) && (collisionResult.collidedWith->getType() & ObjectType::Object_Entity | ObjectType::Object_Character))
+				{
+					Logger::log("test");
+					NPC* npc = static_cast<NPC*>(object);
+					npc->evade(delta / 1000, objects);
+				}
+
+			}
+
+			for (Player* player : players)
+			{
+				player->updateCameraPosition();
+				//player->update();
+			}
+
+			for (Character* character : characters)
+			{
+				character->resetVerticalMovement();
+			}
+
+			deleteObjects();
+
+			render();
+
+			for (Object* object : objects)
+			{
+				object->calculationAfterFrame();
+			}
+
+			//std::chrono::duration<int, std::milli> timespan(100);
+			//std::this_thread::sleep_for(timespan);
+
+			SDL_GL_SwapWindow(window);
 		}
 
-		for (Player* player : players)
+		if (gameState == GameState::GAME_MENU)
 		{
-			player->updateCameraPosition();
-			//player->update();
+			GLCALL(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
+			GLCALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+
+			UI::drawMenu();
+
+			SDL_GL_SwapWindow(window);
 		}
-
-		for (Character* character : characters)
-		{
-			character->resetVerticalMovement();
-		}
-
-		deleteObjects();
-
-		render();
-
-		for (Object* object : objects)
-		{
-			object->calculationAfterFrame();
-		}
-
-		//std::chrono::duration<int, std::milli> timespan(100);
-		//std::this_thread::sleep_for(timespan);
 
 		uint64 endCounter = SDL_GetPerformanceCounter();
 		uint64 counterElasped = endCounter - lastCounter;
@@ -153,21 +175,22 @@ void Game::gameLoop()
 
 void Game::render()
 {
-	GLCALL(glClearColor(0.0f, 0.0f, 0.8f, 1.0f));
-	GLCALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
 	Renderer::calcLight(players[0]);
 
 	Renderer::renderSkybox(players[0]);
-
 	Renderer::renderObjects(players[0], objects);
+	
 
-	UI::drawFPS(FPS);
-	UI::drawPos(players[0]);
-	UI::drawRot(players[0]);
-	UI::drawUI();
+	if (showInfo)
+	{
+		Renderer::renderAxis(players[0]);
 
-	SDL_GL_SwapWindow(window);
+		UI::drawFPS(FPS);
+		UI::drawPos(players[0]);
+		UI::drawRot(players[0]);
+		UI::drawUI();
+	}
 }
 
 void Game::processInput()
@@ -241,34 +264,6 @@ void Game::processInput()
 	{
 		players[0]->crouch(false);
 	}
-	if (pressedKeys[PlayerAction::toggleFlashlight])
-	{
-		players[0]->activateFlashlight(true);
-	}
-	if (!pressedKeys[PlayerAction::toggleFlashlight])
-	{
-		players[0]->activateFlashlight(false);
-	}
-	if (pressedKeys[PlayerAction::toggleInfo])
-	{
-
-	}
-	if (pressedKeys[PlayerAction::toggleWireframe])
-	{
-		GLCALL(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
-	}
-	if (!pressedKeys[PlayerAction::toggleWireframe])
-	{
-		GLCALL(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
-	}
-	if (pressedKeys[PlayerAction::pause])
-	{
-
-	}
-	if (pressedKeys[PlayerAction::menu])
-	{
-		SDL_SetRelativeMouseMode(SDL_FALSE);
-	}
 }
 
 void Game::keyPressed(SDL_Keycode key)
@@ -280,6 +275,79 @@ void Game::keyPressed(SDL_Keycode key)
 		action = it->second;
 	}
 	if (action == PlayerAction::None) { Logger::log("Keybinding not found!"); return; }
+
+	//Single Action Keys, just one time per pressing
+	if (!pressedKeys[action])
+	{
+		if (action == PlayerAction::toggleInfo)
+		{
+			showInfo = !showInfo;
+		}
+		if (action == PlayerAction::toggleFlashlight)
+		{
+			players[0]->toggleFlashlight();
+		}
+		if (action == PlayerAction::toggleWireframe)
+		{
+			Renderer::toggleWireframe();
+		}
+		if (action == PlayerAction::pause)
+		{
+			togglePause();
+		}
+		if (action == PlayerAction::menu)
+		{
+			toggleMenu();
+		}
+		if (action == PlayerAction::toggleFullscreen)
+		{
+			toggleFullscreen();
+		}
+
+		if (gameState == GameState::GAME_MENU)
+		{
+			if (action == PlayerAction::moveForward)
+			{
+				for (int i = 0; i < UI::getMenuItemList().size(); i++)
+				{
+					if (UI::getMenuItemList()[i]->selected)
+					{
+						UI::getMenuItemList()[i]->selected = false;
+						UI::getMenuItemList()[(i - 1) % UI::getMenuItemList().size()]->selected = true;
+						break;
+					}
+				}
+			}
+
+			if (action == PlayerAction::moveBackward)
+			{
+				for (int i = 0; i < UI::getMenuItemList().size(); i++)
+				{
+					if (UI::getMenuItemList()[i]->selected)
+					{
+						UI::getMenuItemList()[i]->selected = false;
+						UI::getMenuItemList()[(i + 1) % UI::getMenuItemList().size()]->selected = true;
+						break;
+					}
+				}
+			}
+
+			if (action == PlayerAction::enter)
+			{
+				MenuItem* selectedMenuItem = UI::getSelectedMenuItem();
+				if (selectedMenuItem->type==MenuItemType::resume)
+				{
+					toggleMenu();
+				}
+				if (selectedMenuItem->type == MenuItemType::exit)
+				{
+					SDL_DestroyWindow(window);
+					exit(0);
+				}
+			}
+		}
+
+	}
 
 	pressedKeys[action] = true;
 }
@@ -294,6 +362,7 @@ void Game::keyReleased(SDL_Keycode key)
 	}
 	if (action == PlayerAction::None) { Logger::log("Keybinding not found!"); return; }
 
+
 	pressedKeys[action] = false;
 }
 
@@ -307,4 +376,37 @@ void Game::deleteObjects()
 			//i++;
 		}
 	}
+}
+
+void Game::togglePause()
+{
+	if (gameState == GameState::GAME_PAUSED)
+	{
+		gameState = GameState::GAME_ACTIVE;
+	}
+	else if (gameState == GameState::GAME_ACTIVE)
+	{
+		gameState = GameState::GAME_PAUSED;
+	}
+}
+
+void Game::toggleMenu()
+{
+	if (gameState == GameState::GAME_PAUSED || gameState == GameState::GAME_ACTIVE)
+	{
+		gameState = GameState::GAME_MENU;
+		SDL_SetRelativeMouseMode(SDL_FALSE);
+	}
+	else if (gameState == GameState::GAME_MENU)
+	{
+		gameState = GameState::GAME_ACTIVE;
+		SDL_SetRelativeMouseMode(SDL_TRUE);
+	}
+}
+
+void Game::toggleFullscreen()
+{
+	Uint32 FullscreenFlag = SDL_WINDOW_FULLSCREEN;
+	bool IsFullscreen = SDL_GetWindowFlags(window) & FullscreenFlag;
+	SDL_SetWindowFullscreen(window, IsFullscreen ? 0 : FullscreenFlag);
 }

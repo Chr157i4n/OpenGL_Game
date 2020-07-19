@@ -10,7 +10,7 @@ Mesh::Mesh(std::vector<Vertex>& vertices, uint64 numVertices, std::vector<uint32
 
 	dimension = calculateDimension(vertices);
 
-	vertexBuffer = new VertexBuffer(vertices.data(), numVertices, 4);
+	vertexBuffer = new VertexBuffer(vertices.data(), numVertices, VertexType::_Vertex);
 	indexBuffer = new IndexBuffer(indices.data(), numIndices, sizeof(indices[0]));
 
 	diffuseLocation = GLCALL(glGetUniformLocation(shader->getShaderId(), "u_material.diffuse"));

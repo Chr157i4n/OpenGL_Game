@@ -25,8 +25,11 @@ public:
 
 	void activateFlashlight(bool enabled);
 
+	void toggleFlashlight();
 
 private:
+
+	bool flashlightActive = false;
 	
 
 

@@ -34,11 +34,15 @@ public:
 
 	static void renderObjects(Player* player, std::vector<Object*> objects);
 
+	static void renderAxis(Player* player);
+
 	static void setModels(std::vector<Model*> newModels);
 
 	static std::vector<Model*> getModels();
 
 	static Shader* getShader(ShaderType shadertype);
+
+	static void toggleWireframe();
 
 private:
 	static void initLight();
@@ -48,12 +52,13 @@ private:
 	static Shader* shaderSkybox;
 	static Shader* shaderBasic;
 	static Shader* shaderImage;
+	static Shader* shaderGeometry;
 
 	static unsigned int loadingScreenTexture;
 
 	static unsigned int skyboxTexture;
 	static VertexBuffer* skyboxVertexBuffer;
-	static IndexBuffer* skyboxIndexBuffer;
+	static VertexBuffer* axisVertexBuffer;
 
 	
 
@@ -72,6 +77,8 @@ private:
 	static glm::vec3 sunDirection;
 	static glm::vec3 spotLightPosition;
 	static glm::vec4 pointLightPosition;
+
+	static bool wireframeMode;
 	
 
 	

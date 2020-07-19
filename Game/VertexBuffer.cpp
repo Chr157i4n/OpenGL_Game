@@ -1,29 +1,38 @@
 #include "VertexBuffer.h"
 
-VertexBuffer::VertexBuffer(void* data, uint32 numVertices, int numElements) {
+VertexBuffer::VertexBuffer(void* data, uint32 numVertices, VertexType vertexType) {
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
 
     glGenBuffers(1, &bufferId);
     glBindBuffer(GL_ARRAY_BUFFER, bufferId);
 
-    if (numElements == 1)
+    if (vertexType == VertexType::_VertexPos)
     {
-        glBufferData(GL_ARRAY_BUFFER, numVertices * sizeof(VertexP), data, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, numVertices * sizeof(VertexPos), data, GL_STATIC_DRAW);
 
         glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(VertexP), (void*)offsetof(struct VertexP, position));
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(VertexPos), (void*)offsetof(struct VertexPos, position));
     }
-    if (numElements == 2)
+    if (vertexType == VertexType::_VertexPosCol)
     {
-        glBufferData(GL_ARRAY_BUFFER, numVertices * sizeof(VertexI), data, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, numVertices * sizeof(VertexPosCol), data, GL_STATIC_DRAW);
 
         glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(VertexI), (void*)offsetof(struct VertexI, position));
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(VertexPosCol), (void*)offsetof(struct VertexPosCol, position));
         glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(VertexI), (void*)offsetof(struct VertexI, textureCoord));
+        glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(VertexPosCol), (void*)offsetof(struct VertexPosCol, color));
     }
-    if (numElements == 4)
+    if (vertexType == VertexType::_VertexPosTex)
+    {
+        glBufferData(GL_ARRAY_BUFFER, numVertices * sizeof(VertexPosTex), data, GL_STATIC_DRAW);
+
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(VertexPosTex), (void*)offsetof(struct VertexPosTex, position));
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(VertexPosTex), (void*)offsetof(struct VertexPosTex, textureCoord));
+    }
+    if (vertexType == VertexType::_Vertex)
     {
         glBufferData(GL_ARRAY_BUFFER, numVertices * sizeof(Vertex), data, GL_STATIC_DRAW);
 

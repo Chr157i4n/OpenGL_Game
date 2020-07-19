@@ -67,12 +67,14 @@ void main()
         discard;
     }
 
+    //DirectionalLight
     vec3 light = normalize(-u_directional_light.direction);
     vec3 reflection = reflect(u_directional_light.direction, normal);
     vec3 ambient = u_directional_light.ambient * diffuseColor.xyz;
     vec3 diffuse = u_directional_light.diffuse * max(dot(normal, light), 0.0) * diffuseColor.xyz;
     vec3 specular = u_directional_light.specular * pow(max(dot(reflection, view), 0.000001), u_material.shininess) * u_material.specular;
 
+    //PointLight
     light = normalize(u_point_light.position - v_position);
     reflection = reflect(-light, normal);
     float distance = length(u_point_light.position - v_position);
@@ -81,6 +83,7 @@ void main()
     diffuse += attentuation * u_point_light.diffuse * max(dot(normal, light), 0.0) * diffuseColor.xyz;
     specular += attentuation * u_point_light.specular * pow(max(dot(reflection, view), 0.000001), u_material.shininess) * u_material.specular;
 
+    //SpotLight
     light = normalize(u_spot_light.position - v_position);
     reflection = reflect(-light, normal);
     float theta = dot(light, u_spot_light.direction);
@@ -94,5 +97,6 @@ void main()
         ambient += u_spot_light.ambient * diffuseColor.xyz;
     }
 
+    //sum phong elements
     f_color = vec4(ambient + diffuse + specular + u_material.emissive, 1.0f);
 }

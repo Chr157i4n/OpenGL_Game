@@ -15,11 +15,16 @@ typedef uint64_t uint64;
 typedef float float32;
 typedef double float64;
 
-struct VertexP {
+struct VertexPos {
 	glm::vec3 position;
 };
 
-struct VertexI {
+struct VertexPosCol {
+	glm::vec3 position;
+	glm::vec4 color;
+};
+
+struct VertexPosTex {
 	glm::vec3 position;
 	glm::vec2 textureCoord;
 };
