@@ -51,6 +51,7 @@ uniform PointLight u_point_light;
 uniform SpotLight u_spot_light;
 uniform sampler2D u_diffuse_map;
 uniform sampler2D u_normal_map;
+uniform int u_showNormalMode;
 
 void main()
 {
@@ -99,4 +100,9 @@ void main()
 
     //sum phong elements
     f_color = vec4(ambient + diffuse + specular + u_material.emissive, 1.0f);
+    
+    if(u_showNormalMode==1)
+    {
+        f_color = vec4(normal,1.0f);
+    }
 }

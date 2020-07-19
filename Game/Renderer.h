@@ -34,7 +34,7 @@ public:
 
 	static void renderObjects(Player* player, std::vector<Object*> objects);
 
-	static void renderAxis(Player* player);
+	static void renderAxis(glm::vec3 vector, int x, int y);
 
 	static void setModels(std::vector<Model*> newModels);
 
@@ -43,6 +43,8 @@ public:
 	static Shader* getShader(ShaderType shadertype);
 
 	static void toggleWireframe();
+
+	static void toggleShowNormals();
 
 private:
 	static void initLight();
@@ -79,6 +81,10 @@ private:
 	static glm::vec4 pointLightPosition;
 
 	static bool wireframeMode;
+	static bool showNormalMode;
+
+public:
+	static glm::vec3 transformedSunDirection3;
 	
 
 	

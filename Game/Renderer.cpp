@@ -116,6 +116,9 @@ glm::vec4 Renderer::pointLightPosition;
 glm::mat4 Renderer::modelViewProj;
 
 bool Renderer::wireframeMode = false;
+bool Renderer::showNormalMode = false;
+
+glm::vec3 Renderer::transformedSunDirection3;
 
 
 void Renderer::initOpenGL(SDL_Window** window)
@@ -215,25 +218,11 @@ void Renderer::initLight()
 {
 	shaderBasic->bind();
 
-	/*GLCALL(glEnable(GL_LIGHTING));
-	GLCALL(glEnable(GL_LIGHT0));
-	glColorMaterial(GL_FRONT_AND_BACK, GL_EMISSION);
-	GLCALL(glEnable(GL_COLOR_MATERIAL));
-
-	GLfloat light_ambient[] =	{ 0.3 , 0.3, 0.3, 1.0 };
-	GLfloat light_diffuse[] =	{ 0.8 , 0.8, 0.8, 1.0 };
-	GLfloat light_specular[] =	{ 0.8 , 0.8, 0.8, 1.0 };
-	GLfloat light_position[] =	{ 0.8, -0.4, -0.4  , 0.0 };
-
-	GLCALL(glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient));
-	GLCALL(glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse));
-	GLCALL(glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular));
-	GLCALL(glLightfv(GL_LIGHT0, GL_POSITION, light_position));*/
 
 	lightdirectionUniformIndex = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_directional_light.direction"));
 	//glm::vec3 sunColor = glm::vec3(0.98f, 0.83f, 0.30f);
 	glm::vec3 sunColor = glm::vec3(0.8);
-	sunDirection = glm::vec3(0.8, -0.4, -0.4);
+	sunDirection = glm::vec3(-0.8, +0.4, +0.4);
 	GLCALL(glUniform3fv(glGetUniformLocation(shaderBasic->getShaderId(), "u_directional_light.diffuse"), 1, (float*)&sunColor));
 	GLCALL(glUniform3fv(glGetUniformLocation(shaderBasic->getShaderId(), "u_directional_light.specular"), 1, (float*)&sunColor));
 	sunColor = glm::vec3(0.3);
@@ -262,6 +251,8 @@ void Renderer::initLight()
 	GLCALL(glUniform3fv(glGetUniformLocation(shaderBasic->getShaderId(), "u_spot_light.direction"), 1, (float*)&spotLightPosition));
 	GLCALL(glUniform1f(glGetUniformLocation(shaderBasic->getShaderId(), "u_spot_light.innerCone"), 0.95f));
 	GLCALL(glUniform1f(glGetUniformLocation(shaderBasic->getShaderId(), "u_spot_light.outerCone"), 0.80f));
+
+	GLCALL(glUniform1i(glGetUniformLocation(shaderBasic->getShaderId(), "u_showNormalMode"), 0));
 }
 
 
@@ -284,13 +275,15 @@ void Renderer::showLoadingScreen() {
 
 void Renderer::calcLight(Player* player)
 {
-	shaderBasic->bind();
 	
 	//Directionallight
 	//glm::vec4 transformedSunDirection = glm::vec4(sunDirection, 1.0f);
-	glm::vec4 transformedSunDirection = glm::transpose(glm::inverse(player->getView())) * glm::vec4(sunDirection, 1.0f);
-	Logger::log("Sun Direction: x:"+std::to_string(transformedSunDirection.x)+" y:" + std::to_string(transformedSunDirection.y) + " z:" + std::to_string(transformedSunDirection.y));
+	glm::vec4 transformedSunDirection = -glm::transpose(glm::inverse(player->getView())) * glm::vec4(sunDirection, 1.0f);
+	transformedSunDirection3 = glm::vec3(transformedSunDirection.x, transformedSunDirection.y, transformedSunDirection.z);
 	
+	//Logger::log("Sun Direction: x:"+std::to_string(transformedSunDirection.x)+" y:" + std::to_string(transformedSunDirection.y) + " z:" + std::to_string(transformedSunDirection.y));
+	
+	shaderBasic->bind();
 	glUniform3fv(lightdirectionUniformIndex, 1, (float*)&transformedSunDirection);
 
 	//Pointlight
@@ -380,7 +373,7 @@ void Renderer::renderObjects(Player* player, std::vector<Object*> objects)
 	}
 }
 
-void Renderer::renderAxis(Player* player)
+void Renderer::renderAxis(glm::vec3 vector, int x, int y)
 {
 	shaderGeometry->bind();
 	axisVertexBuffer->bind();
@@ -391,27 +384,26 @@ void Renderer::renderAxis(Player* player)
 
 
 	glm::mat4 model = glm::mat4(1.0f);
+	
+	//scale the model
 	model = glm::scale(model, glm::vec3(0.1f));
 
 	//move to position of model
-	model = glm::translate(model, glm::vec3(8,5,0));
+	model = glm::translate(model, glm::vec3(x,y,0));
 
 	//rotate model around X
-	float gegk = player->getLookDirection().y;
-	float ank = sqrt(pow(player->getLookDirection().x, 2) + pow(player->getLookDirection().z, 2));
-
-	float angle = -atan(gegk / ank) * 180 / 3.14;
-	//float angle = player->getRotation().x;
-	model = glm::rotate(model, glm::radians(angle), glm::vec3(1, 0, 0));
+	float gegk = vector.y;
+	float ank = sqrt(pow(vector.x, 2) + pow(vector.z, 2));
+	float angle = atan2(gegk,ank);
+	model = glm::rotate(model, -angle, glm::vec3(1, 0, 0));
 
 	//rotate model around Y
-	angle = -player->getRotation().y;
-	model = glm::rotate(model, glm::radians(angle), glm::vec3(0, 1, 0));
+	angle = atan2(vector.x, vector.z) - 1*M_PI;
+	model = glm::rotate(model, -angle, glm::vec3(0, 1, 0));
 
 
 	int modelUniformIndex = GLCALL(glGetUniformLocation(shaderGeometry->getShaderId(), "u_model"));
 	GLCALL(glUniformMatrix4fv(modelUniformIndex, 1, GL_FALSE, &model[0][0]));
-
 
 	GLCALL(glDrawArrays(GL_LINES, 0, 6));
 	
@@ -447,6 +439,7 @@ Shader* Renderer::getShader(ShaderType shadertype)
 
 void Renderer::toggleWireframe()
 {
+	wireframeMode = !wireframeMode;
 	if (wireframeMode)
 	{
 		GLCALL(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
@@ -455,7 +448,22 @@ void Renderer::toggleWireframe()
 	{
 		GLCALL(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));	
 	}
-	wireframeMode = !wireframeMode;
+
 }
 
+void Renderer::toggleShowNormals()
+{
+	shaderBasic->bind();
+
+	showNormalMode = !showNormalMode;
+	if (showNormalMode)
+	{
+		GLCALL(glUniform1i(glGetUniformLocation(shaderBasic->getShaderId(), "u_showNormalMode"), 1));
+	}
+	else
+	{
+		GLCALL(glUniform1i(glGetUniformLocation(shaderBasic->getShaderId(), "u_showNormalMode"), 0));
+	}
+
+}
 

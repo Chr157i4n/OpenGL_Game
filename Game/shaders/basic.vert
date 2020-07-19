@@ -21,7 +21,8 @@ void main()
     vec3 n = normalize(mat3(u_invModelView) * a_normal);
     t = normalize(t - dot(t, n) * n); // Reorthogonalize with Gram-Schmidt process
     vec3 b = normalize(mat3(u_invModelView) * cross(n, t));
-    mat3 tbn = transpose(mat3(t, b, n)); // transpose is equal to inverse in this case
+    //mat3 tbn = transpose(mat3(t, b, n)); // transpose is equal to inverse in this case
+    mat3 tbn = mat3(t, b, n); // transpose is equal to inverse in this case
     v_tbn = tbn;
 
     v_position = vec3(u_modelView * vec4(a_position, 1.0f));

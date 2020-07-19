@@ -137,6 +137,14 @@ void UI::drawMenu()
 	}
 }
 
+void UI::drawPause()
+{
+	int x = w / 2 - 50;
+	int y = h / 2;
+
+	drawString(x, y, "Pause", glm::vec4(1, 1, 1, 1));
+}
+
 MenuItem* UI::getSelectedMenuItem()
 {
 	for (MenuItem* menuItem : menuItemList)

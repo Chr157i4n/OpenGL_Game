@@ -58,6 +58,8 @@ public:
 
 	static void drawMenu();
 
+	static void drawPause();
+
 	static std::vector<MenuItem*> getMenuItemList()
 	{
 		return menuItemList;

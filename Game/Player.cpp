@@ -84,6 +84,8 @@ void Player::activateFlashlight(bool enabled)
 void Player::toggleFlashlight()
 {
 	glm::vec3 spotLightColor = glm::vec3(0);
+	flashlightActive = !flashlightActive;
+
 	if (flashlightActive)
 	{
 		spotLightColor = glm::vec3(1.0f);
@@ -103,7 +105,7 @@ void Player::toggleFlashlight()
 		shader->unbind();
 	}
 
-	flashlightActive = !flashlightActive;
+
 }
 
 

@@ -184,7 +184,8 @@ void Game::render()
 
 	if (showInfo)
 	{
-		Renderer::renderAxis(players[0]);
+		Renderer::renderAxis(players[0]->getLookDirection(), 8, 5);
+		Renderer::renderAxis(Renderer::transformedSunDirection3, 8, 3);
 
 		UI::drawFPS(FPS);
 		UI::drawPos(players[0]);
@@ -291,6 +292,10 @@ void Game::keyPressed(SDL_Keycode key)
 		{
 			Renderer::toggleWireframe();
 		}
+		if (action == PlayerAction::toggleShowNormals)
+		{
+			Renderer::toggleShowNormals();
+		}
 		if (action == PlayerAction::pause)
 		{
 			togglePause();
@@ -387,6 +392,8 @@ void Game::togglePause()
 	else if (gameState == GameState::GAME_ACTIVE)
 	{
 		gameState = GameState::GAME_PAUSED;
+		UI::drawPause();
+		SDL_GL_SwapWindow(window);
 	}
 }
 
