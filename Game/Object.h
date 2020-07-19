@@ -51,12 +51,17 @@ std::unordered_map<std::string, CollisionBoxType> const CollisionBoxTypeTable =
 
 class Object;
 
+struct CollidedObject
+{
+	std::shared_ptr<Object> object = nullptr;
+	bool onTop = false;
+	glm::vec3 MinimumTranslationVector = glm::vec3(0, 0, 0);
+};
+
 struct CollisionResult
 {
 	bool collided = false;
-	bool onTop = false;
-	Object* collidedWith = nullptr;
-	glm::vec3 MinimumTranslationVector = glm::vec3(0,0,0);
+	std::vector<CollidedObject*> collidedObjectList;	
 };
 
 class Object
@@ -71,11 +76,11 @@ public:
 	void unbindShader();
 
 
-	CollisionResult checkCollision(std::vector<Object*> objects);
+	CollisionResult checkCollision(std::vector< std::shared_ptr<Object>> objects);
 
-	bool checkCollision_AABB(Object* object);
+	bool checkCollision_AABB(std::shared_ptr < Object> object);
 
-	bool checkCollision_SAT(Object* object, CollisionResult* collisionResult);
+	bool checkCollision_SAT(std::shared_ptr < Object> object, CollisionResult* collisionResult);
 
 	void calculationBeforeFrame();
 
@@ -95,13 +100,13 @@ public:
 
 	std::vector<glm::vec3> getCubeNormals();
 
-	bool checkBoundaries(Object* map);
+	bool checkBoundaries(std::shared_ptr<Object> map);
 
 	//deltaTime in seconds
 	void fall(float32 deltaTime);
 
 	//deltaTime in seconds
-	void move(float32 deltaTime, Object* map);
+	void move(float32 deltaTime, std::shared_ptr < Object> map);
 
 	void setPosition(glm::vec3 newPosition);
 

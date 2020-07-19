@@ -77,13 +77,13 @@ float skyboxVertices[] = {
 
 float axisVertices[] = {
 	// positions										//colors
-	0.0f * 9 / 16,		0.0f,		0.0f * 9 / 16,		1.0f,	0.0f,	0.0f,	1.0f,
+	0.0f * 9 / 16,		0.0f,		0.0f * 9 / 16,		0.2f,	0.0f,	0.0f,	1.0f,
 	1.0f * 9 / 16,		0.0f,		0.0f * 9 / 16,		1.0f,	0.0f,	0.0f,	1.0f,
 
-	0.0f * 9 / 16,		0.0f,		0.0f * 9 / 16,		0.0f,	1.0f,	0.0f,	1.0f,
+	0.0f * 9 / 16,		0.0f,		0.0f * 9 / 16,		0.0f,	0.2f,	0.0f,	1.0f,
 	0.0f * 9 / 16,		1.0f,		0.0f * 9 / 16,		0.0f,	1.0f,	0.0f,	1.0f,
 
-	0.0f * 9 / 16,		0.0f,		0.0f * 9 / 16,		0.0f,	0.0f,	1.0f,	1.0f,
+	0.0f * 9 / 16,		0.0f,		0.0f * 9 / 16,		0.0f,	0.0f,	0.2f,	1.0f,
 	0.0f * 9 / 16,		0.0f,		1.0f * 9 / 16,		0.0f,	0.0f,	1.0f,	1.0f,
 };
 
@@ -189,7 +189,7 @@ void Renderer::initShader()
 	shaderGeometry = ResourceManager::loadShader("shaders/geometry.vert", "shaders/geometry.frag");
 }
 
-void Renderer::init(Player* player)
+void Renderer::init(std::shared_ptr<Player> player)
 {
 	skyboxVertexBuffer = new VertexBuffer(skyboxVertices, 36, VertexType::_VertexPos);
 	axisVertexBuffer = new VertexBuffer(axisVertices, 6, VertexType::_VertexPosCol);
@@ -273,7 +273,7 @@ void Renderer::showLoadingScreen() {
 }
 
 
-void Renderer::calcLight(Player* player)
+void Renderer::calcLight(std::shared_ptr<Player> player)
 {
 	
 	//Directionallight
@@ -295,7 +295,7 @@ void Renderer::calcLight(Player* player)
 	shaderBasic->unbind();
 }
 
-void Renderer::renderSkybox(Player* player)
+void Renderer::renderSkybox(std::shared_ptr<Player> player)
 {
 	shaderSkybox->bind();
 	skyboxVertexBuffer->bind();
@@ -336,9 +336,9 @@ void Renderer::renderImage(VertexBuffer* imageVertexBuffer, int imageIndex)
 	shaderImage->unbind();
 }
 
-void Renderer::renderObjects(Player* player, std::vector<Object*> objects)
+void Renderer::renderObjects(std::shared_ptr<Player> player, std::vector< std::shared_ptr<Object>> objects)
 {
-	for (Object* object : objects)
+	for (std::shared_ptr<Object> object : objects)
 	{
 		glm::mat4 model = glm::mat4(1.0f);
 		//model = glm::scale(model, glm::vec3(1.0f));
@@ -391,6 +391,8 @@ void Renderer::renderAxis(glm::vec3 vector, int x, int y)
 	//move to position of model
 	model = glm::translate(model, glm::vec3(x,y,0));
 
+	
+
 	//rotate model around X
 	float gegk = vector.y;
 	float ank = sqrt(pow(vector.x, 2) + pow(vector.z, 2));
@@ -398,8 +400,9 @@ void Renderer::renderAxis(glm::vec3 vector, int x, int y)
 	model = glm::rotate(model, -angle, glm::vec3(1, 0, 0));
 
 	//rotate model around Y
-	angle = atan2(vector.x, vector.z) - 1*M_PI;
-	model = glm::rotate(model, -angle, glm::vec3(0, 1, 0));
+	//model = glm::rotate(model, (float)M_PI, glm::vec3(0, 1, 0));
+	angle = atan2(vector.x, vector.z);
+	model = glm::rotate(model, (float) (-angle+1*M_PI), glm::vec3(0, 1, 0));
 
 
 	int modelUniformIndex = GLCALL(glGetUniformLocation(shaderGeometry->getShaderId(), "u_model"));
@@ -442,11 +445,12 @@ void Renderer::toggleWireframe()
 	wireframeMode = !wireframeMode;
 	if (wireframeMode)
 	{
-		GLCALL(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
+		GLCALL(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
 	}
 	else
 	{
-		GLCALL(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));	
+		GLCALL(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
+			
 	}
 
 }

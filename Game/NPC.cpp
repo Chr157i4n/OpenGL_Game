@@ -11,7 +11,7 @@ NPC::NPC(Shader* shader) : Character(shader)
 	forwardSpeed = forwardSpeed * npc_speed_mult;
 }
 
-void NPC::followCharacter(float32 deltaTime, std::vector<Object*> objects, Character* character)
+void NPC::followCharacter(float32 deltaTime, std::vector< std::shared_ptr<Object>> objects, std::shared_ptr <Character> character)
 {
 	glm::vec3 myPosition = position;
 	glm::vec3 targetPosition = character->getPosition();
@@ -30,7 +30,7 @@ void NPC::followCharacter(float32 deltaTime, std::vector<Object*> objects, Chara
 	this->moveForward();
 }
 
-void NPC::followNavPoints(float32 deltaTime, std::vector<Object*> objects)
+void NPC::followNavPoints(float32 deltaTime, std::vector< std::shared_ptr<Object>> objects)
 {
 	if (round(position) == round(navPoints[currentNavPoint]))
 	{
@@ -69,7 +69,7 @@ std::vector<glm::vec3> NPC::getNavPoints()
 	return navPoints;
 }
 
-void NPC::doCurrentTask(float32 deltaTime, std::vector<Object*> objects, std::vector<Character*> character)
+void NPC::doCurrentTask(float32 deltaTime, std::vector< std::shared_ptr<Object>> objects, std::vector< std::shared_ptr<Character>> character)
 {
 	if (currentTask == CurrentTask::Idle)
 	{
@@ -95,9 +95,25 @@ CurrentTask NPC::getGurrentTask()
 	return currentTask;
 }
 
-void NPC::evade(float32 deltaTime, std::vector<Object*> objects)
-{
-	this->moveBackward();
-	this->moveRight();
-	this->move(deltaTime, objects[0]);
+void NPC::evade(float32 deltaTime, CollisionResult collisionResult, std::vector< std::shared_ptr<Object>> objects)
+{	
+	for (CollidedObject* collidedObject : collisionResult.collidedObjectList)
+	{
+		if (collidedObject->onTop) continue;
+
+		if (collidedObject->object->getDimensions().y < 3.5)
+		{
+			jump();
+			Logger::log("NPC: " + printObject() + " wants to jump");
+		}
+		else
+		{
+			this->moveBackward();
+			this->moveRight();
+		}
+
+		bool onOtherObjectTemp = this->onOtherObject;
+		this->move(deltaTime, objects[1]);
+		this->onOtherObject = onOtherObjectTemp;
+	}
 }

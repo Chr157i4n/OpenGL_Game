@@ -1,4 +1,5 @@
 #include "FPSCamera.h"
+#include "Game.h"
 
 #include <string>     // std::string, std::stof
 #include "ConfigManager.h"

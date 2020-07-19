@@ -35,6 +35,8 @@ Object::Object(Shader* shader, std::string modelFileName)
 	center.y += dimensions.y / 2;
 
 	this->name = "Object";
+
+	this->setGravity(true);
 }
 
 Shader* Object::getShader()
@@ -53,20 +55,18 @@ void Object::unbindShader()
 }
 
 
-CollisionResult Object::checkCollision(std::vector<Object*> objects)
+CollisionResult Object::checkCollision(std::vector< std::shared_ptr<Object>> objects)
 {
 	CollisionResult collisionResult;
 	collisionResult.collided = false;
 	
 	if (this->movement == glm::vec3(0, 0, 0)) return collisionResult;
 
-	for (Object* object : objects)
+	for (std::shared_ptr<Object> object : objects)
 	{
-		if (object->getNumber() == this->getNumber()) continue;
-		//if (object->getType() == ObjectType::Object_Environment) continue;
-		if (object->getType() == ObjectType::Object_Bullet) continue;
-		//if (object->getType() == ObjectType::Object_Player) continue;
-		if (object->getCollisionBoxType() == CollisionBoxType::none) continue;
+		if (object->getNumber() == this->getNumber()) continue;		//dont check collision with yourself
+		if (object->getType() == ObjectType::Object_Bullet) continue;	//bullets move faster than everything else, so only bullets need to check collision wiht other objects
+		if (object->getCollisionBoxType() == CollisionBoxType::none) continue;	//if the object has "none" collision box, no collision should be checked
 
 		if (checkCollision_AABB(object))
 		{
@@ -78,7 +78,7 @@ CollisionResult Object::checkCollision(std::vector<Object*> objects)
 
 }
 
-bool Object::checkCollision_AABB(Object* object)
+bool Object::checkCollision_AABB(std::shared_ptr < Object> object)
 {
 	//calculate the min/max values for all three axis for both objects
 	float object1MaxX = this->position.x + boundingboxdimensions.x / 2;
@@ -126,7 +126,7 @@ bool Object::checkCollision_AABB(Object* object)
 	return true;
 }
 
-bool Object::checkCollision_SAT(Object* object, CollisionResult* collisionResult)
+bool Object::checkCollision_SAT(std::shared_ptr < Object> object, CollisionResult* collisionResult)
 {
 	std::vector<std::vector<glm::vec3>> collisionPoints;
 	float minOverlap = std::numeric_limits<float>::infinity();
@@ -197,31 +197,36 @@ bool Object::checkCollision_SAT(Object* object, CollisionResult* collisionResult
 
 	// at this point, we have checked all axis but found no separating axis
 	// which means that the polygons must intersect.
+#ifdef DEBUG_COLLISION
 	Logger::log("SAT collision between: "+this->printObject()+this->printPosition()+ " and  "+object->printObject() + object->printPosition());
-	
 	Logger::log("minOverlapAxis:" + std::to_string(minOverlapAxis.x)+","+ std::to_string(minOverlapAxis.y) + "," + std::to_string(minOverlapAxis.z));
 	Logger::log("minOverlap:" + std::to_string(minOverlap));
+#endif
 
+	CollidedObject* collidedObject = new CollidedObject();
 	glm::vec3 MinimumTranslationVector = minOverlapAxis * minOverlap;
 
 	if (glm::normalize(minOverlapAxis).y >= 0.9)
 	{
+#ifdef DEBUG_COLLISION
 		Logger::log("standing on Object");
+#endif
 		movement.y = 0;
 		onOtherObject = true;
-		collisionResult->onTop = true;
+		collidedObject->onTop = true;
 	}
 	else if (glm::normalize(minOverlapAxis).y >= 0 && object->getCollisionBoxType() == CollisionBoxType::prism)
 	{
 		MinimumTranslationVector = MinimumTranslationVector * glm::vec3(0, 1, 0);
 	}
 
-
 	this->position += MinimumTranslationVector;
 
+	collidedObject->object = object;
+	collidedObject->MinimumTranslationVector = MinimumTranslationVector;
+
 	collisionResult->collided = true;
-	collisionResult->collidedWith = object;
-	collisionResult->MinimumTranslationVector = MinimumTranslationVector;
+	collisionResult->collidedObjectList.push_back(collidedObject);
 
 	
 	return true;
@@ -468,7 +473,7 @@ std::vector<glm::vec3> Object::getCubeNormals()
 	return cubeNormals;
 }
 
-bool Object::checkBoundaries(Object* map)
+bool Object::checkBoundaries(std::shared_ptr<Object> map)
 {
 	bool outOfBounds = false;
 	glm::vec3 newPosition = position + movement;
@@ -515,10 +520,12 @@ bool Object::checkBoundaries(Object* map)
 		movement.z = 0;
 	}
 
+#ifdef DEBUG_OUTOFBOUNDS
 	if (outOfBounds)
 	{
 		Logger::log("Object out of Bounds: " + printObject());
 	}
+#endif // DEBUG_OUTOFBOUNDS
 	return outOfBounds;
 }
 
@@ -528,20 +535,16 @@ void Object::fall(float32 deltaTime)
 
 	if (position.y > 0 && !onOtherObject)
 	{
+#ifdef DEBUG_GRAVITY
 		Logger::log("Object: " +printObject()+" is falling");
+#endif
 		movement.y -= 9.81 * 200 * deltaTime;		
 	}
-
-	/*if(position.y <= 0)
-	{
-		movement.y = 0;
-		position.y = 0;
-	}*/
 
 	
 }
 
-void Object::move(float32 deltaTime, Object* map)
+void Object::move(float32 deltaTime, std::shared_ptr<Object> map)
 {
 	checkBoundaries(map);
 

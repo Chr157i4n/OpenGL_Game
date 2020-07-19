@@ -13,6 +13,8 @@
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
 
+#include <irrKlang.h>
+
 
 #include "libs/glm/glm.hpp"
 #include "libs/glm/ext/matrix_transform.hpp"
@@ -88,6 +90,7 @@ public:
 
 	static void init();
 
+	static irrklang::ISoundEngine* SoundEngine;
 
 private:
 
@@ -109,15 +112,17 @@ private:
 
 	static void toggleFullscreen();
 
+	static void updateAudioListener();
+
 
 
 	static SDL_Window* window;
 
-	static std::vector<Object*> objects;
-	static std::vector<Character*> characters;
-	static std::vector<Player*> players;
-	static std::vector<NPC*> npcs;
-	static std::vector<Bullet*> bullets;
+	static std::vector< std::shared_ptr<Object> > objects;
+	static std::vector< std::shared_ptr<Character> > characters;
+	static std::vector< std::shared_ptr<Player> > players;
+	static std::vector< std::shared_ptr<NPC> > npcs;
+	static std::vector< std::shared_ptr<Bullet> > bullets;
 
 
 	static bool pressedKeys[20];
@@ -132,6 +137,8 @@ private:
 
 	static bool showInfo;
 	static GameState gameState;
+	static int maxBulletCount;
+
 
 
 

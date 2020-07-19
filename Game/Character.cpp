@@ -1,4 +1,5 @@
 #include "Character.h"
+#include "Game.h"
 
 Character::Character(Shader* shader) : Object(shader, "character.bmf")
 {
@@ -51,6 +52,13 @@ void Character::jump()
 {
 	if (canJump)
 	{
+		Logger::log("Character: " + printObject() + " jumped");
+
+		irrklang::vec3df SPosition = irrklang::vec3df(getPosition().x, getPosition().y, getPosition().z);
+		irrklang::ISound* jumpSound = Game::SoundEngine->play3D("audio/jump.wav", SPosition, false, false, true);
+
+		//jumpSound->setPosition(SPosition);
+
 		movement.y = 0.5;
 		canJump = false;
 	}

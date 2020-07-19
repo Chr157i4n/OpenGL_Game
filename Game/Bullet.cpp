@@ -1,4 +1,5 @@
 #include "Bullet.h"
+#include "Game.h"
 
 Bullet::Bullet(Shader* shader, glm::vec3 position, glm::vec3 rotation, glm::vec3 direction) : Object(shader, "arrow.bmf")
 {
@@ -7,6 +8,7 @@ Bullet::Bullet(Shader* shader, glm::vec3 position, glm::vec3 rotation, glm::vec3
 	this->rotation = rotation;
 	this->movement = glm::normalize(direction)*speed;
 	this->name = "Bullet";
+	this->setCollisionBoxType(CollisionBoxType::cube);
 }
 
 void Bullet::fall(float32 deltaTime)
@@ -34,23 +36,28 @@ void Bullet::move(float32 deltaTime)
 	position += movement;
 }
 
-void Bullet::checkHit(std::vector<Object*> objects)
+void Bullet::checkHit(std::vector< std::shared_ptr<Object>> objects)
 {
 
 		if (movement.x == 0 && movement.z == 0) return;
 
 		CollisionResult collisionresult = checkCollision(objects);
 
-		if(collisionresult.collided)
+		if (!collisionresult.collided) return;
+
+		
+		for (CollidedObject* collidedObject : collisionresult.collidedObjectList)
 		{
-			if (collisionresult.collidedWith->getType() == ObjectType::Object_Bullet) return;
-			if (collisionresult.collidedWith->getType() == ObjectType::Object_Environment) return;
-			if (collisionresult.collidedWith->getType() == ObjectType::Object_Player) return;
-			if (collisionresult.collidedWith->getType() == ObjectType::Object_Entity) return;
+			if (collidedObject->object->getType() == ObjectType::Object_Bullet) return;
+			if (collidedObject->object->getType() == ObjectType::Object_Environment) return;
+			if (collidedObject->object->getType() == ObjectType::Object_Player) return;
+			if (collidedObject->object->getType() == ObjectType::Object_Entity) return;
 
 			this->registerHit();
-			collisionresult.collidedWith->registerHit();
+			collidedObject->object->registerHit();
 			Logger::log("Hit");
+			Game::SoundEngine->play2D("audio/hit.wav", false);
 		}
+		
 
 }

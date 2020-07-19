@@ -9,6 +9,7 @@
 std::string ResourceManager::modelFolder = "models";
 
 
+
 Shader* ResourceManager::loadShader(std::string vertexShaderFilename, std::string fragmentShaderFilename)
 {
 	Shader* newShader = new Shader(vertexShaderFilename, fragmentShaderFilename);
@@ -17,7 +18,7 @@ Shader* ResourceManager::loadShader(std::string vertexShaderFilename, std::strin
 }
 
 
-std::vector<Model*> ResourceManager::loadModels(tinyxml2::XMLDocument* doc)
+std::vector<Model*> ResourceManager::loadAllModels(tinyxml2::XMLDocument* doc)
 {
 	std::vector<Model*> models;
 
@@ -35,6 +36,34 @@ std::vector<Model*> ResourceManager::loadModels(tinyxml2::XMLDocument* doc)
 
 		models.push_back(newModel);
 	}
+
+	for (tinyxml2::XMLElement* xmlNodeObject = doc->FirstChildElement("map")->FirstChildElement("objects")->FirstChildElement("object"); xmlNodeObject != NULL; xmlNodeObject = xmlNodeObject->NextSiblingElement())
+	{
+		xmlNodeText = xmlNodeObject->FirstChildElement("modelfile")->GetText();
+		bool modelAlreadyLoaded = false;
+
+		for (Model* loadedModels : models)
+		{
+			if (loadedModels->getModelName() == xmlNodeText) //model is already loaded
+			{
+				modelAlreadyLoaded = true;
+				break;
+			}
+		}
+		if (modelAlreadyLoaded)
+		{
+			continue;
+		}
+
+		Model* newModel = loadModel(modelFolder + "/" + xmlNodeText);
+		newModel->setModelName(xmlNodeText);
+		newModel->setModelID(id++);
+
+
+		models.push_back(newModel);
+	}
+
+
 
 	return models;
 }
@@ -61,7 +90,7 @@ Model* ResourceManager::getModelByName(std::string modelFileName)
 }
 
 
-void ResourceManager::loadMap(std::string mapFileName, std::vector<Object*>* objects, std::vector<Character*>* characters, std::vector<Player*>* players, std::vector<NPC*>* npcs)
+void ResourceManager::loadMap(std::string mapFileName, std::vector<std::shared_ptr<Object>>* objects, std::vector< std::shared_ptr<Character>>* characters, std::vector< std::shared_ptr<Player>>* players, std::vector< std::shared_ptr<NPC>>* npcs)
 {
 	const char* mapFileNameC = mapFileName.c_str();
 	int32 numObject = 0;
@@ -75,12 +104,12 @@ void ResourceManager::loadMap(std::string mapFileName, std::vector<Object*>* obj
 
 	std::string title = doc.FirstChildElement("map")->FirstChildElement("name")->GetText();
 
-	std::vector<Model*> models = loadModels(&doc);
+	std::vector<Model*> models = loadAllModels(&doc);
 	Renderer::setModels(models);
 
 	//Player(s)
 	float fov = std::stof(ConfigManager::readConfig("fov"));
-	Player* player = new Player(Renderer::getShader(ShaderType::basic), fov, 800.0f, 600.0f);
+	std::shared_ptr<Player> player = std::make_shared<Player>(Renderer::getShader(ShaderType::basic), fov, 800.0f, 600.0f);
 	player->setCollisionBoxType(CollisionBoxType::cube);
 	player->setName("Player");
 	player->setNumber(numObject);
@@ -96,7 +125,7 @@ void ResourceManager::loadMap(std::string mapFileName, std::vector<Object*>* obj
 	{
 		xmlNodeText = xmlNodeObject->FirstChildElement("modelfile")->GetText();
 
-		Object* newObject = new Object(Renderer::getShader(ShaderType::basic), xmlNodeText);
+		std::shared_ptr<Object> newObject = std::make_shared<Object>(Renderer::getShader(ShaderType::basic), xmlNodeText);
 
 		xmlNodeText = xmlNodeObject->FirstChildElement("position")->GetText();
 		split(xmlNodeText, params, ';');
@@ -135,7 +164,7 @@ void ResourceManager::loadMap(std::string mapFileName, std::vector<Object*>* obj
 	{
 		xmlNodeText = xmlNodeBot->FirstChildElement("modelfile")->GetText();
 
-		NPC* newNPC = new NPC(Renderer::getShader(ShaderType::basic));
+		std::shared_ptr<NPC> newNPC = std::make_shared<NPC>(Renderer::getShader(ShaderType::basic));
 
 		xmlNodeText = xmlNodeBot->FirstChildElement("position")->GetText();
 		split(xmlNodeText, params, ';');
@@ -149,8 +178,8 @@ void ResourceManager::loadMap(std::string mapFileName, std::vector<Object*>* obj
 		split(xmlNodeText, params, ';');
 		newNPC->setScale(glm::vec3(stof(params[0]), stof(params[1]), stof(params[2])));
 
-		xmlNodeText = xmlNodeBot->FirstChildElement("type")->GetText();
-		newNPC->setType(Object::convertStringToType(xmlNodeText));
+		//xmlNodeText = xmlNodeBot->FirstChildElement("type")->GetText();
+		//newNPC->setType(Object::convertStringToType(xmlNodeText));
 
 		xmlNodeText = xmlNodeBot->FirstChildElement("name")->GetText();
 		newNPC->setName(xmlNodeText);
@@ -193,7 +222,7 @@ void ResourceManager::loadMap(std::string mapFileName, std::vector<Object*>* obj
 		float x = rand() % 100 - 50;
 		float z = rand() % 100 - 50;
 
-		NPC* newNpc = new NPC(Renderer::getShader(ShaderType::basic));
+		std::shared_ptr<NPC> newNpc = std::make_shared<NPC>(Renderer::getShader(ShaderType::basic));
 		newNpc->setPosition(glm::vec3(x, 0, z));
 		newNpc->setNumber(numObject);
 		newNpc->setCurrentTask(CurrentTask::Follow_Character);

@@ -4,6 +4,7 @@
 #include "Model.h"
 #include "Object.h"
 
+
 class Character : public Object
 {
 public:

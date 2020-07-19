@@ -15,10 +15,13 @@ struct UI_Element
 {
 	int posX, posY;
 	std::string text;
+	glm::vec4 color;
+	bool debugInfo;
 };
 
 enum class MenuItemType
 {
+	none,
 	resume,
 	options,
 	restart,
@@ -29,7 +32,7 @@ struct MenuItem
 {
 	bool selected = false;
 	std::string text = "";
-	MenuItemType type;
+	MenuItemType type= MenuItemType::none;
 };
 
 static class UI
@@ -40,9 +43,9 @@ public:
 
 	static void drawFPS(int fps);
 
-	static void drawPos(Object* object);
+	static void drawPos(std::shared_ptr<Object> object);
 
-	static void drawRot(Player* object);
+	static void drawRot(std::shared_ptr<Player> object);
 
 	static void drawString(float x, float y, std::string text, glm::vec4 color);
 
@@ -67,6 +70,8 @@ public:
 
 	static MenuItem* getSelectedMenuItem();
 
+
+
 private:
 	static SDL_Window* window;
 	static Shader* fontShader;
@@ -74,7 +79,7 @@ private:
 
 	static int fontColorUniformIndex;
 
-	static int w, h;
+	static int width, height;
 
 	static std::vector<UI_Element*> ui_elements;
 

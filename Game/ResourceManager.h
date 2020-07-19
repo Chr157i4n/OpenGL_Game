@@ -17,13 +17,13 @@ public:
 
 	static Shader* loadShader(std::string vertexShaderFilename, std::string fragmentShaderFilename);
 
-	static std::vector<Model*> loadModels(tinyxml2::XMLDocument* doc);
+	static std::vector<Model*> loadAllModels(tinyxml2::XMLDocument* doc);
 
 	static Model* loadModel(std::string modelFileName);
 
 	static Model* getModelByName(std::string modelFileName);
 
-	static void loadMap(std::string mapFileName, std::vector<Object*>* objects, std::vector<Character*>* characters, std::vector<Player*>* players, std::vector<NPC*>* npcs);
+	static void loadMap(std::string mapFileName, std::vector<std::shared_ptr<Object>>* objects, std::vector<std::shared_ptr<Character>>* characters, std::vector< std::shared_ptr<Player>>* players, std::vector< std::shared_ptr<NPC>>* npcs);
 
 	static int loadCubemap(std::vector<std::string> faces);
 

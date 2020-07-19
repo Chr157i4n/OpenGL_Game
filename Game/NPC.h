@@ -14,9 +14,9 @@ public:
 	
 	NPC(Shader* shader);
 
-	void followCharacter(float32 deltaTime, std::vector<Object*> objects, Character* character);
+	void followCharacter(float32 deltaTime, std::vector< std::shared_ptr<Object>> objects, std::shared_ptr<Character> character);
 
-	void followNavPoints(float32 deltaTime, std::vector<Object*> objects);
+	void followNavPoints(float32 deltaTime, std::vector< std::shared_ptr<Object>> objects);
 
 	void addNavPoint(glm::vec3 newNavPoint);
 
@@ -24,13 +24,13 @@ public:
 
 	std::vector<glm::vec3> getNavPoints();
 
-	void doCurrentTask(float32 deltaTime, std::vector<Object*> objects, std::vector<Character*> character);
+	void doCurrentTask(float32 deltaTime, std::vector< std::shared_ptr<Object>> objects, std::vector< std::shared_ptr<Character>> character);
 
 	void setCurrentTask(CurrentTask newCurrentTask);
 
 	CurrentTask getGurrentTask();
 
-	void evade(float32 deltaTime, std::vector<Object*> objects);
+	void evade(float32 deltaTime, CollisionResult collisionResult, std::vector< std::shared_ptr<Object>> objects);
 
 private:
 

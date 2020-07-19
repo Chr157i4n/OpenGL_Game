@@ -15,7 +15,7 @@ public:
 
 	void onMouseMove(float xRel, float yRel);
 
-	Bullet* shoot();
+	std::shared_ptr<Bullet> shoot();
 
 	void updateCameraPosition();
 

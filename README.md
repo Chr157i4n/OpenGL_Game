@@ -8,12 +8,14 @@ using the Open-Asset-Importer-Library. The tool then exports the data into a cus
 The Game itself use the libary SDL to create a window and OpenGL-context. Also the libary GLEW is used to get the current OpenGL functions.
 For the mathematics (Matrices and Vectors) the libary OpenGL Mathematics is used.
 
-On the Graphiccard side i use the shader programming language GLSL
+On the Graphics Card side i use the shader programming language GLSL
 https://www.khronos.org/opengl/wiki/Core_Language_(GLSL)
 
 For importing Textures and Fonts i use the STB Libary.
 
 As Mapfiles i use the XML format. To parse them i use the tinyxml2 Library.
+
+for playing audio the irrKlang-Libary is used.
 
 The idea and the knowlegde for this project did i get from this german youtube OpenGL tutorial playlist:
 https://www.youtube.com/playlist?list=PLStQc0GqppuWBDuNWnkQ8rzmyx35AINyt
@@ -43,6 +45,8 @@ https://github.com/nothings/stb/blob/master/stb_image.h
 https://github.com/nothings/stb/blob/master/stb_truetype.h
 
 https://github.com/leethomason/tinyxml2
+
+https://www.ambiera.com/irrklang
 
 used Textures from:
 https://3dtextures.me

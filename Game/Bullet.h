@@ -10,7 +10,7 @@ public:
 
 	void move(float32 deltaTime);
 
-	void checkHit(std::vector<Object*> objects);
+	void checkHit(std::vector< std::shared_ptr<Object>> objects);
 
 
 private:

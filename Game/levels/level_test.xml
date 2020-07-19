@@ -11,10 +11,6 @@
     <model>block_low.bmf</model>
     <model>block_low_ramp.bmf</model>
     <model>fence.bmf</model>
-    <model>testball01.bmf</model>
-    <model>testball01a.bmf</model>
-    <model>testball02.bmf</model>
-    <model>testball03.bmf</model>
   </models>
   <objects>
     <object>
@@ -24,6 +20,46 @@
       <gravity>false</gravity>
       <modelfile>ground.bmf</modelfile>
       <position>0;-0.2;0</position>
+      <rotation>0;0;0</rotation>
+      <scale>1;1;1</scale>
+    </object>
+    <object>
+      <name>Vent</name>
+      <type>Entity</type>
+      <collisionboxtype>cube</collisionboxtype>
+      <gravity>false</gravity>
+      <modelfile>vent.bmf</modelfile>
+      <position>0;0;-18</position>
+      <rotation>0;0;0</rotation>
+      <scale>1;1;1</scale>
+    </object>
+    <object>
+      <name>Rock01</name>
+      <type>Entity</type>
+      <collisionboxtype>cube</collisionboxtype>
+      <gravity>false</gravity>
+      <modelfile>rock.bmf</modelfile>
+      <position>40;0;-30</position>
+      <rotation>0;0;0</rotation>
+      <scale>1;1;1</scale>
+    </object>
+    <object>
+      <name>Rock02</name>
+      <type>Entity</type>
+      <collisionboxtype>cube</collisionboxtype>
+      <gravity>false</gravity>
+      <modelfile>rock_small.bmf</modelfile>
+      <position>40;0;-34</position>
+      <rotation>0;0;0</rotation>
+      <scale>1;1;1</scale>
+    </object>
+    <object>
+      <name>Clips</name>
+      <type>Entity</type>
+      <collisionboxtype>cube</collisionboxtype>
+      <gravity>false</gravity>
+      <modelfile>clips.bmf</modelfile>
+      <position>60;0;-34</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
     </object>
@@ -52,8 +88,38 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
+      <modelfile>testball01b.bmf</modelfile>
+      <position>31;2;10</position>
+      <rotation>0;0;0</rotation>
+      <scale>1;1;1</scale>
+    </object>
+    <object>
+      <name>Crystal</name>
+      <type>Entity</type>
+      <collisionboxtype>cube</collisionboxtype>
+      <gravity>false</gravity>
+      <modelfile>testball01c.bmf</modelfile>
+      <position>34;2;10</position>
+      <rotation>0;0;0</rotation>
+      <scale>1;1;1</scale>
+    </object>
+    <object>
+      <name>Crystal</name>
+      <type>Entity</type>
+      <collisionboxtype>cube</collisionboxtype>
+      <gravity>false</gravity>
       <modelfile>testball02.bmf</modelfile>
       <position>25;2;14</position>
+      <rotation>0;0;0</rotation>
+      <scale>1;1;1</scale>
+    </object>
+    <object>
+      <name>Crystal</name>
+      <type>Entity</type>
+      <collisionboxtype>cube</collisionboxtype>
+      <gravity>false</gravity>
+      <modelfile>testball02a.bmf</modelfile>
+      <position>28;2;14</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
     </object>
@@ -65,6 +131,96 @@
       <modelfile>testball03.bmf</modelfile>
       <position>25;2;18</position>
       <rotation>0;0;0</rotation>
+      <scale>1;1;1</scale>
+    </object>
+    <object>
+      <name>Crystal</name>
+      <type>Entity</type>
+      <collisionboxtype>cube</collisionboxtype>
+      <gravity>false</gravity>
+      <modelfile>testball04.bmf</modelfile>
+      <position>25;2;22</position>
+      <rotation>0;0;0</rotation>
+      <scale>1;1;1</scale>
+    </object>
+    <object>
+      <name>Crystal</name>
+      <type>Entity</type>
+      <collisionboxtype>cube</collisionboxtype>
+      <gravity>false</gravity>
+      <modelfile>testball04a.bmf</modelfile>
+      <position>28;2;22</position>
+      <rotation>0;0;0</rotation>
+      <scale>1;1;1</scale>
+    </object>
+    <object>
+      <name>Crystal</name>
+      <type>Entity</type>
+      <collisionboxtype>cube</collisionboxtype>
+      <gravity>false</gravity>
+      <modelfile>testball05.bmf</modelfile>
+      <position>25;2;26</position>
+      <rotation>0;0;0</rotation>
+      <scale>1;1;1</scale>
+    </object>
+    <object>
+      <name>Crystal</name>
+      <type>Entity</type>
+      <collisionboxtype>cube</collisionboxtype>
+      <gravity>false</gravity>
+      <modelfile>testball06.bmf</modelfile>
+      <position>25;2;30</position>
+      <rotation>0;0;0</rotation>
+      <scale>1;1;1</scale>
+    </object>
+    <object>
+      <name>Crystal</name>
+      <type>Entity</type>
+      <collisionboxtype>cube</collisionboxtype>
+      <gravity>false</gravity>
+      <modelfile>testball06a.bmf</modelfile>
+      <position>28;2;30</position>
+      <rotation>0;0;0</rotation>
+      <scale>1;1;1</scale>
+    </object>
+    <object>
+      <name>Crystal</name>
+      <type>Entity</type>
+      <collisionboxtype>cube</collisionboxtype>
+      <gravity>false</gravity>
+      <modelfile>testball07.bmf</modelfile>
+      <position>25;2;34</position>
+      <rotation>0;0;0</rotation>
+      <scale>1;1;1</scale>
+    </object>
+    <object>
+      <name>Crystal</name>
+      <type>Entity</type>
+      <collisionboxtype>cube</collisionboxtype>
+      <gravity>false</gravity>
+      <modelfile>testball08.bmf</modelfile>
+      <position>25;2;38</position>
+      <rotation>0;0;0</rotation>
+      <scale>1;1;1</scale>
+    </object>
+    <object>
+      <name>Crystal</name>
+      <type>Entity</type>
+      <collisionboxtype>cube</collisionboxtype>
+      <gravity>false</gravity>
+      <modelfile>testball09.bmf</modelfile>
+      <position>25;2;42</position>
+      <rotation>0;0;0</rotation>
+      <scale>1;1;1</scale>
+    </object>
+    <object>
+      <name>EasterEgg</name>
+      <type>Entity</type>
+      <collisionboxtype>cube</collisionboxtype>
+      <gravity>false</gravity>
+      <modelfile>sign.bmf</modelfile>
+      <position>95;0;95</position>
+      <rotation>0;45;0</rotation>
       <scale>1;1;1</scale>
     </object>
     <object>
@@ -188,6 +344,56 @@
       <scale>1;1;1</scale>
     </object>
     <object>
+      <name>Block1</name>
+      <type>Entity</type>
+      <collisionboxtype>cube</collisionboxtype>
+      <gravity>false</gravity>
+      <modelfile>block_high.bmf</modelfile>
+      <position>0;0;-28</position>
+      <rotation>0;0;0</rotation>
+      <scale>1;1;1</scale>
+    </object>
+    <object>
+      <name>Block1</name>
+      <type>Entity</type>
+      <collisionboxtype>cube</collisionboxtype>
+      <gravity>false</gravity>
+      <modelfile>block_high.bmf</modelfile>
+      <position>0;0;-32</position>
+      <rotation>0;0;0</rotation>
+      <scale>1;1;1</scale>
+    </object>
+    <object>
+      <name>Block1</name>
+      <type>Entity</type>
+      <collisionboxtype>cube</collisionboxtype>
+      <gravity>false</gravity>
+      <modelfile>block_high.bmf</modelfile>
+      <position>4;0;-32</position>
+      <rotation>0;0;0</rotation>
+      <scale>1;1;1</scale>
+    </object>
+    <object>
+      <name>Block2</name>
+      <type>Entity</type>
+      <collisionboxtype>prism</collisionboxtype>
+      <gravity>false</gravity>
+      <modelfile>block_high_ramp.bmf</modelfile>
+      <position>4;0;-28</position>
+      <rotation>0;180;0</rotation>
+      <scale>1;1;1</scale>
+    </object>
+    <object>
+      <name>Block2</name>
+      <type>Entity</type>
+      <collisionboxtype>prism</collisionboxtype>
+      <gravity>false</gravity>
+      <modelfile>block_low_ramp.bmf</modelfile>
+      <position>0;2;-24</position>
+      <rotation>0;90;0</rotation>
+      <scale>1;1;1</scale>
+    </object>
+    <object>
       <name>Box</name>
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
@@ -259,7 +465,7 @@
     </object>
   </objects>
   <bots>
-    <!--<bot>
+    <bot>
       <name>Bot0</name>
       <type>Bot</type>
       <modelfile>character.bmf</modelfile>
@@ -317,6 +523,6 @@
         <navpoint>-70;0;-40</navpoint>
         <navpoint>-70;0;-45</navpoint>
       </navpoints>
-    </bot>-->
+    </bot>
   </bots>
 </map>

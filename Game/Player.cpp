@@ -1,4 +1,5 @@
 #include "Player.h"
+#include "Game.h"
 
 Player::Player(Shader* shader, float fov, float width, float height) : Character(shader), FPSCamera(fov, width, height)
 {
@@ -28,10 +29,9 @@ void Player::onMouseMove(float xRel, float yRel)
 	setRotation(glm::vec3(0, -yaw + 90, 0));
 }
 
-Bullet* Player::shoot()
+std::shared_ptr<Bullet> Player::shoot()
 {
-	Bullet* newBullet = new Bullet(shader, cameraposition, glm::vec3(0, -yaw, pitch - 90), lookAt);
-	//newBullet->setType(ObjectType::Object_Bullet);
+	std::shared_ptr<Bullet> newBullet = std::make_shared<Bullet>(shader, cameraposition, glm::vec3(0, -yaw, pitch - 90), lookAt);
 	return newBullet;
 }
 
@@ -59,7 +59,6 @@ glm::vec3 Player::getCameraPosition()
 void Player::setCameraPosition(glm::vec3 newPosition)
 {
 	cameraposition = newPosition;
-	setPosition(newPosition);
 }
 
 void Player::activateFlashlight(bool enabled)

@@ -20,19 +20,19 @@ public:
 
 	static void initShader();
 
-	static void init(Player* player);
+	static void init(std::shared_ptr<Player> player);
 
 
 	static void showLoadingScreen();
 
 
-	static void calcLight(Player* player);
+	static void calcLight(std::shared_ptr<Player> player);
 
-	static void renderSkybox(Player* player);
+	static void renderSkybox(std::shared_ptr<Player> player);
 
 	static void renderImage(VertexBuffer* imageVertexBuffer, int imageIndex);
 
-	static void renderObjects(Player* player, std::vector<Object*> objects);
+	static void renderObjects(std::shared_ptr<Player> player, std::vector< std::shared_ptr<Object>> objects);
 
 	static void renderAxis(glm::vec3 vector, int x, int y);
 
