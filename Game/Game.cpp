@@ -35,9 +35,12 @@ uint64 Game::perfCounterFrequency;
 uint64 Game::lastCounter;
 float32 Game::delta;
 
-bool Game::showInfo=false;
+bool Game::showInfo = false;
 GameState Game::gameState;
 int Game::maxBulletCount = 20;
+
+bool Game::showShadowMap = false;
+bool Game::postprocess = false;
 
 irrklang::ISoundEngine* Game::SoundEngine = irrklang::createIrrKlangDevice();
 
@@ -51,7 +54,7 @@ void Game::startGame()
 	SDL_SetRelativeMouseMode(SDL_TRUE);
 
 	float musicvolume = std::stof(ConfigManager::readConfig("musicvolume"));
-	SoundEngine->setSoundVolume(musicvolume/100);
+	SoundEngine->setSoundVolume(musicvolume / 100);
 
 	irrklang::ISound* music = SoundEngine->play2D("audio/breakout.mp3", true);
 
@@ -64,7 +67,7 @@ void Game::startGame()
 void Game::init()
 {
 	Renderer::initOpenGL(&window);
-	Renderer::initShader();
+	Renderer::loadShader();
 
 	UI::init(window);
 
@@ -96,7 +99,7 @@ void Game::gameLoop()
 				object->calculationBeforeFrame();
 			}
 
-			
+
 
 			for (std::shared_ptr<NPC> npc : npcs)
 			{
@@ -105,21 +108,23 @@ void Game::gameLoop()
 				npc->doCurrentTask(delta / 1000, objects, characters);
 			}
 
-			for (std::shared_ptr<Bullet> bullet : bullets)
-			{
-				bullet->fall(delta / 1000);
-				bullet->move(delta / 1000);
-				bullet->checkHit(objects);
-			}
-
 			//Move every Object
 			for (std::shared_ptr<Object> object : objects)
 			{
 				if (object->getType() == ObjectType::Object_Environment) continue; //Environment doesnt move
-				if (object->getType() == ObjectType::Object_Bullet) continue; //Bullets have their own move function
-				
-				object->fall(delta / 1000);
+
 				object->move(delta / 1000, objects[1]);
+
+				if (object->getType() == ObjectType::Object_Bullet) continue; //Bullets have their own fall function
+				object->fall(delta / 1000);
+
+			}
+
+			for (std::shared_ptr<Bullet> bullet : bullets)
+			{
+				bullet->fall(delta / 1000);
+				//bullet->move(delta / 1000);
+				bullet->checkHit(objects);
 			}
 
 			//Check every Object for collision
@@ -152,7 +157,7 @@ void Game::gameLoop()
 				//player->update();
 				if (player->getPosition().x > 95 && player->getPosition().z > 95)
 				{
-					UI_Element* eastereggLabel = new UI_Element{ UI::getWidth()/2-200 , UI::getHeight()/2-200,"Nice, du hast das Easter-Egg gefunden",glm::vec4(1,0,0,1),false };
+					UI_Element* eastereggLabel = new UI_Element{ UI::getWidth() / 2 - 200 , UI::getHeight() / 2 - 200,"Nice, du hast das Easter-Egg gefunden",glm::vec4(1,0,0,1),false };
 					UI::addElement(eastereggLabel);
 				}
 			}
@@ -166,7 +171,7 @@ void Game::gameLoop()
 
 			if (npcs.size() <= 0)
 			{
-				UI_Element* victoryLabel = new UI_Element{ UI::getWidth() / 2 - 100 , UI::getHeight() / 2,"Du hast alle Bots besigt",glm::vec4(0,0,1,1),false };
+				UI_Element* victoryLabel = new UI_Element{ UI::getWidth() / 2 - 100 , UI::getHeight() / 2,"Du hast alle Bots besiegt",glm::vec4(0,0,1,1),false };
 				UI::addElement(victoryLabel);
 			}
 
@@ -209,14 +214,19 @@ void Game::render()
 
 	Renderer::calcLight(players[0]);
 
-	Renderer::frameBuffer.bind();
-	GLCALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+	Renderer::calcShadows(objects);
+
+
+	if (postprocess) Renderer::frameBuffer.bind();
+	Renderer::clearBuffer();
 	Renderer::renderSkybox(players[0]);
 	Renderer::renderObjects(players[0], objects);
-	Renderer::frameBuffer.unbind();
+	if (postprocess) Renderer::frameBuffer.unbind();
 
 	//Postprocessing
-	Renderer::postProcessing();
+	if (postprocess) Renderer::postProcessing();
+
+	if (showShadowMap) Renderer::showShadowMap();
 
 
 	if (showInfo)
@@ -227,7 +237,6 @@ void Game::render()
 		UI::drawFPS(FPS);
 		UI::drawPos(players[0]);
 		UI::drawRot(players[0]);
-		
 	}
 
 	UI::drawUI();
@@ -325,34 +334,37 @@ void Game::keyPressed(SDL_Keycode key)
 	//Single Action Keys, just one time per pressing
 	if (!pressedKeys[action])
 	{
-		if (action == PlayerAction::toggleInfo)
+		switch (action)
 		{
+		case PlayerAction::toggleInfo:
 			showInfo = !showInfo;
-		}
-		if (action == PlayerAction::toggleFlashlight)
-		{
+			break;
+		case PlayerAction::toggleFlashlight:
 			players[0]->toggleFlashlight();
-		}
-		if (action == PlayerAction::toggleWireframe)
-		{
+			break;
+		case PlayerAction::toggleWireframe:
 			Renderer::toggleWireframe();
-		}
-		if (action == PlayerAction::toggleShowNormals)
-		{
+			break;
+		case PlayerAction::toggleShowNormals:
 			Renderer::toggleShowNormals();
-		}
-		if (action == PlayerAction::pause)
-		{
+			break;
+		case toggleShowShadowMap:
+			showShadowMap = !showShadowMap;
+			break;
+		case togglePostprocess:
+			postprocess = !postprocess;
+			break;
+		case PlayerAction::pause:
 			togglePause();
-		}
-		if (action == PlayerAction::menu)
-		{
+			break;
+		case PlayerAction::menu:
 			toggleMenu();
-		}
-		if (action == PlayerAction::toggleFullscreen)
-		{
+			break;
+		case PlayerAction::toggleFullscreen:
 			toggleFullscreen();
+			break;
 		}
+
 
 		if (gameState == GameState::GAME_MENU)
 		{
@@ -384,10 +396,10 @@ void Game::keyPressed(SDL_Keycode key)
 				SoundEngine->play2D("audio/select.wav", false);
 			}
 
-			if (action == PlayerAction::enter)
+			if (action == PlayerAction::enter || action == PlayerAction::jump)
 			{
 				MenuItem* selectedMenuItem = UI::getSelectedMenuItem();
-				if (selectedMenuItem->type==MenuItemType::resume)
+				if (selectedMenuItem->type == MenuItemType::resume)
 				{
 					toggleMenu();
 				}
@@ -451,7 +463,7 @@ void Game::deleteObjects()
 
 			auto it1 = std::find(objects.begin(), objects.end(), objectToDelete);
 			if (it1 != objects.end()) { objects.erase(it1); }
-			
+
 		}
 	}
 

@@ -3,8 +3,19 @@
 
 #include "defines.h"
 
+enum FrameBufferTextureType {
+    colorMap    = 1,
+    stencilMap  = 2,
+    depthMap    = 4,
+};
+
+inline FrameBufferTextureType operator|(FrameBufferTextureType a, FrameBufferTextureType b)
+{
+    return static_cast<FrameBufferTextureType>(static_cast<int>(a) | static_cast<int>(b));
+}
+
 struct FrameBuffer {
-    void create(uint32 width, uint32 height);
+    void create(uint32 width, uint32 height, FrameBufferTextureType textureTypeFlags);
 
     void destroy();
 
@@ -12,12 +23,12 @@ struct FrameBuffer {
 
     void unbind();
 
-    GLuint getTextureId() {
-        return textures[0];
+    GLuint* getTextureId() {
+        return textures;
     }
 
 private:
     GLuint fbo;
-    GLuint textures[2];
+    GLuint textures[3];
 };
 

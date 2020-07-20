@@ -35,7 +35,7 @@ void FPSCamera::onMouseMoved(float xRel, float yRel)
 void FPSCamera::update()
 {
     view = glm::lookAt(cameraposition, cameraposition + lookAt, up1);
-    viewProj = projection * view;
+    viewProj = proj * view;
 }
 
 void FPSCamera::moveFront(float amount) 

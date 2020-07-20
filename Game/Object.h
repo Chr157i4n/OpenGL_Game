@@ -14,12 +14,12 @@
 
 
 enum ObjectType {
-	Object_Player = 1,
-	Object_NPC = 2,
-	Object_Character = 4,
-	Object_Entity = 8,
-	Object_Environment = 16,
-	Object_Bullet = 32
+	Object_Player		= 1,
+	Object_NPC			= 2,
+	Object_Character	= 4,
+	Object_Entity		= 8,
+	Object_Environment	= 16,
+	Object_Bullet		= 32,
 };
 
 inline ObjectType operator|(ObjectType a, ObjectType b)
@@ -143,6 +143,8 @@ public:
 	int32 getNumber();
 
 	void render();
+
+	void renderShadowMap();
 
 	void registerHit();
 

@@ -19,7 +19,7 @@ static class Renderer
 public:
 	static void initOpenGL(SDL_Window** window);
 
-	static void initShader();
+	static void loadShader();
 
 	static void init(std::shared_ptr<Player> player);
 
@@ -28,6 +28,12 @@ public:
 
 
 	static void calcLight(std::shared_ptr<Player> player);
+
+	static void calcShadows(std::vector< std::shared_ptr<Object>> objects);
+
+	static void renderShadowsMap(std::vector< std::shared_ptr<Object>> objects);
+
+	static void showShadowMap();
 
 	static void renderSkybox(std::shared_ptr<Player> player);
 
@@ -49,6 +55,9 @@ public:
 
 	static void postProcessing();
 
+	static void clearBuffer();
+
+
 private:
 	static void initLight();
 
@@ -59,20 +68,22 @@ private:
 	static Shader* shaderImage;
 	static Shader* shaderGeometry;
 	static Shader* shaderPostProcessing;
+	static Shader* shaderDepthMap;
 
 	static unsigned int loadingScreenTexture;
 
 	static unsigned int skyboxTexture;
 	static VertexBuffer* skyboxVertexBuffer;
 	static VertexBuffer* axisVertexBuffer;
+	static VertexBuffer* screenVertexBuffer;
 
 	
 
 	static std::vector<Model*> models;
 
-	static int modelViewProjMatrixUniformIndex;
-	static int modelViewUniformIndex;
-	static int invmodelViewUniformIndex;
+	static int modelUniformIndex;
+	static int viewUniformIndex;
+	static int projUniformIndex;
 	static int skyboxViewProjectionUniformIndex;
 	static int lightdirectionUniformIndex;
 	static int lightpositionUniformIndex;
@@ -87,10 +98,13 @@ private:
 	static bool wireframeMode;
 	static bool showNormalMode;
 
+	static const int shadowMapResolution = 4096;
+
 	
 
 public:
 	static FrameBuffer frameBuffer;
+	static FrameBuffer depthMapBuffer;
 
 	static glm::vec3 transformedSunDirection3;
 	

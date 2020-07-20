@@ -20,8 +20,9 @@ Shader* ResourceManager::loadShader(std::string vertexShaderFilename, std::strin
 
 std::vector<Model*> ResourceManager::loadAllModels(tinyxml2::XMLDocument* doc)
 {
+	Logger::log("Loading all Models");
+	
 	std::vector<Model*> models;
-
 	std::string xmlNodeText;
 	int id = 0;
 
@@ -33,7 +34,7 @@ std::vector<Model*> ResourceManager::loadAllModels(tinyxml2::XMLDocument* doc)
 		newModel->setModelName(xmlNodeText);
 		newModel->setModelID(id++);
 
-
+		Logger::log("loaded Model " + std::to_string(newModel->getModelID()) + ": " + newModel->getModelName());
 		models.push_back(newModel);
 	}
 
@@ -59,12 +60,12 @@ std::vector<Model*> ResourceManager::loadAllModels(tinyxml2::XMLDocument* doc)
 		newModel->setModelName(xmlNodeText);
 		newModel->setModelID(id++);
 
-
+		Logger::log("loaded Model " + std::to_string(newModel->getModelID()) + ": " + newModel->getModelName());
 		models.push_back(newModel);
 	}
 
 
-
+	Logger::log("Loading all Models - finished");
 	return models;
 }
 
@@ -120,7 +121,7 @@ void ResourceManager::loadMap(std::string mapFileName, std::vector<std::shared_p
 
 
 
-
+	Logger::log("Loading all Objects");
 	for (tinyxml2::XMLElement* xmlNodeObject = doc.FirstChildElement("map")->FirstChildElement("objects")->FirstChildElement("object"); xmlNodeObject != NULL; xmlNodeObject = xmlNodeObject->NextSiblingElement())
 	{
 		xmlNodeText = xmlNodeObject->FirstChildElement("modelfile")->GetText();
@@ -153,13 +154,15 @@ void ResourceManager::loadMap(std::string mapFileName, std::vector<std::shared_p
 		newObject->setName(xmlNodeText);
 
 		newObject->setNumber(numObject);
+
+		Logger::log("loaded Object:" + newObject->printObject());
 		objects->push_back(newObject);
 
 		numObject++;
 	}
+	Logger::log("Loading all Objects - finished");
 
-
-
+	Logger::log("Loading all NPCS");
 	for (tinyxml2::XMLElement* xmlNodeBot = doc.FirstChildElement("map")->FirstChildElement("bots")->FirstChildElement("bot"); xmlNodeBot != NULL; xmlNodeBot = xmlNodeBot->NextSiblingElement())
 	{
 		xmlNodeText = xmlNodeBot->FirstChildElement("modelfile")->GetText();
@@ -206,13 +209,15 @@ void ResourceManager::loadMap(std::string mapFileName, std::vector<std::shared_p
 
 
 		newNPC->setNumber(numObject);
+
+		Logger::log("loaded NPC:" + newNPC->printObject());
 		objects->push_back(newNPC);
 		npcs->push_back(newNPC);
 		characters->push_back(newNPC);
 
 		numObject++;
 	}
-
+	
 
 
 	//random bots
@@ -226,11 +231,14 @@ void ResourceManager::loadMap(std::string mapFileName, std::vector<std::shared_p
 		newNpc->setPosition(glm::vec3(x, 0, z));
 		newNpc->setNumber(numObject);
 		newNpc->setCurrentTask(CurrentTask::Follow_Character);
+
+		Logger::log("created NPC:" + newNpc->printObject());
 		objects->push_back(newNpc);
 		npcs->push_back(newNpc);
 		characters->push_back(newNpc);
 		numObject++;
 	}
+	Logger::log("Loading all NPCS - finished");
 
 }
 

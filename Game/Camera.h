@@ -11,6 +11,8 @@ public:
 
     glm::mat4 getViewProj();
 
+    glm::mat4 getProj();
+
     glm::mat4 getView();
 
     virtual void update();
@@ -19,8 +21,8 @@ public:
 
 protected:
     glm::vec3 cameraposition;
-    glm::mat4 projection;
     glm::mat4 view;
+    glm::mat4 proj;
     glm::mat4 viewProj;
 };
 

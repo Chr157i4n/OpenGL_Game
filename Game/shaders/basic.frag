@@ -1,11 +1,5 @@
 #version 330 core
 
-layout(location = 0) out vec4 f_color;
-
-in vec3 v_position;
-in vec2 v_tex_coord;
-in mat3 v_tbn;
-
 struct Material {
     vec3 diffuse;
     vec3 specular;
@@ -45,13 +39,49 @@ struct SpotLight {
     vec3 ambient;
 };
 
+//Input from VRAM
+in vec3 v_position;
+in vec4 v_position_light_space;
+in vec2 v_tex_coord;
+in mat3 v_tbn;
+
+//Input from CPU
 uniform Material u_material;
 uniform DirectionalLight u_directional_light;
 uniform PointLight u_point_light;
 uniform SpotLight u_spot_light;
+
 uniform sampler2D u_diffuse_map;
 uniform sampler2D u_normal_map;
+uniform sampler2D u_shadowMap;
+
 uniform int u_showNormalMode;
+
+//Output
+layout(location = 0) out vec4 f_color;
+
+
+
+float ShadowCalculation(vec4 position_light_space)
+{
+    float shadow = 0.0;
+    vec3 projCoords = position_light_space.xyz;
+    projCoords = projCoords * 0.5 + 0.5;    // transform to [0,1] range
+    vec2 texelSize = 1.0 / textureSize(u_shadowMap, 0);
+    float currentDepth = projCoords.z;
+
+    float bias = 0.00001;
+    for(int x = -1; x <= 1; ++x)
+    {
+        for(int y = -1; y <= 1; ++y)
+        {
+            float pcfDepth = texture(u_shadowMap, projCoords.xy + vec2(x, y) * texelSize).r; 
+            shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;        
+        }    
+    }
+    shadow /= 9.0;
+    return shadow;
+}
 
 void main()
 {
@@ -67,6 +97,13 @@ void main()
     if(diffuseColor.w < 0.9) {
         discard;
     }
+
+    if(u_showNormalMode == 1) {
+        f_color = vec4(normal, 1.0);
+        return;
+    }
+
+
 
     //DirectionalLight
     vec3 light = normalize(-u_directional_light.direction);
@@ -98,11 +135,23 @@ void main()
         ambient += u_spot_light.ambient * diffuseColor.xyz;
     }
 
+    float shadow = ShadowCalculation(v_position_light_space); 
+
     //sum phong elements
-    f_color = vec4(ambient + diffuse + specular + u_material.emissive, 1.0f);
-    
-    if(u_showNormalMode==1)
-    {
-        f_color = vec4(normal,1.0f);
-    }
+    f_color = vec4(ambient + (1.0 - shadow) * (diffuse + specular + u_material.emissive), 1.0f);
+
+    //vec3 projCoords = vec3(v_position_light_space);
+    //projCoords = projCoords * 0.5 + 0.5; 
+    //f_color = vec4(projCoords.z,0,0,1);
+    //f_color = vec4( texture( u_shadowMap, projCoords.xy ).z,0,0,1);
+    //f_color = texture( u_shadowMap, projCoords.xy );
+    //f_color = vec4(projCoords,1);
+
+    /*if(v_position_light_space.x != 0)
+        f_color = vec4(1,0,0,1);
+    if(v_position_light_space.y != 0)
+        f_color = vec4(1,0,0,1);
+    if(v_position_light_space.z != 0)
+        f_color = vec4(1,0,0,1);*/
+
 }

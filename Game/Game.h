@@ -56,6 +56,8 @@ enum PlayerAction {
 	toggleInfo,
 	toggleWireframe,
 	toggleShowNormals,
+	toggleShowShadowMap,
+	togglePostprocess,
 	pause,
 	menu,
 	toggleFullscreen,
@@ -75,6 +77,8 @@ std::unordered_map<SDL_Keycode, PlayerAction> const keybindings =
 	{SDLK_F3,		toggleInfo},
 	{SDLK_F4,		toggleWireframe},
 	{SDLK_F5,		toggleShowNormals},
+	{SDLK_F6,		toggleShowShadowMap},
+	{SDLK_F7,		togglePostprocess},
 	{SDLK_p,		pause},
 	{SDLK_ESCAPE,	menu},
 	{SDLK_F11,		toggleFullscreen},	
@@ -136,6 +140,9 @@ private:
 	static float32 delta;
 
 	static bool showInfo;
+	static bool showShadowMap;
+	static bool postprocess;
+
 	static GameState gameState;
 	static int maxBulletCount;
 

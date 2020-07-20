@@ -70,6 +70,14 @@ inline void Mesh::render()
 	GLCALL(glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_INT, 0));
 }
 
+inline void Mesh::renderShadowMap()
+{
+	vertexBuffer->bind();
+	indexBuffer->bind();
+	
+	GLCALL(glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_INT, 0));
+}
+
 
 
 
@@ -216,6 +224,13 @@ void Model::render()
 {
 	for (Mesh* mesh : meshes) {
 		mesh->render();
+	}
+}
+
+void Model::renderShadowMap()
+{
+	for (Mesh* mesh : meshes) {
+		mesh->renderShadowMap();
 	}
 }
 

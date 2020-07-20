@@ -42,6 +42,8 @@ public:
 
     inline void render();
 
+    inline void renderShadowMap();
+
 private:
 
     glm::vec3 calculateDimension(std::vector<Vertex>& vertices);
@@ -66,6 +68,8 @@ public:
     void init(const char* filename, Shader* shader);
 
     void render();
+
+    void renderShadowMap();
 
     glm::vec3 getDimension();
 
