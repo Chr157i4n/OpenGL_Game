@@ -1,6 +1,6 @@
-#version 330
+#version 330 core
 
-in vec2 v_tex_coords;
+out vec2 v_tex_coords;
 
 void main()
 {

@@ -6,6 +6,7 @@
 #include "Shader.h"
 #include "ResourceManager.h"
 #include "VertexBuffer.h"
+#include "FrameBuffer.h"
 #include "UI.h"
 
 enum ShaderType {
@@ -46,6 +47,8 @@ public:
 
 	static void toggleShowNormals();
 
+	static void postProcessing();
+
 private:
 	static void initLight();
 
@@ -55,6 +58,7 @@ private:
 	static Shader* shaderBasic;
 	static Shader* shaderImage;
 	static Shader* shaderGeometry;
+	static Shader* shaderPostProcessing;
 
 	static unsigned int loadingScreenTexture;
 
@@ -83,7 +87,11 @@ private:
 	static bool wireframeMode;
 	static bool showNormalMode;
 
+	
+
 public:
+	static FrameBuffer frameBuffer;
+
 	static glm::vec3 transformedSunDirection3;
 	
 

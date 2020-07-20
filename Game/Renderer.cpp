@@ -1,6 +1,5 @@
 #include "Renderer.h"
 
-
 #ifdef _DEBUG
 void openGLDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
 {
@@ -92,7 +91,8 @@ SDL_Window** Renderer::window;
 Shader* Renderer::shaderSkybox = nullptr;
 Shader* Renderer::shaderBasic = nullptr;
 Shader* Renderer::shaderImage = nullptr;
-Shader* Renderer::shaderGeometry = nullptr;
+Shader* Renderer::shaderGeometry = nullptr; 
+Shader* Renderer::shaderPostProcessing = nullptr;
 
 unsigned int Renderer::loadingScreenTexture;
 
@@ -119,6 +119,8 @@ bool Renderer::wireframeMode = false;
 bool Renderer::showNormalMode = false;
 
 glm::vec3 Renderer::transformedSunDirection3;
+
+FrameBuffer Renderer::frameBuffer;
 
 
 void Renderer::initOpenGL(SDL_Window** window)
@@ -187,12 +189,18 @@ void Renderer::initShader()
 	shaderBasic = ResourceManager::loadShader("shaders/basic.vert", "shaders/basic.frag");
 	shaderImage = ResourceManager::loadShader("shaders/image.vert", "shaders/image.frag");
 	shaderGeometry = ResourceManager::loadShader("shaders/geometry.vert", "shaders/geometry.frag");
+	shaderPostProcessing = ResourceManager::loadShader("shaders/postprocessing.vert", "shaders/postprocessing.frag");
 }
 
 void Renderer::init(std::shared_ptr<Player> player)
 {
 	skyboxVertexBuffer = new VertexBuffer(skyboxVertices, 36, VertexType::_VertexPos);
 	axisVertexBuffer = new VertexBuffer(axisVertices, 6, VertexType::_VertexPosCol);
+
+	
+	int w, h;
+	SDL_GetWindowSize(*window, &w, &h);
+	frameBuffer.create(w, h);
 
 	std::vector<std::string> faces
 	{
@@ -303,7 +311,6 @@ void Renderer::renderSkybox(std::shared_ptr<Player> player)
 	glDepthMask(GL_FALSE);
 	// ... set view and projection matrix
 	glm::mat4 viewproj = player->getViewProj();
-
 	glUniformMatrix4fv(skyboxViewProjectionUniformIndex, 1, GL_FALSE, &viewproj[0][0]);
 
 	glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
@@ -370,6 +377,8 @@ void Renderer::renderObjects(std::shared_ptr<Player> player, std::vector< std::s
 		GLCALL(glUniformMatrix4fv(invmodelViewUniformIndex, 1, GL_FALSE, &invModelView[0][0]));
 
 		object->render();
+
+		object->unbindShader();
 	}
 }
 
@@ -469,5 +478,15 @@ void Renderer::toggleShowNormals()
 		GLCALL(glUniform1i(glGetUniformLocation(shaderBasic->getShaderId(), "u_showNormalMode"), 0));
 	}
 
+}
+
+void Renderer::postProcessing()
+{
+	shaderPostProcessing->bind();
+	GLCALL(glActiveTexture(GL_TEXTURE0));
+	GLCALL(glBindTexture(GL_TEXTURE_2D, frameBuffer.getTextureId()));
+	GLCALL(glUniform1i(glGetUniformLocation(shaderPostProcessing->getShaderId(), "u_texture"), 0));
+	glDrawArrays(GL_TRIANGLES, 0, 3);
+	shaderPostProcessing->unbind();
 }
 

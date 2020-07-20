@@ -209,9 +209,15 @@ void Game::render()
 
 	Renderer::calcLight(players[0]);
 
+	Renderer::frameBuffer.bind();
+	GLCALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 	Renderer::renderSkybox(players[0]);
 	Renderer::renderObjects(players[0], objects);
-	
+	Renderer::frameBuffer.unbind();
+
+	//Postprocessing
+	Renderer::postProcessing();
+
 
 	if (showInfo)
 	{

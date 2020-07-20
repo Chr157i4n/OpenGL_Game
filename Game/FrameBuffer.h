@@ -12,6 +12,10 @@ struct FrameBuffer {
 
     void unbind();
 
+    GLuint getTextureId() {
+        return textures[0];
+    }
+
 private:
     GLuint fbo;
     GLuint textures[2];
