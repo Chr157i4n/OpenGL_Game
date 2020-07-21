@@ -8,7 +8,6 @@
 class Character : public Object
 {
 public:
-
 	Character(Shader* shader);
 
 	virtual glm::vec3 getLookDirection();

@@ -21,6 +21,9 @@
 #include "libs/glm/gtc/matrix_transform.hpp"
 
 #include "UI.h"
+#include "UI_Element_Label.h"
+#include "UI_Element_ProgressBar.h"
+
 #include "Renderer.h"
 
 #include "defines.h"
@@ -34,11 +37,14 @@
 #include "ResourceManager.h"
 #include "ConfigManager.h"
 
+#include "Map.h"
+
 
 
 
 enum GameState {
 	GAME_ACTIVE,
+	GAME_GAME_OVER,
 	GAME_PAUSED,
 	GAME_MENU
 };

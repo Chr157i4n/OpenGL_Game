@@ -64,10 +64,15 @@ struct CollisionResult
 	std::vector<CollidedObject*> collidedObjectList;	
 };
 
+
+
 class Object
 {
 public:
+
+
 	Object(Shader* shader, std::string modelFileName);
+	
 
 	Shader* getShader();
 
@@ -103,7 +108,7 @@ public:
 	bool checkBoundaries(std::shared_ptr<Object> map);
 
 	//deltaTime in seconds
-	void fall(float32 deltaTime);
+	virtual void fall(float32 deltaTime);
 
 	//deltaTime in seconds
 	void move(float32 deltaTime, std::shared_ptr < Object> map);

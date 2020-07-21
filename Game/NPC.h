@@ -11,7 +11,7 @@ class NPC : public Character
 {
 
 public:
-	
+
 	NPC(Shader* shader);
 
 	void followCharacter(float32 deltaTime, std::vector< std::shared_ptr<Object>> objects, std::shared_ptr<Character> character);

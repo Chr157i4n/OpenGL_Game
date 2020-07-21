@@ -11,13 +11,10 @@
 #include "Object.h"
 #include "Player.h"
 
-struct UI_Element
-{
-	int posX, posY;
-	std::string text;
-	glm::vec4 color;
-	bool debugInfo;
-};
+#include "UI_Element.h"
+#include "UI_Element_Label.h"
+#include "UI_Element_ProgressBar.h"
+
 
 enum class MenuItemType
 {
@@ -69,6 +66,8 @@ public:
 	}
 
 	static MenuItem* getSelectedMenuItem();
+
+	static void checkLifeSpan();
 
 
 

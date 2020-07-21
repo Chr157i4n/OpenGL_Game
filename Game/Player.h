@@ -9,6 +9,7 @@ class Player : public Character, public FPSCamera
 {
 
 public:
+
 	Player(Shader* shader, float fov, float width, float height);
 
 	glm::vec3 getLookDirection();

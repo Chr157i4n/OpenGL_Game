@@ -12,9 +12,9 @@
 
 
 
-//#define DEBUG_COLLISION
-//#define DEBUG_OUTOFBOUNDS
-//#define DEBUG_GRAVITY
+#define DEBUG_COLLISION
+#define DEBUG_OUTOFBOUNDS
+#define DEBUG_GRAVITY
 
 SDL_Window* Game::window;
 
@@ -76,7 +76,7 @@ void Game::init()
 
 	maxBulletCount = stoi(ConfigManager::readConfig("max_bullets"));
 	std::string levelname = ConfigManager::readConfig("level");
-	ResourceManager::loadMap("levels/" + levelname, &objects, &characters, &players, &npcs);
+	Map::load(levelname, &objects, &characters, &players, &npcs);
 
 	Renderer::init(players[0]);
 }
@@ -89,7 +89,7 @@ void Game::gameLoop()
 
 		processInput();
 
-		if (gameState == GameState::GAME_ACTIVE)
+		if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
 		{
 			GLCALL(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
 			GLCALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
@@ -115,14 +115,13 @@ void Game::gameLoop()
 
 				object->move(delta / 1000, objects[1]);
 
-				if (object->getType() == ObjectType::Object_Bullet) continue; //Bullets have their own fall function
 				object->fall(delta / 1000);
 
 			}
 
 			for (std::shared_ptr<Bullet> bullet : bullets)
 			{
-				bullet->fall(delta / 1000);
+				//bullet->fall(delta / 1000);
 				//bullet->move(delta / 1000);
 				bullet->checkHit(objects);
 			}
@@ -157,7 +156,8 @@ void Game::gameLoop()
 				//player->update();
 				if (player->getPosition().x > 95 && player->getPosition().z > 95)
 				{
-					UI_Element* eastereggLabel = new UI_Element{ UI::getWidth() / 2 - 200 , UI::getHeight() / 2 - 200,"Nice, du hast das Easter-Egg gefunden",glm::vec4(1,0,0,1),false };
+					UI_Element* eastereggLabel = new UI_Element_Label(UI::getWidth() / 2-200, UI::getHeight() / 2-100, "Nice, du hast das Easter-Egg gefunden",1, 1, glm::vec4(1, 0, 0, 1), false);
+
 					UI::addElement(eastereggLabel);
 				}
 			}
@@ -169,10 +169,11 @@ void Game::gameLoop()
 
 			deleteObjects();
 
-			if (npcs.size() <= 0)
+			if (npcs.size() <= 0 && gameState== GameState::GAME_ACTIVE)
 			{
-				UI_Element* victoryLabel = new UI_Element{ UI::getWidth() / 2 - 100 , UI::getHeight() / 2,"Du hast alle Bots besiegt",glm::vec4(0,0,1,1),false };
+				UI_Element* victoryLabel = new UI_Element_Label(UI::getWidth() / 2-100, UI::getHeight() / 2, "Du hast alle Bots besiegt", 1, 1, glm::vec4(0, 0, 1, 1), false);
 				UI::addElement(victoryLabel);
+				gameState = GameState::GAME_GAME_OVER;
 			}
 
 			render();
@@ -408,6 +409,12 @@ void Game::keyPressed(SDL_Keycode key)
 					SDL_DestroyWindow(window);
 					exit(0);
 				}
+				if (selectedMenuItem->type == MenuItemType::restart)
+				{
+					Map::restart(&objects, &characters, &players, &npcs);
+					toggleMenu();
+					gameState = GameState::GAME_ACTIVE;
+				}
 				SoundEngine->play2D("audio/select.wav", false);
 			}
 		}
@@ -495,7 +502,7 @@ void Game::togglePause()
 
 void Game::toggleMenu()
 {
-	if (gameState == GameState::GAME_PAUSED || gameState == GameState::GAME_ACTIVE)
+	if (gameState == GameState::GAME_PAUSED || gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
 	{
 		gameState = GameState::GAME_MENU;
 		SDL_SetRelativeMouseMode(SDL_FALSE);

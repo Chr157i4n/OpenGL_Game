@@ -105,17 +105,22 @@ void UI::drawUI()
 {
 	for (UI_Element* ui_element : ui_elements)
 	{
-		if (!ui_element->debugInfo)
+		if (!ui_element->getIsDebugInfo())
 		{
-			drawString(ui_element->posX, ui_element->posY, ui_element->text, ui_element->color);
+			ui_element->drawUI_Element();
 		}
-		delete ui_element;
 	}
-	ui_elements.clear();
+	checkLifeSpan();
 }
 
 void UI::addElement(UI_Element* newElement)
 {
+	for (UI_Element* ui_element : ui_elements)
+	{
+		if (newElement->getX() == ui_element->getX() && newElement->getY() == ui_element->getY()) return;
+	}
+	
+	newElement->setID(ui_elements.size());
 	ui_elements.push_back(newElement);
 }
 
@@ -158,4 +163,16 @@ MenuItem* UI::getSelectedMenuItem()
 		}
 	}
 	return menuItemList[0];
+}
+
+void UI::checkLifeSpan()
+{
+	for(int i=ui_elements.size()-1; i>=0; i--)
+	{
+		if (!ui_elements[i]->isStillAlive())
+		{
+			auto it = std::find(ui_elements.begin(), ui_elements.end(), ui_elements[i]);
+			if (it != ui_elements.end()) { ui_elements.erase(it); }
+		}
+	}
 }
