@@ -94,6 +94,8 @@ bool UI_Element::isStillAlive()
 
     if (lifespan == 0)
         return true;
+    else if (lifespan == -1)
+        return false;
     else if (timestamp > startTimestamp + lifespan)
         return false;
     else

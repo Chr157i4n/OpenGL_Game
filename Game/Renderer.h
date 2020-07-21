@@ -23,6 +23,7 @@ public:
 
 	static void init(std::shared_ptr<Player> player);
 
+	static void initLoadingScreen();
 
 	static void showLoadingScreen();
 
@@ -107,6 +108,8 @@ public:
 	static FrameBuffer depthMapBuffer;
 
 	static glm::vec3 transformedSunDirection3;
+
+	static UI_Element_ProgressBar* loadingProgressBar;
 	
 
 	

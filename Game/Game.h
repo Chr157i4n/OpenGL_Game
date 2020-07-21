@@ -100,6 +100,10 @@ public:
 
 	static void init();
 
+	static int getWindowWidth();
+
+	static int getWindowHeight();
+
 	static irrklang::ISoundEngine* SoundEngine;
 
 private:
@@ -123,6 +127,7 @@ private:
 	static void toggleFullscreen();
 
 	static void updateAudioListener();
+
 
 
 

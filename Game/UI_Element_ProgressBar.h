@@ -1,5 +1,6 @@
 #pragma once
 #include "UI_Element.h"
+#include <GL/glew.h>
 
 class UI_Element_ProgressBar : public UI_Element
 {

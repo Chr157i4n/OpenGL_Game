@@ -527,3 +527,19 @@ void Game::updateAudioListener()
 	irrklang::vec3df LlookAt = irrklang::vec3df(-players[0]->getLookDirection().x, players[0]->getLookDirection().y, -players[0]->getLookDirection().z);
 	Game::SoundEngine->setListenerPosition(Lposition, LlookAt);
 }
+
+int Game::getWindowWidth()
+{
+	int width, height;
+	SDL_GetWindowSize(window, &width, &height);
+
+	return width;
+}
+
+int Game::getWindowHeight()
+{
+	int width, height;
+	SDL_GetWindowSize(window, &width, &height);
+
+	return height;
+}

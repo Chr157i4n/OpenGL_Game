@@ -1,4 +1,5 @@
 #include "Renderer.h"
+#include "Game.h"
 
 #ifdef _DEBUG
 void openGLDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
@@ -97,6 +98,7 @@ Shader* Renderer::shaderPostProcessing = nullptr;
 Shader* Renderer::shaderDepthMap = nullptr;
 
 unsigned int Renderer::loadingScreenTexture;
+UI_Element_ProgressBar* Renderer::loadingProgressBar;
 
 unsigned int Renderer::skyboxTexture;
 VertexBuffer* Renderer::skyboxVertexBuffer;
@@ -191,6 +193,8 @@ void Renderer::initOpenGL(SDL_Window** window)
 	GLCALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
 	GLCALL(glClearColor(0, 0, 0, 0));
+
+	initLoadingScreen();
 }
 
 void Renderer::loadShader()
@@ -276,16 +280,23 @@ void Renderer::initLight()
 	GLCALL(glUniform1i(glGetUniformLocation(shaderBasic->getShaderId(), "u_showNormalMode"), 0));
 }
 
+void Renderer::initLoadingScreen()
+{
+	screenVertexBuffer = new VertexBuffer(screenVertices, 6, VertexType::_VertexPosTex);
+	//loadingProgressBar = new UI_Element_ProgressBar(UI::getWidth() / 2 - 200, UI::getHeight() / 2 - 10, 800, 20, 100, 0, false);
+	loadingProgressBar = new UI_Element_ProgressBar(Game::getWindowWidth() / 2-200, Game::getWindowHeight() / 2-10, 800, 20, 0, 0, false);
+	UI::addElement(loadingProgressBar);
+	loadingScreenTexture = ResourceManager::loadImage("images/loading_screen.png");
+}
 
 void Renderer::showLoadingScreen() {
-	screenVertexBuffer = new VertexBuffer(screenVertices, 6, VertexType::_VertexPosTex);
 
 	GLCALL(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
 	GLCALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
-	loadingScreenTexture = ResourceManager::loadImage("images/loading_screen.png");
-	
 	renderImage(screenVertexBuffer, loadingScreenTexture);
+	
+	UI::drawUI();
 
 	SDL_GL_SwapWindow(*window);
 }

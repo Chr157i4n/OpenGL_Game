@@ -89,6 +89,9 @@ std::vector<Model*> ResourceManager::loadAllModels(tinyxml2::XMLDocument* doc)
 
 		percentageLoading +=  80 / modelCount;
 		Logger::log("loaded Model " + std::to_string(newModel->getModelID()) + ": " + newModel->getModelName() + " - " + to_string_with_precision(percentageLoading,0)+ "%");
+		Renderer::loadingProgressBar->setValue(percentageLoading);
+		Renderer::showLoadingScreen();
+		
 		models.push_back(newModel);
 	}
 
@@ -126,7 +129,7 @@ void ResourceManager::loadMap(std::string mapFileName, std::vector<std::shared_p
 	std::string xmlNodeText;
 	std::vector<std::string> params;
 
-
+	Logger::log("Loading Map");
 	doc.LoadFile(mapFileNameC);
 
 	std::string title = doc.FirstChildElement("map")->FirstChildElement("name")->GetText();
@@ -189,6 +192,8 @@ void ResourceManager::loadMap(std::string mapFileName, std::vector<std::shared_p
 
 		percentageLoading += 10 / objectCount;
 		Logger::log("loaded Object:" + newObject->printObject() + " - " + to_string_with_precision(percentageLoading, 0) + "%");
+		Renderer::loadingProgressBar->setValue(percentageLoading);
+		Renderer::showLoadingScreen();
 		objects->push_back(newObject);
 
 		
@@ -253,6 +258,9 @@ void ResourceManager::loadMap(std::string mapFileName, std::vector<std::shared_p
 
 		percentageLoading += 10 / npcCount;
 		Logger::log("loaded NPC:" + newNPC->printObject() + " - " + to_string_with_precision(percentageLoading, 0) + "%");
+		Renderer::loadingProgressBar->setValue(percentageLoading);
+		Renderer::showLoadingScreen();
+
 		objects->push_back(newNPC);
 		npcs->push_back(newNPC);
 		characters->push_back(newNPC);
@@ -281,6 +289,9 @@ void ResourceManager::loadMap(std::string mapFileName, std::vector<std::shared_p
 		numObject++;
 	}
 	Logger::log("Loading all NPCs - finished");
+
+	Logger::log("Loading Map - finished");
+	Renderer::loadingProgressBar->setLifespan(-1);
 
 }
 
