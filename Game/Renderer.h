@@ -98,7 +98,7 @@ private:
 	static bool wireframeMode;
 	static bool showNormalMode;
 
-	static const int shadowMapResolution = 4096;
+	static int shadowMapResolution;
 
 	
 

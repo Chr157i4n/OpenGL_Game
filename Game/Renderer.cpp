@@ -128,6 +128,8 @@ glm::vec3 Renderer::transformedSunDirection3;
 FrameBuffer Renderer::frameBuffer;
 FrameBuffer Renderer::depthMapBuffer;
 
+int Renderer::shadowMapResolution;
+
 
 void Renderer::initOpenGL(SDL_Window** window)
 {
@@ -206,6 +208,7 @@ void Renderer::init(std::shared_ptr<Player> player)
 	skyboxVertexBuffer = new VertexBuffer(skyboxVertices, 36, VertexType::_VertexPos);
 	axisVertexBuffer = new VertexBuffer(axisVertices, 6, VertexType::_VertexPosCol);
 	
+	shadowMapResolution = std::stoi(ConfigManager::readConfig("shadow_map_resolution"));
 	int w, h;
 	SDL_GetWindowSize(*window, &w, &h);
 	frameBuffer.create(w, h, FrameBufferTextureType::colorMap | FrameBufferTextureType::stencilMap);
@@ -325,7 +328,9 @@ void Renderer::calcShadows(std::vector< std::shared_ptr<Object>> objects)
 
 	depthMapBuffer.unbind();
 	// 2. then render scene as normal with shadow mapping (using depth map)
-	glViewport(0, 0, 960, 540); //actual resolution
+	int width, height;
+	SDL_GetWindowSize(*window, &width, &height);
+	glViewport(0, 0, width, height); //actual resolution
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 
