@@ -85,6 +85,11 @@ public:
 
     int getModelID();
 
+    bool getHasTransparentTexture()
+    {
+        return hasTransparentTexture;
+    }
+
 private:
     std::vector<Mesh*> meshes;
     std::vector<Material> materials;
@@ -94,4 +99,5 @@ private:
 
     std::string modelName="";
     int modelID=-1;
+    bool hasTransparentTexture = false;
 };

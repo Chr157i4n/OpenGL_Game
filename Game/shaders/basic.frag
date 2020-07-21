@@ -94,9 +94,10 @@ void main()
     normal = normalize(v_tbn * normal);
 
     vec4 diffuseColor = texture(u_diffuse_map, v_tex_coord);
-    if(diffuseColor.w < 0.9) {
+    if(diffuseColor.a < 0.1) {
         discard;
     }
+    float alpha = diffuseColor.a ;
 
     if(u_showNormalMode == 1) {
         f_color = vec4(normal, 1.0);
@@ -138,20 +139,6 @@ void main()
     float shadow = ShadowCalculation(v_position_light_space); 
 
     //sum phong elements
-    f_color = vec4(ambient + (1.0 - shadow) * (diffuse + specular + u_material.emissive), 1.0f);
-
-    //vec3 projCoords = vec3(v_position_light_space);
-    //projCoords = projCoords * 0.5 + 0.5; 
-    //f_color = vec4(projCoords.z,0,0,1);
-    //f_color = vec4( texture( u_shadowMap, projCoords.xy ).z,0,0,1);
-    //f_color = texture( u_shadowMap, projCoords.xy );
-    //f_color = vec4(projCoords,1);
-
-    /*if(v_position_light_space.x != 0)
-        f_color = vec4(1,0,0,1);
-    if(v_position_light_space.y != 0)
-        f_color = vec4(1,0,0,1);
-    if(v_position_light_space.z != 0)
-        f_color = vec4(1,0,0,1);*/
+    f_color = vec4(ambient + (1.0 - shadow) * (diffuse + specular + u_material.emissive), alpha);
 
 }

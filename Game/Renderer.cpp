@@ -187,6 +187,8 @@ void Renderer::initOpenGL(SDL_Window** window)
 
 	GLCALL(glEnable(GL_BLEND));
 	GLCALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+
+	GLCALL(glClearColor(0, 0, 0, 0));
 }
 
 void Renderer::loadShader()
@@ -466,47 +468,54 @@ void Renderer::renderObjects(std::shared_ptr<Player> player, std::vector< std::s
 {
 	glCullFace(GL_BACK);
 
-	for (std::shared_ptr<Object> object : objects)
+	for (int i = 0; i <= 1; i++)
 	{
-		glm::mat4 model = glm::mat4(1.0f);
-		//model = glm::scale(model, glm::vec3(1.0f));
-
-		//move to position of model
-		model = glm::translate(model, object->getPosition());
-
-		//rotate model around X
-		float angle = object->getRotation().x;
-		model = glm::rotate(model, glm::radians(angle), glm::vec3(1, 0, 0));
-
-		//rotate model around Y
-		angle = object->getRotation().y;
-		model = glm::rotate(model, glm::radians(angle), glm::vec3(0, 1, 0));
-
-		//rotate model around z
-		angle = object->getRotation().z;
-		model = glm::rotate(model, glm::radians(angle), glm::vec3(0, 0, 1));
-
-		//view and projection
-		modelViewProj = player->getViewProj() * model;
-		glm::mat4 modelView = player->getView() * model;
-		glm::mat4 invModelView = glm::transpose(glm::inverse(modelView));
+		for (std::shared_ptr<Object> object : objects)
+		{
+			if (i == 0 && object->getModel()->getHasTransparentTexture()) continue;
+			if (i == 1 && !object->getModel()->getHasTransparentTexture()) continue;
 
 
-		glm::mat4 view = player->getView();
-		glm::mat4 proj = player->getProj();
+			glm::mat4 model = glm::mat4(1.0f);
+			//model = glm::scale(model, glm::vec3(1.0f));
 
-		object->bindShader();
+			//move to position of model
+			model = glm::translate(model, object->getPosition());
 
-		int modelUniformLocation = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_model"));
-		GLCALL(glUniformMatrix4fv(modelUniformLocation, 1, GL_FALSE, &model[0][0]));
+			//rotate model around X
+			float angle = object->getRotation().x;
+			model = glm::rotate(model, glm::radians(angle), glm::vec3(1, 0, 0));
 
-		GLCALL(glUniformMatrix4fv(modelUniformIndex, 1, GL_FALSE, &model[0][0]));
-		GLCALL(glUniformMatrix4fv(viewUniformIndex, 1, GL_FALSE, &view[0][0]));
-		GLCALL(glUniformMatrix4fv(projUniformIndex, 1, GL_FALSE, &proj[0][0]));
+			//rotate model around Y
+			angle = object->getRotation().y;
+			model = glm::rotate(model, glm::radians(angle), glm::vec3(0, 1, 0));
 
-		object->render();
+			//rotate model around z
+			angle = object->getRotation().z;
+			model = glm::rotate(model, glm::radians(angle), glm::vec3(0, 0, 1));
 
-		object->unbindShader();
+			//view and projection
+			modelViewProj = player->getViewProj() * model;
+			glm::mat4 modelView = player->getView() * model;
+			glm::mat4 invModelView = glm::transpose(glm::inverse(modelView));
+
+
+			glm::mat4 view = player->getView();
+			glm::mat4 proj = player->getProj();
+
+			object->bindShader();
+
+			int modelUniformLocation = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_model"));
+			GLCALL(glUniformMatrix4fv(modelUniformLocation, 1, GL_FALSE, &model[0][0]));
+
+			GLCALL(glUniformMatrix4fv(modelUniformIndex, 1, GL_FALSE, &model[0][0]));
+			GLCALL(glUniformMatrix4fv(viewUniformIndex, 1, GL_FALSE, &view[0][0]));
+			GLCALL(glUniformMatrix4fv(projUniformIndex, 1, GL_FALSE, &proj[0][0]));
+
+			object->render();
+
+			object->unbindShader();
+		}
 	}
 }
 

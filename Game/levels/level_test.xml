@@ -64,6 +64,16 @@
       <scale>1;1;1</scale>
     </object>
     <object>
+      <name>Window</name>
+      <type>Entity</type>
+      <collisionboxtype>cube</collisionboxtype>
+      <gravity>false</gravity>
+      <modelfile>window.bmf</modelfile>
+      <position>70;0;-34</position>
+      <rotation>0;0;0</rotation>
+      <scale>1;1;1</scale>
+    </object>
+    <object>
       <name>Crystal</name>
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>

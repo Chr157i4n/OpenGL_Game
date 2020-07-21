@@ -101,6 +101,11 @@ void Model::init(const char* filename, Shader* shader) {
 		std::string diffuseMapName(diffuseMapNameLength, '\0');
 		input.read((char*)&diffuseMapName[0], diffuseMapNameLength);
 
+
+		if (diffuseMapName.find(".png") != std::string::npos) {
+			hasTransparentTexture = true;
+		}
+
 		uint64 normalMapNameLength = 0;
 		input.read((char*)&normalMapNameLength, sizeof(uint64));
 		std::string normalMapName(normalMapNameLength, '\0');
@@ -216,7 +221,6 @@ void Model::init(const char* filename, Shader* shader) {
 	boundingBoxDimension.x = dimension.x + dimension.z;
 	boundingBoxDimension.y = dimension.y*2;
 	boundingBoxDimension.z = dimension.x + dimension.z;
-
 
 }
 
