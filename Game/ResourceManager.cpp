@@ -4,11 +4,21 @@
 #include "Renderer.h"
 
 #include "libs/stb_image.h"
-
+#include <cmath>
+#include <sstream>
 
 std::string ResourceManager::modelFolder = "models";
+float ResourceManager::percentageLoading=0;
 
 
+template <typename T>
+std::string to_string_with_precision(const T a_value, const int n = 6)
+{
+	std::ostringstream out;
+	out.precision(n);
+	out << std::fixed << a_value;
+	return out.str();
+}
 
 Shader* ResourceManager::loadShader(std::string vertexShaderFilename, std::string fragmentShaderFilename)
 {
@@ -22,48 +32,65 @@ std::vector<Model*> ResourceManager::loadAllModels(tinyxml2::XMLDocument* doc)
 {
 	Logger::log("Loading all Models");
 	
+	std::string newmodefilename;
 	std::vector<Model*> models;
-	std::string xmlNodeText;
 	int id = 0;
+	std::list<std::string> modelfilenames;
+
+
 
 	for (tinyxml2::XMLElement* xmlNodeObject = doc->FirstChildElement("map")->FirstChildElement("models")->FirstChildElement("model"); xmlNodeObject != NULL; xmlNodeObject = xmlNodeObject->NextSiblingElement())
 	{
-		xmlNodeText = xmlNodeObject->GetText();
+		newmodefilename = xmlNodeObject->GetText();
+		bool alreadyLoaded = false;
 
-		Model* newModel = loadModel(modelFolder + "/" + xmlNodeText);
-		newModel->setModelName(xmlNodeText);
-		newModel->setModelID(id++);
-
-		Logger::log("loaded Model " + std::to_string(newModel->getModelID()) + ": " + newModel->getModelName());
-		models.push_back(newModel);
+		for (std::string modefilename : modelfilenames)
+		{
+			if (modefilename == newmodefilename)
+			{
+				alreadyLoaded = true;
+				break;
+			}
+		}
+		if (!alreadyLoaded)
+		{
+			modelfilenames.push_back(newmodefilename);
+		}
 	}
 
 	for (tinyxml2::XMLElement* xmlNodeObject = doc->FirstChildElement("map")->FirstChildElement("objects")->FirstChildElement("object"); xmlNodeObject != NULL; xmlNodeObject = xmlNodeObject->NextSiblingElement())
 	{
-		xmlNodeText = xmlNodeObject->FirstChildElement("modelfile")->GetText();
-		bool modelAlreadyLoaded = false;
+		newmodefilename = xmlNodeObject->FirstChildElement("modelfile")->GetText();
+		bool alreadyLoaded = false;
 
-		for (Model* loadedModels : models)
+		for (std::string modefilename : modelfilenames)
 		{
-			if (loadedModels->getModelName() == xmlNodeText) //model is already loaded
+			if (modefilename == newmodefilename)
 			{
-				modelAlreadyLoaded = true;
+				alreadyLoaded = true;
 				break;
 			}
 		}
-		if (modelAlreadyLoaded)
+		if (!alreadyLoaded)
 		{
-			continue;
+			modelfilenames.push_back(newmodefilename);
 		}
-
-		Model* newModel = loadModel(modelFolder + "/" + xmlNodeText);
-		newModel->setModelName(xmlNodeText);
-		newModel->setModelID(id++);
-
-		Logger::log("loaded Model " + std::to_string(newModel->getModelID()) + ": " + newModel->getModelName());
-		models.push_back(newModel);
 	}
 
+
+	float modelCount = modelfilenames.size();
+
+	for (std::string modefilename : modelfilenames)
+	{
+
+		Model* newModel = loadModel(modelFolder + "/" + modefilename);
+		newModel->setModelName(modefilename);
+		newModel->setModelID(id++);
+
+		percentageLoading +=  80 / modelCount;
+		Logger::log("loaded Model " + std::to_string(newModel->getModelID()) + ": " + newModel->getModelName() + " - " + to_string_with_precision(percentageLoading,0)+ "%");
+		models.push_back(newModel);
+	}
 
 	Logger::log("Loading all Models - finished");
 	return models;
@@ -100,7 +127,6 @@ void ResourceManager::loadMap(std::string mapFileName, std::vector<std::shared_p
 	std::vector<std::string> params;
 
 
-
 	doc.LoadFile(mapFileNameC);
 
 	std::string title = doc.FirstChildElement("map")->FirstChildElement("name")->GetText();
@@ -122,6 +148,12 @@ void ResourceManager::loadMap(std::string mapFileName, std::vector<std::shared_p
 
 
 	Logger::log("Loading all Objects");
+	float objectCount = 0;
+	for (tinyxml2::XMLElement* xmlNodeObject = doc.FirstChildElement("map")->FirstChildElement("objects")->FirstChildElement("object"); xmlNodeObject != NULL; xmlNodeObject = xmlNodeObject->NextSiblingElement())
+	{
+		objectCount++;
+	}
+	
 	for (tinyxml2::XMLElement* xmlNodeObject = doc.FirstChildElement("map")->FirstChildElement("objects")->FirstChildElement("object"); xmlNodeObject != NULL; xmlNodeObject = xmlNodeObject->NextSiblingElement())
 	{
 		xmlNodeText = xmlNodeObject->FirstChildElement("modelfile")->GetText();
@@ -155,14 +187,25 @@ void ResourceManager::loadMap(std::string mapFileName, std::vector<std::shared_p
 
 		newObject->setNumber(numObject);
 
-		Logger::log("loaded Object:" + newObject->printObject());
+		percentageLoading += 10 / objectCount;
+		Logger::log("loaded Object:" + newObject->printObject() + " - " + to_string_with_precision(percentageLoading, 0) + "%");
 		objects->push_back(newObject);
+
+		
 
 		numObject++;
 	}
 	Logger::log("Loading all Objects - finished");
 
-	Logger::log("Loading all NPCS");
+
+
+	Logger::log("Loading all NPCs");
+	float npcCount = 0;
+	for (tinyxml2::XMLElement* xmlNodeBot = doc.FirstChildElement("map")->FirstChildElement("bots")->FirstChildElement("bot"); xmlNodeBot != NULL; xmlNodeBot = xmlNodeBot->NextSiblingElement())
+	{
+		npcCount++;
+	}
+	
 	for (tinyxml2::XMLElement* xmlNodeBot = doc.FirstChildElement("map")->FirstChildElement("bots")->FirstChildElement("bot"); xmlNodeBot != NULL; xmlNodeBot = xmlNodeBot->NextSiblingElement())
 	{
 		xmlNodeText = xmlNodeBot->FirstChildElement("modelfile")->GetText();
@@ -181,8 +224,6 @@ void ResourceManager::loadMap(std::string mapFileName, std::vector<std::shared_p
 		split(xmlNodeText, params, ';');
 		newNPC->setScale(glm::vec3(stof(params[0]), stof(params[1]), stof(params[2])));
 
-		//xmlNodeText = xmlNodeBot->FirstChildElement("type")->GetText();
-		//newNPC->setType(Object::convertStringToType(xmlNodeText));
 
 		xmlNodeText = xmlNodeBot->FirstChildElement("name")->GetText();
 		newNPC->setName(xmlNodeText);
@@ -210,7 +251,8 @@ void ResourceManager::loadMap(std::string mapFileName, std::vector<std::shared_p
 
 		newNPC->setNumber(numObject);
 
-		Logger::log("loaded NPC:" + newNPC->printObject());
+		percentageLoading += 10 / npcCount;
+		Logger::log("loaded NPC:" + newNPC->printObject() + " - " + to_string_with_precision(percentageLoading, 0) + "%");
 		objects->push_back(newNPC);
 		npcs->push_back(newNPC);
 		characters->push_back(newNPC);
@@ -238,7 +280,7 @@ void ResourceManager::loadMap(std::string mapFileName, std::vector<std::shared_p
 		characters->push_back(newNpc);
 		numObject++;
 	}
-	Logger::log("Loading all NPCS - finished");
+	Logger::log("Loading all NPCs - finished");
 
 }
 
