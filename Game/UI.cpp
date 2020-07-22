@@ -103,6 +103,10 @@ int UI::getWidth()
 
 void UI::drawUI()
 {
+	GLCALL(glDepthMask(GL_FALSE));
+	GLCALL(glDisable(GL_CULL_FACE));
+	GLCALL(glDisable(GL_DEPTH_TEST));
+
 	for (UI_Element* ui_element : ui_elements)
 	{
 		if (!ui_element->getIsDebugInfo())
@@ -111,6 +115,10 @@ void UI::drawUI()
 		}
 	}
 	checkLifeSpan();
+
+	GLCALL(glDepthMask(GL_TRUE));
+	GLCALL(glEnable(GL_CULL_FACE));
+	GLCALL(glEnable(GL_DEPTH_TEST));
 }
 
 void UI::addElement(UI_Element* newElement)
@@ -170,6 +178,18 @@ void UI::checkLifeSpan()
 	for(int i=ui_elements.size()-1; i>=0; i--)
 	{
 		if (!ui_elements[i]->isStillAlive())
+		{
+			auto it = std::find(ui_elements.begin(), ui_elements.end(), ui_elements[i]);
+			if (it != ui_elements.end()) { ui_elements.erase(it); }
+		}
+	}
+}
+
+void UI::clearMessages()
+{
+	for (int i = ui_elements.size() - 1; i >= 0; i--)
+	{
+		if (ui_elements[i]->getUielementtype() == UI_Element_Type::label)
 		{
 			auto it = std::find(ui_elements.begin(), ui_elements.end(), ui_elements[i]);
 			if (it != ui_elements.end()) { ui_elements.erase(it); }

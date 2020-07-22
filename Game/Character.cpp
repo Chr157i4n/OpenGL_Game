@@ -55,7 +55,7 @@ void Character::jump()
 		Logger::log("Character: " + printObject() + " jumped");
 
 		irrklang::vec3df SPosition = irrklang::vec3df(getPosition().x, getPosition().y, getPosition().z);
-		irrklang::ISound* jumpSound = Game::SoundEngine->play3D("audio/jump.wav", SPosition, false, false, true);
+		irrklang::ISound* jumpSound = Game::getSoundEngine()->play3D("audio/jump.wav", SPosition, false, false, true);
 
 		//jumpSound->setPosition(SPosition);
 

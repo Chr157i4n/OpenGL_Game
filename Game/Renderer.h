@@ -14,6 +14,12 @@ enum ShaderType {
 	skybox,
 };
 
+enum PostProcessingEffect {
+	negative,
+	blood,
+	uncolored,
+};
+
 static class Renderer
 {
 public:
@@ -22,6 +28,8 @@ public:
 	static void loadShader();
 
 	static void init(std::shared_ptr<Player> player);
+
+	static void initFrameBuffer();
 
 	static void initLoadingScreen();
 
@@ -57,6 +65,8 @@ public:
 	static void postProcessing();
 
 	static void clearBuffer();
+
+	static void applyPostprocessingEffect(PostProcessingEffect postprocessingeffect, float32 duration);
 
 
 private:
@@ -101,7 +111,6 @@ private:
 
 	static int shadowMapResolution;
 
-	
 
 public:
 	static FrameBuffer frameBuffer;
@@ -110,6 +119,9 @@ public:
 	static glm::vec3 transformedSunDirection3;
 
 	static UI_Element_ProgressBar* loadingProgressBar;
+
+	//if this value is above 0 the effect will be applied
+	static std::vector<float32>postprocessingEffectDuration;
 	
 
 	

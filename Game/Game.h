@@ -40,7 +40,9 @@
 #include "Map.h"
 
 
-
+#define DEBUG_COLLISION
+#define DEBUG_OUTOFBOUNDS
+#define DEBUG_GRAVITY
 
 enum GameState {
 	GAME_ACTIVE,
@@ -104,9 +106,29 @@ public:
 
 	static int getWindowHeight();
 
-	static irrklang::ISoundEngine* SoundEngine;
+	static float32 getDelta()
+	{
+		return delta;
+	}
+
+	static irrklang::ISoundEngine* getSoundEngine()
+	{
+		return SoundEngine;
+	}
+
+	static void setGameState(GameState newGameState)
+	{
+		gameState = newGameState;
+	}
+
+	static GameState getGameState()
+	{
+		return gameState;
+	}
 
 private:
+
+	static void processCollision();
 
 	static void render();
 
@@ -129,9 +151,9 @@ private:
 	static void updateAudioListener();
 
 
-
-
 	static SDL_Window* window;
+
+	static irrklang::ISoundEngine* SoundEngine;
 
 	static std::vector< std::shared_ptr<Object> > objects;
 	static std::vector< std::shared_ptr<Character> > characters;

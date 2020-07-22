@@ -1,13 +1,36 @@
 #version 330 core
 
+struct PostProcessingEffect {
+    int blood;
+    int negative;
+    int uncolored;
+};
+
+
 in vec2 v_tex_coords;
 
+uniform PostProcessingEffect u_postprocessingeffect;
 uniform sampler2D u_texture;
+
+layout(location = 0) out vec4 f_color;
 
 void main()
 {
     vec4 color = texture2D(u_texture, v_tex_coords);
-    //float average = (color.r + color.g + color.b) / 3.0f;
-    //gl_FragColor = vec4(average, average, average, color.a);
-    gl_FragColor = vec4(1-color.r , 1-color.g , 1-color.b, color.a);
+    
+    if(u_postprocessingeffect.blood==1)
+    {
+        color.r += 0.5;
+    }
+    if(u_postprocessingeffect.negative==1)
+    {
+        color = 1-color;
+    }
+    if(u_postprocessingeffect.uncolored==1)
+    {
+        float average = (color.r + color.g + color.b) /3;
+        color = vec4(average, average, average, 1);
+    }
+
+    f_color = vec4(color.r , color.g , color.b, color.a);
 }

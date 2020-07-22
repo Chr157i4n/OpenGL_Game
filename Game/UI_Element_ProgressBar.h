@@ -11,9 +11,14 @@ public:
 
 private:
 	float value = 0;
+    glm::vec4 outlineColor = glm::vec4(1, 1, 1, 1);
+
 public:
     float getValue() const;
     void setValue(float value);
+
+    glm::vec4 getOutlineColor() const;
+    void setOutlineColor(glm::vec4 outlineColor);
 
 };
 

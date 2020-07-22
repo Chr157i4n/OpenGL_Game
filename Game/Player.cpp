@@ -16,6 +16,7 @@ Player::Player(Shader* shader, float fov, float width, float height) : Character
 
 	this->name = "Player";
 
+	createHealthbar();
 }
 
 glm::vec3 Player::getLookDirection()
@@ -107,4 +108,52 @@ void Player::toggleFlashlight()
 
 }
 
+void Player::registerHit()
+{
+	health -= 50;
+	healthBar->setValue(health);
+}
 
+void Player::reactToCollision(CollisionResult collisionResult)
+{
+	float speed = glm::length(collisionResult.movementBeforeCollision);
+	if (speed > 1)
+	{
+		addToHealth(-10 * speed);
+		
+	}
+}
+
+void Player::createHealthbar()
+{
+	healthBar = new UI_Element_ProgressBar(10, 10, 100, 20, 0, 0, false);
+	healthBar->setColor(glm::vec4(1, 0, 0, 0.5));
+	healthBar->setOutlineColor(glm::vec4(0.2, 0.2, 0.2, 0.5));
+	healthBar->setValue(100);
+
+	UI::addElement(healthBar);
+}
+
+void Player::addToHealth(float32 addHealth)
+{
+	health += addHealth;
+	healthBar->setValue(health);
+
+	if (addHealth < -10)
+	{
+		Renderer::applyPostprocessingEffect(PostProcessingEffect::blood, 0.005 * std::abs(health));
+	}
+
+	if (addHealth > 0)
+		Logger::log(printObject() + " got healed by " + std::to_string((int)addHealth) + ". New Health: " + std::to_string((int)health));
+	if (addHealth < 0)
+		Logger::log(printObject() + " got " + std::to_string((int)addHealth) + " damage. New Health: " + std::to_string((int)health));
+
+	if (health <= 0)
+	{
+		Logger::log(printObject() + " got destroyed");
+		UI_Element* victoryLabel = new UI_Element_Label(UI::getWidth() / 2 - 80, UI::getHeight() / 2, "Du bist gestorben", 5, 1, glm::vec4(1, 0, 0, 1), false);
+		UI::addElement(victoryLabel);
+		Game::setGameState(GameState::GAME_GAME_OVER);
+	}
+}

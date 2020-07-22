@@ -1,4 +1,5 @@
 #include "Map.h"
+#include "UI.h"
 
 std::string Map::mapFileName = "";
 std::string Map::mapFileFolder = "levels/";
@@ -18,4 +19,13 @@ void Map::restart(std::vector<std::shared_ptr<Object>>* objects, std::vector< st
 	npcs->clear();
 
 	ResourceManager::reloadMap(mapFileFolder+mapFileName, objects, characters, players, npcs);
+
+	for (std::shared_ptr<Object> object : *objects)
+	{
+		object->setHealth(100);
+	}
+
+	UI::clearUI_Elements();
+
+	(*players)[0]->createHealthbar();
 }

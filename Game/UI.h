@@ -69,6 +69,12 @@ public:
 
 	static void checkLifeSpan();
 
+	static void clearUI_Elements()
+	{
+		ui_elements.clear();
+	}
+
+	static void clearMessages();
 
 
 private:

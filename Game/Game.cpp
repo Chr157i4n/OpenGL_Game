@@ -10,12 +10,6 @@
 #undef STB_IMAGE_IMPLEMENTATION
 
 
-
-
-#define DEBUG_COLLISION
-#define DEBUG_OUTOFBOUNDS
-#define DEBUG_GRAVITY
-
 SDL_Window* Game::window;
 
 std::vector<std::shared_ptr<Object>> Game::objects;
@@ -40,7 +34,7 @@ GameState Game::gameState;
 int Game::maxBulletCount = 20;
 
 bool Game::showShadowMap = false;
-bool Game::postprocess = false;
+bool Game::postprocess = true;
 
 irrklang::ISoundEngine* Game::SoundEngine = irrklang::createIrrKlangDevice();
 
@@ -127,28 +121,7 @@ void Game::gameLoop()
 			}
 
 			//Check every Object for collision
-			for (std::shared_ptr<Object> object : objects)
-			{
-				CollisionResult collisionResult = object->checkCollision(objects);
-				if (!collisionResult.collided) continue;
-
-				for (CollidedObject* collidedObject : collisionResult.collidedObjectList)
-				{
-					if (object->getType() & ObjectType::Object_Character && collidedObject->onTop == true)
-					{
-						Character* character = static_cast<Character*>(object.get());
-						character->activateJumping();
-					}
-
-					if ((object->getType() & ObjectType::Object_NPC) && (collidedObject->object->getType() & (ObjectType::Object_Entity | ObjectType::Object_Character)))
-					{
-						//Logger::log("test");
-						NPC* npc = static_cast<NPC*>(object.get());
-						npc->evade(delta / 1000, collisionResult, objects);
-					}
-				}
-
-			}
+			processCollision();
 
 			for (std::shared_ptr<Player> player : players)
 			{
@@ -157,7 +130,6 @@ void Game::gameLoop()
 				if (player->getPosition().x > 95 && player->getPosition().z > 95)
 				{
 					UI_Element* eastereggLabel = new UI_Element_Label(UI::getWidth() / 2-200, UI::getHeight() / 2-100, "Nice, du hast das Easter-Egg gefunden",1, 1, glm::vec4(1, 0, 0, 1), false);
-
 					UI::addElement(eastereggLabel);
 				}
 			}
@@ -186,7 +158,7 @@ void Game::gameLoop()
 			//std::chrono::duration<int, std::milli> timespan(100);
 			//std::this_thread::sleep_for(timespan);
 
-			SDL_GL_SwapWindow(window);
+			
 		}
 
 		if (gameState == GameState::GAME_MENU)
@@ -202,10 +174,39 @@ void Game::gameLoop()
 		uint64 endCounter = SDL_GetPerformanceCounter();
 		uint64 counterElasped = endCounter - lastCounter;
 		delta = ((float32)counterElasped) / (float32)perfCounterFrequency;
-		FPS = (uint32)((float32)perfCounterFrequency / (float32)counterElasped);
+		FPS = (uint32) std::round((float32)perfCounterFrequency / (float32)counterElasped);
 
 		//Logger::log("FPS: " + std::to_string(FPS));
 		lastCounter = endCounter;
+
+	}
+}
+
+void Game::processCollision()
+{
+	for (std::shared_ptr<Object> object : objects)
+	{
+		CollisionResult collisionResult = object->checkCollision(objects);
+		if (!collisionResult.collided) continue;
+
+		for (CollidedObject* collidedObject : collisionResult.collidedObjectList)
+		{
+			if (object->getType() & ObjectType::Object_Character && collidedObject->onTop == true)
+			{
+				Character* character = static_cast<Character*>(object.get());
+				character->activateJumping();
+			}
+
+			if ((object->getType() & ObjectType::Object_NPC) && (collidedObject->object->getType() & (ObjectType::Object_Entity | ObjectType::Object_Character)))
+			{
+				//Logger::log("test");
+				NPC* npc = static_cast<NPC*>(object.get());
+				npc->evade(delta / 1000, collisionResult, objects);
+			}
+		}
+
+
+		object->reactToCollision(collisionResult);
 
 	}
 }
@@ -241,6 +242,8 @@ void Game::render()
 	}
 
 	UI::drawUI();
+
+	SDL_GL_SwapWindow(window);
 }
 
 void Game::processInput()
@@ -519,6 +522,22 @@ void Game::toggleFullscreen()
 	Uint32 FullscreenFlag = SDL_WINDOW_FULLSCREEN;
 	bool IsFullscreen = SDL_GetWindowFlags(window) & FullscreenFlag;
 	SDL_SetWindowFullscreen(window, IsFullscreen ? 0 : FullscreenFlag);
+	
+	if (IsFullscreen) //now windowed
+	{ 
+		int resolutionW = std::stoi(ConfigManager::readConfig("windowed_resolution_width"));
+		int resolutionH = std::stoi(ConfigManager::readConfig("windowed_resolution_height"));
+		
+		SDL_SetWindowSize(window, resolutionW, resolutionH);
+		Renderer::initFrameBuffer();
+	}
+	else {
+		int resolutionW = std::stoi(ConfigManager::readConfig("fullscreen_resolution_width"));
+		int resolutionH = std::stoi(ConfigManager::readConfig("fullscreen_resolution_height"));
+
+		SDL_SetWindowSize(window, resolutionW, resolutionH);
+		Renderer::initFrameBuffer();
+	}
 }
 
 void Game::updateAudioListener()

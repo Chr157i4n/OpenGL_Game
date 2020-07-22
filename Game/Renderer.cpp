@@ -24,11 +24,11 @@ float screenVertices[] = {
 	-1.0f,	-1.0f,	0.0f,	0.0f, 0.0f,
 	-1.0f,	+1.0f,	0.0f,	0.0f, 1.0f,
 	1.0f,	-1.0f,	0.0f,	1.0f, 0.0f,
-	
+
 	1.0f,	-1.0f,	0.0f,	1.0f, 0.0f,
 	-1.0f,	+1.0f,	0.0f,	0.0f, 1.0f,
 	1.0f,   1.0f,	0.0f,	1.0f, 1.0f,
-};	 
+};
 
 float skyboxVertices[] = {
 	// positions          
@@ -93,7 +93,7 @@ SDL_Window** Renderer::window;
 Shader* Renderer::shaderSkybox = nullptr;
 Shader* Renderer::shaderBasic = nullptr;
 Shader* Renderer::shaderImage = nullptr;
-Shader* Renderer::shaderGeometry = nullptr; 
+Shader* Renderer::shaderGeometry = nullptr;
 Shader* Renderer::shaderPostProcessing = nullptr;
 Shader* Renderer::shaderDepthMap = nullptr;
 
@@ -132,6 +132,8 @@ FrameBuffer Renderer::depthMapBuffer;
 
 int Renderer::shadowMapResolution;
 
+std::vector<float32> Renderer::postprocessingEffectDuration = { 0,0,0 };
+
 
 void Renderer::initOpenGL(SDL_Window** window)
 {
@@ -158,14 +160,23 @@ void Renderer::initOpenGL(SDL_Window** window)
 #endif // DEBUG
 
 	uint32 flags = SDL_WINDOW_OPENGL;
+
+	int resolution_width = 0, resolution_height = 0;
+
 	int fullscreen = std::stoi(ConfigManager::readConfig("fullscreen"));
 	if (fullscreen == 1)
 	{
 		flags += SDL_WINDOW_FULLSCREEN_DESKTOP;
+		resolution_width = std::stoi(ConfigManager::readConfig("fullscreen_resolution_width"));
+		resolution_height = std::stoi(ConfigManager::readConfig("fullscreen_resolution_height"));
+	}
+	else
+	{
+		resolution_width = std::stoi(ConfigManager::readConfig("windowed_resolution_width"));
+		resolution_height = std::stoi(ConfigManager::readConfig("windowed_resolution_height"));
 	}
 
-	int resolution_width = std::stoi(ConfigManager::readConfig("resolution_width"));
-	int resolution_height = std::stoi(ConfigManager::readConfig("resolution_height"));
+
 
 	*window = SDL_CreateWindow("OpenGL-Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, resolution_width, resolution_height, flags);
 	SDL_GLContext glContext = SDL_GL_CreateContext(*window);
@@ -211,12 +222,10 @@ void Renderer::init(std::shared_ptr<Player> player)
 {
 	skyboxVertexBuffer = new VertexBuffer(skyboxVertices, 36, VertexType::_VertexPos);
 	axisVertexBuffer = new VertexBuffer(axisVertices, 6, VertexType::_VertexPosCol);
-	
+
 	shadowMapResolution = std::stoi(ConfigManager::readConfig("shadow_map_resolution"));
-	int w, h;
-	SDL_GetWindowSize(*window, &w, &h);
-	frameBuffer.create(w, h, FrameBufferTextureType::colorMap | FrameBufferTextureType::stencilMap);
-	depthMapBuffer.create(shadowMapResolution, shadowMapResolution, FrameBufferTextureType::depthMap);
+
+	initFrameBuffer();
 
 	std::vector<std::string> faces
 	{
@@ -237,6 +246,12 @@ void Renderer::init(std::shared_ptr<Player> player)
 	projUniformIndex = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_proj"));
 
 	initLight();
+}
+
+void Renderer::initFrameBuffer()
+{
+	frameBuffer.create(Game::getWindowWidth(), Game::getWindowHeight(), FrameBufferTextureType::colorMap | FrameBufferTextureType::stencilMap);
+	depthMapBuffer.create(shadowMapResolution, shadowMapResolution, FrameBufferTextureType::depthMap);
 }
 
 void Renderer::initLight()
@@ -283,8 +298,8 @@ void Renderer::initLight()
 void Renderer::initLoadingScreen()
 {
 	screenVertexBuffer = new VertexBuffer(screenVertices, 6, VertexType::_VertexPosTex);
-	//loadingProgressBar = new UI_Element_ProgressBar(UI::getWidth() / 2 - 200, UI::getHeight() / 2 - 10, 800, 20, 100, 0, false);
-	loadingProgressBar = new UI_Element_ProgressBar(Game::getWindowWidth() / 2-200, Game::getWindowHeight() / 2-10, 800, 20, 0, 0, false);
+
+	loadingProgressBar = new UI_Element_ProgressBar(Game::getWindowWidth() / 2 - 200, Game::getWindowHeight() / 2 - 10, 400, 20, 0, 0, false);
 	UI::addElement(loadingProgressBar);
 	loadingScreenTexture = ResourceManager::loadImage("images/loading_screen.png");
 }
@@ -295,7 +310,7 @@ void Renderer::showLoadingScreen() {
 	GLCALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
 	renderImage(screenVertexBuffer, loadingScreenTexture);
-	
+
 	UI::drawUI();
 
 	SDL_GL_SwapWindow(*window);
@@ -304,14 +319,14 @@ void Renderer::showLoadingScreen() {
 
 void Renderer::calcLight(std::shared_ptr<Player> player)
 {
-	
+
 	//Directionallight
 	//glm::vec4 transformedSunDirection = glm::vec4(sunDirection, 1.0f);
 	glm::vec4 transformedSunDirection = -glm::transpose(glm::inverse(player->getView())) * glm::vec4(sunDirection, 1.0f);
 	transformedSunDirection3 = glm::vec3(transformedSunDirection.x, transformedSunDirection.y, transformedSunDirection.z);
-	
+
 	//Logger::log("Sun Direction: x:"+std::to_string(transformedSunDirection.x)+" y:" + std::to_string(transformedSunDirection.y) + " z:" + std::to_string(transformedSunDirection.y));
-	
+
 	shaderBasic->bind();
 	glUniform3fv(lightdirectionUniformIndex, 1, (float*)&transformedSunDirection);
 
@@ -343,11 +358,11 @@ void Renderer::calcShadows(std::vector< std::shared_ptr<Object>> objects)
 	SDL_GetWindowSize(*window, &width, &height);
 	glViewport(0, 0, width, height); //actual resolution
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	
+
 
 	//glBindTexture(GL_TEXTURE_2D, depthMapBuffer.getTextureId()[2]);
 
-	
+
 	GLCALL(glActiveTexture(GL_TEXTURE2));
 	GLCALL(glBindTexture(GL_TEXTURE_2D, depthMapBuffer.getTextureId()[2]));
 	GLCALL(glActiveTexture(GL_TEXTURE0));
@@ -363,7 +378,7 @@ void Renderer::calcShadows(std::vector< std::shared_ptr<Object>> objects)
 
 	int lightSpaceMatrixLocation1 = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_light_space_matrix"));
 	GLCALL(glUniformMatrix4fv(lightSpaceMatrixLocation1, 1, GL_FALSE, &lightSpaceMatrix[0][0]));
-	
+
 	int shadowMapUniformLocation = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_shadowMap"));
 	GLCALL(glUniform1i(shadowMapUniformLocation, 2));
 	//GLCALL(glUniform1i(normalMapLocation, 1));
@@ -373,10 +388,10 @@ void Renderer::calcShadows(std::vector< std::shared_ptr<Object>> objects)
 void Renderer::renderShadowsMap(std::vector< std::shared_ptr<Object>> objects)
 {
 	glCullFace(GL_FRONT);
-	
+
 	float near_plane = -150, far_plane = 250;
 	glm::mat4 depthProjectionMatrix = glm::ortho(-150.0f, 150.0f, -150.0f, 150.0f, near_plane, far_plane);
-	glm::mat4 depthViewMatrix = glm::lookAt(sunDirection, glm::vec3(0,0,0), glm::vec3(0, 1, 0));
+	glm::mat4 depthViewMatrix = glm::lookAt(sunDirection, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 
 	glm::mat4 lightSpaceMatrix = depthProjectionMatrix * depthViewMatrix;
 
@@ -388,7 +403,7 @@ void Renderer::renderShadowsMap(std::vector< std::shared_ptr<Object>> objects)
 	shaderBasic->bind();
 	int lightSpaceMatrixLocation1 = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_light_space_matrix"));
 	GLCALL(glUniformMatrix4fv(lightSpaceMatrixLocation1, 1, GL_FALSE, &lightSpaceMatrix[0][0]));
-	
+
 	shaderDepthMap->bind();
 
 	for (std::shared_ptr<Object> object : objects)
@@ -546,32 +561,32 @@ void Renderer::renderAxis(glm::vec3 vector, int x, int y)
 
 
 	glm::mat4 model = glm::mat4(1.0f);
-	
+
 	//scale the model
 	model = glm::scale(model, glm::vec3(0.1f));
 
 	//move to position of model
-	model = glm::translate(model, glm::vec3(x,y,0));
+	model = glm::translate(model, glm::vec3(x, y, 0));
 
-	
+
 
 	//rotate model around X
 	float gegk = vector.y;
 	float ank = sqrt(pow(vector.x, 2) + pow(vector.z, 2));
-	float angle = atan2(gegk,ank);
+	float angle = atan2(gegk, ank);
 	model = glm::rotate(model, -angle, glm::vec3(1, 0, 0));
 
 	//rotate model around Y
 	//model = glm::rotate(model, (float)M_PI, glm::vec3(0, 1, 0));
 	angle = atan2(vector.x, vector.z);
-	model = glm::rotate(model, (float) (-angle+1*M_PI), glm::vec3(0, 1, 0));
+	model = glm::rotate(model, (float)(-angle + 1 * M_PI), glm::vec3(0, 1, 0));
 
 
 	int modelUniformIndex = GLCALL(glGetUniformLocation(shaderGeometry->getShaderId(), "u_model"));
 	GLCALL(glUniformMatrix4fv(modelUniformIndex, 1, GL_FALSE, &model[0][0]));
 
 	GLCALL(glDrawArrays(GL_LINES, 0, 6));
-	
+
 	GLCALL(glDepthMask(GL_TRUE));
 	GLCALL(glEnable(GL_CULL_FACE));
 	GLCALL(glEnable(GL_DEPTH_TEST));
@@ -612,9 +627,8 @@ void Renderer::toggleWireframe()
 	else
 	{
 		GLCALL(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
-			
-	}
 
+	}
 }
 
 void Renderer::toggleShowNormals()
@@ -636,6 +650,43 @@ void Renderer::toggleShowNormals()
 void Renderer::postProcessing()
 {
 	shaderPostProcessing->bind();
+
+	for (int i = 0; i < postprocessingEffectDuration.size(); i++)
+	{
+		if (postprocessingEffectDuration[i] > 0)
+			postprocessingEffectDuration[i] -= Game::getDelta();
+	}
+
+	if (postprocessingEffectDuration[PostProcessingEffect::blood] > 0)
+	{
+		GLCALL(glUniform1i(glGetUniformLocation(shaderPostProcessing->getShaderId(), "u_postprocessingeffect.blood"), 1));
+	}
+	else
+	{
+		GLCALL(glUniform1i(glGetUniformLocation(shaderPostProcessing->getShaderId(), "u_postprocessingeffect.blood"), 0));
+	}
+
+	if (postprocessingEffectDuration[PostProcessingEffect::negative] > 0)
+	{
+		GLCALL(glUniform1i(glGetUniformLocation(shaderPostProcessing->getShaderId(), "u_postprocessingeffect.negative"), 1));
+	}
+	else
+	{
+		GLCALL(glUniform1i(glGetUniformLocation(shaderPostProcessing->getShaderId(), "u_postprocessingeffect.negative"), 0));
+	}
+
+	if (postprocessingEffectDuration[PostProcessingEffect::uncolored] > 0)
+	{
+		GLCALL(glUniform1i(glGetUniformLocation(shaderPostProcessing->getShaderId(), "u_postprocessingeffect.uncolored"), 1));
+	}
+	else
+	{
+		GLCALL(glUniform1i(glGetUniformLocation(shaderPostProcessing->getShaderId(), "u_postprocessingeffect.uncolored"), 0));
+	}
+
+
+
+
 	GLCALL(glActiveTexture(GL_TEXTURE0));
 	GLCALL(glBindTexture(GL_TEXTURE_2D, frameBuffer.getTextureId()[0]));
 	GLCALL(glUniform1i(glGetUniformLocation(shaderPostProcessing->getShaderId(), "u_texture"), 0));
@@ -647,5 +698,10 @@ void Renderer::clearBuffer()
 {
 	shaderBasic->bind();
 	GLCALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+}
+
+void Renderer::applyPostprocessingEffect(PostProcessingEffect postprocessingeffect, float32 duration)
+{
+	postprocessingEffectDuration[postprocessingeffect] = duration;
 }
 

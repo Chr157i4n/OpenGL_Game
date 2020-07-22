@@ -206,6 +206,9 @@ bool Object::checkCollision_SAT(std::shared_ptr < Object> object, CollisionResul
 	CollidedObject* collidedObject = new CollidedObject();
 	glm::vec3 MinimumTranslationVector = minOverlapAxis * minOverlap;
 
+	if(glm::length(movement)>0)
+		collisionResult->movementBeforeCollision = movement;
+
 	if (glm::normalize(minOverlapAxis).y >= 0.9)
 	{
 #ifdef DEBUG_COLLISION
@@ -221,6 +224,7 @@ bool Object::checkCollision_SAT(std::shared_ptr < Object> object, CollisionResul
 	}
 
 
+	collidedObject->movementBeforeCollision = object->movement;
 	
 
 	if (this->getType() & ObjectType::Object_Bullet)
@@ -241,6 +245,16 @@ bool Object::checkCollision_SAT(std::shared_ptr < Object> object, CollisionResul
 
 	return true;
 
+}
+
+void Object::reactToCollision(CollisionResult collisionResult)
+{
+	float speed = glm::length(collisionResult.movementBeforeCollision);
+	if (speed > 1)
+	{
+		addToHealth(-10 * speed);
+
+	}
 }
 
 void Object::calculationBeforeFrame()
@@ -660,16 +674,12 @@ int32 Object::getNumber()
 
 void Object::render()
 {
-	//this->bindShader();
 	this->model->render();
-	//this->unbindShader();
 }
 
 void Object::renderShadowMap()
 {
-	//this->bindShader();
 	this->model->renderShadowMap();
-	//this->unbindShader();
 }
 
 void Object::registerHit()
@@ -685,6 +695,21 @@ void Object::setHealth(float32 newHealth)
 float32 Object::getHealth()
 {
 	return health;
+}
+
+void Object::addToHealth(float32 addHealth)
+{
+	health += addHealth;
+
+	if (addHealth > 0)
+		Logger::log(printObject() + " got healed by " + std::to_string((int)addHealth) + ". New Health: " + std::to_string((int)health));
+	if (addHealth < 0)
+		Logger::log(printObject() + " got " + std::to_string((int)addHealth) + " damage. New Health: " + std::to_string((int)health));
+
+	if (health <= 0)
+	{
+		Logger::log(printObject() + " got destroyed");
+	}
 }
 
 std::string Object::printObject()

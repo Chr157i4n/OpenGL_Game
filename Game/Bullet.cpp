@@ -52,7 +52,7 @@ void Bullet::checkHit(std::vector< std::shared_ptr<Object>> objects)
 		this->registerHit();
 		collidedObject->object->registerHit();
 		Logger::log(collidedObject->object->printObject() + " was hit");
-		Game::SoundEngine->play2D("audio/hit.wav", false);
+		Game::getSoundEngine()->play2D("audio/hit.wav", false);
 	}
 
 

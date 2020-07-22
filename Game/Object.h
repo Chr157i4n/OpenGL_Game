@@ -56,11 +56,13 @@ struct CollidedObject
 	std::shared_ptr<Object> object = nullptr;
 	bool onTop = false;
 	glm::vec3 MinimumTranslationVector = glm::vec3(0, 0, 0);
+	glm::vec3 movementBeforeCollision = glm::vec3(0, 0, 0);
 };
 
 struct CollisionResult
 {
 	bool collided = false;
+	glm::vec3 movementBeforeCollision = glm::vec3(0, 0, 0);
 	std::vector<CollidedObject*> collidedObjectList;	
 };
 
@@ -86,6 +88,8 @@ public:
 	bool checkCollision_AABB(std::shared_ptr < Object> object);
 
 	bool checkCollision_SAT(std::shared_ptr < Object> object, CollisionResult* collisionResult);
+
+	virtual void reactToCollision(CollisionResult collisionResult);
 
 	void calculationBeforeFrame();
 
@@ -151,11 +155,13 @@ public:
 
 	void renderShadowMap();
 
-	void registerHit();
+	virtual void registerHit();
 
 	void setHealth(float32 newHealth);
 
 	float32 getHealth();
+
+	virtual void addToHealth(float32 addHealth);
 
 	std::string printObject();
 
