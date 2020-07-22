@@ -1,0 +1,45 @@
+- 3D Raypicking
+
+- NPCS
+	- Teams
+	- shooting
+	- optimisation
+	- friendly, talkable npcs
+
+- Animations
+	- model file supporting animations
+	- animation conversion
+	- animation playing
+
+- Collision
+	- optimisation
+	- collisionpoints needs just to be calculated one time per frame
+	- prism collision box (ramp)
+
+- Console input to manipulate objects in the world
+
+- Menu
+	- options menu, keybinds, graphic
+
+- UI elements
+	- button
+	- slider
+
+- Menu mouse interaction
+
+- Main Menu
+	- level selection
+
+- Ammo
+
+- Items
+
+- Weapons
+
+- Inventory
+
+- Quests
+
+- Vehicles
+
+- interactable objects in the world (buttons, levers)

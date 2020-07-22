@@ -28,4 +28,6 @@ void Map::restart(std::vector<std::shared_ptr<Object>>* objects, std::vector< st
 	UI::clearUI_Elements();
 
 	(*players)[0]->createHealthbar();
+
+
 }

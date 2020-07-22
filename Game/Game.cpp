@@ -77,6 +77,10 @@ void Game::init()
 
 void Game::gameLoop()
 {
+
+	UI_Element_Graph* fpsGraph = new UI_Element_Graph(10, UI::getHeight() * 3 / 4, 100, 100, 0, glm::vec4(0, 0, 1, 1), true);
+	UI::addElement(fpsGraph);
+
 	while (!close)
 	{
 		time += delta;
@@ -175,6 +179,8 @@ void Game::gameLoop()
 		uint64 counterElasped = endCounter - lastCounter;
 		delta = ((float32)counterElasped) / (float32)perfCounterFrequency;
 		FPS = (uint32) std::round((float32)perfCounterFrequency / (float32)counterElasped);
+
+		fpsGraph->setValue((float32)perfCounterFrequency / (float32)counterElasped); //not rounded FPS
 
 		//Logger::log("FPS: " + std::to_string(FPS));
 		lastCounter = endCounter;
@@ -343,6 +349,9 @@ void Game::keyPressed(SDL_Keycode key)
 		case PlayerAction::toggleInfo:
 			showInfo = !showInfo;
 			break;
+		case PlayerAction::interact:
+			// todo
+			break;
 		case PlayerAction::toggleFlashlight:
 			players[0]->toggleFlashlight();
 			break;
@@ -366,6 +375,9 @@ void Game::keyPressed(SDL_Keycode key)
 			break;
 		case PlayerAction::toggleFullscreen:
 			toggleFullscreen();
+			break;
+		case PlayerAction::toggleConsole:
+			openConsole();
 			break;
 		}
 
@@ -561,4 +573,24 @@ int Game::getWindowHeight()
 	SDL_GetWindowSize(window, &width, &height);
 
 	return height;
+}
+
+void Game::openConsole()
+{
+	std::string enteredText="";
+
+	std::cin >> enteredText;
+
+	if (enteredText[0] == 'x')
+	{
+		players[0]->setPosition(glm::vec3(std::stof(enteredText.substr(1)), players[0]->getPosition().y, players[0]->getPosition().z) );
+	}
+	if (enteredText[0] == 'y')
+	{
+		players[0]->setPosition(glm::vec3(players[0]->getPosition().x, std::stof(enteredText.substr(1)), players[0]->getPosition().z));
+	}
+	if (enteredText[0] == 'z')
+	{
+		players[0]->setPosition(glm::vec3(players[0]->getPosition().x, players[0]->getPosition().y, std::stof(enteredText.substr(1))));
+	}
 }

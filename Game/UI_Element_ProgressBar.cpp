@@ -1,5 +1,4 @@
 #include "UI_Element_ProgressBar.h"
-#include "UI.h"
 #include "Game.h"
 
 UI_Element_ProgressBar::UI_Element_ProgressBar(int x, int y, int w, int h, float value, uint64 lifespan, bool isDebugInfo) : UI_Element()

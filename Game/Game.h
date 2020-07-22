@@ -23,6 +23,7 @@
 #include "UI.h"
 #include "UI_Element_Label.h"
 #include "UI_Element_ProgressBar.h"
+#include "UI_Element_Graph.h"
 
 #include "Renderer.h"
 
@@ -60,6 +61,7 @@ enum PlayerAction {
 	jump,
 	sprint,
 	crouch,
+	interact,
 	toggleFlashlight,
 	toggleInfo,
 	toggleWireframe,
@@ -70,6 +72,7 @@ enum PlayerAction {
 	menu,
 	toggleFullscreen,
 	enter,
+	toggleConsole,
 };
 
 std::unordered_map<SDL_Keycode, PlayerAction> const keybindings =
@@ -81,6 +84,7 @@ std::unordered_map<SDL_Keycode, PlayerAction> const keybindings =
 	{SDLK_SPACE,	jump},
 	{SDLK_LSHIFT,	sprint},
 	{SDLK_LCTRL,	crouch},
+	{SDLK_e,		interact},
 	{SDLK_f,		toggleFlashlight},
 	{SDLK_F3,		toggleInfo},
 	{SDLK_F4,		toggleWireframe},
@@ -91,6 +95,7 @@ std::unordered_map<SDL_Keycode, PlayerAction> const keybindings =
 	{SDLK_ESCAPE,	menu},
 	{SDLK_F11,		toggleFullscreen},	
 	{SDLK_RETURN,	enter},
+	{SDLK_CARET,	toggleConsole},
 };
 
 
@@ -126,6 +131,17 @@ public:
 		return gameState;
 	}
 
+	static std::vector< std::shared_ptr<Object> > objects;
+	static std::vector< std::shared_ptr<Character> > characters;
+	static std::vector< std::shared_ptr<Player> > players;
+	static std::vector< std::shared_ptr<NPC> > npcs;
+	static std::vector< std::shared_ptr<Bullet> > bullets;
+
+	static bool getShowInfo()
+	{
+		return showInfo;
+	}
+
 private:
 
 	static void processCollision();
@@ -150,16 +166,12 @@ private:
 
 	static void updateAudioListener();
 
+	static void openConsole();
+
 
 	static SDL_Window* window;
 
 	static irrklang::ISoundEngine* SoundEngine;
-
-	static std::vector< std::shared_ptr<Object> > objects;
-	static std::vector< std::shared_ptr<Character> > characters;
-	static std::vector< std::shared_ptr<Player> > players;
-	static std::vector< std::shared_ptr<NPC> > npcs;
-	static std::vector< std::shared_ptr<Bullet> > bullets;
 
 
 	static bool pressedKeys[20];

@@ -1,4 +1,5 @@
 #include "UI.h"
+#include "Game.h"
 
 
 SDL_Window* UI::window;
@@ -109,7 +110,7 @@ void UI::drawUI()
 
 	for (UI_Element* ui_element : ui_elements)
 	{
-		if (!ui_element->getIsDebugInfo())
+		if (!ui_element->getIsDebugInfo() || Game::getShowInfo())
 		{
 			ui_element->drawUI_Element();
 		}

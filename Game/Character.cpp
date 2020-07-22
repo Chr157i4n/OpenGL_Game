@@ -99,4 +99,10 @@ void Character::run(bool run)
 	}
 }
 
+Object* getObjectLookingAt()
+{
+	return nullptr;
+}
+
+
 

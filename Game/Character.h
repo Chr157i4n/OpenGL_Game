@@ -30,6 +30,8 @@ public:
 
 	void run(bool run = true);
 
+	Object* getObjectLookingAt();
+
 protected:
 
 	bool isCrouched = false;
