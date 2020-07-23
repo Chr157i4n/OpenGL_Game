@@ -15,6 +15,7 @@
 	- optimisation
 	- collisionpoints needs just to be calculated one time per frame
 	- prism collision box (ramp)
+	- Bullet Collision and Hit Dectetion is doubled
 
 - Console input to manipulate objects in the world
 

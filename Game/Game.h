@@ -111,6 +111,8 @@ public:
 
 	static int getWindowHeight();
 
+	static float32 getTimestamp();
+
 	static float32 getDelta()
 	{
 		return delta;
@@ -131,16 +133,18 @@ public:
 		return gameState;
 	}
 
+	static bool getShowInfo()
+	{
+		return showInfo;
+	}
+
 	static std::vector< std::shared_ptr<Object> > objects;
 	static std::vector< std::shared_ptr<Character> > characters;
 	static std::vector< std::shared_ptr<Player> > players;
 	static std::vector< std::shared_ptr<NPC> > npcs;
 	static std::vector< std::shared_ptr<Bullet> > bullets;
 
-	static bool getShowInfo()
-	{
-		return showInfo;
-	}
+
 
 private:
 

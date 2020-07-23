@@ -57,3 +57,8 @@ void Bullet::checkHit(std::vector< std::shared_ptr<Object>> objects)
 
 
 }
+
+void Bullet::registerHit()
+{
+	this->health = 0;
+}

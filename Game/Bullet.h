@@ -12,6 +12,8 @@ public:
 
 	void checkHit(std::vector< std::shared_ptr<Object>> objects);
 
+	virtual void registerHit();
+
 
 private:
 

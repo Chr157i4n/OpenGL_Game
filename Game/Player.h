@@ -17,8 +17,6 @@ public:
 
 	void onMouseMove(float xRel, float yRel);
 
-	std::shared_ptr<Bullet> shoot();
-
 	void updateCameraPosition();
 
 	glm::vec3 getCameraPosition();

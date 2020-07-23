@@ -3,6 +3,7 @@
 #include "defines.h"
 #include "Model.h"
 #include "Object.h"
+#include "Bullet.h"
 
 
 class Character : public Object
@@ -32,6 +33,8 @@ public:
 
 	Object* getObjectLookingAt();
 
+	std::shared_ptr<Bullet> shoot();
+
 protected:
 
 	bool isCrouched = false;
@@ -46,6 +49,8 @@ protected:
 	float32 upwardSpeed = 0;
 
 	const float32 heigth = 4;
+
+	float32 lastTimeShot=0;
 
 	glm::vec3 up;
 };

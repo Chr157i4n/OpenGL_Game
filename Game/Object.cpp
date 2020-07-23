@@ -684,7 +684,7 @@ void Object::renderShadowMap()
 
 void Object::registerHit()
 {
-	health = 0;
+	addToHealth(-20);
 }
 
 void Object::setHealth(float32 newHealth)

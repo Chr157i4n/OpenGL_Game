@@ -99,8 +99,31 @@ void Character::run(bool run)
 	}
 }
 
-Object* getObjectLookingAt()
+Object* Character::getObjectLookingAt()
 {
+	return nullptr;
+}
+
+/// <summary>
+/// creates a bullet at the position of the character, with a little offset.
+//  it gives the bullet also the direction the character is looking at.
+/// </summary>
+/// <returns>the created bullet</returns>
+std::shared_ptr<Bullet> Character::shoot()
+{
+	if (Game::getTimestamp() > lastTimeShot+1)
+	{
+		glm::vec3 bulletCreationPosition = position + glm::vec3(0, 3, 0);
+		std::shared_ptr<Bullet> newBullet = std::make_shared<Bullet>(shader, bulletCreationPosition, glm::vec3(0, rotation.y - 90, -rotation.x - 90), getLookDirection());
+
+		Game::bullets.push_back(newBullet);
+		Game::objects.push_back(newBullet);
+
+
+		lastTimeShot = Game::getTimestamp();
+
+		return newBullet;
+	}
 	return nullptr;
 }
 

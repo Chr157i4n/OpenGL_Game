@@ -278,9 +278,9 @@ void Game::processInput()
 		else if (event.type == SDL_MOUSEBUTTONDOWN) {
 			if (event.button.button == SDL_BUTTON_LEFT) {
 				if (SDL_GetRelativeMouseMode()) {
-					std::shared_ptr<Bullet> newBullet = players[0]->shoot();
-					objects.push_back(newBullet);
-					bullets.push_back(newBullet);
+					players[0]->shoot();
+					//objects.push_back(newBullet);
+					//bullets.push_back(newBullet);
 					SoundEngine->play2D("audio/shoot.wav", false);
 				}
 
@@ -573,6 +573,11 @@ int Game::getWindowHeight()
 	SDL_GetWindowSize(window, &width, &height);
 
 	return height;
+}
+
+float32 Game::getTimestamp()
+{
+	return 	SDL_GetPerformanceCounter() / SDL_GetPerformanceFrequency();
 }
 
 void Game::openConsole()

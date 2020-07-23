@@ -27,7 +27,18 @@ void NPC::followCharacter(float32 deltaTime, std::vector< std::shared_ptr<Object
 	float yaw = glm::degrees(atan2(lookDirection.x, lookDirection.z));
 	setRotation(glm::vec3(0, yaw, 0));
 
-	this->moveForward();
+	float distance = glm::length(this->getPosition() - character->getPosition());
+	float maxDistance = 50;
+
+	if (distance < maxDistance)
+	{
+		lookDirection.y = (0.3*distance)/maxDistance;
+		this->shoot();
+	}
+	if (distance > 5)
+	{
+		this->moveForward();
+	}
 }
 
 void NPC::followNavPoints(float32 deltaTime, std::vector< std::shared_ptr<Object>> objects)

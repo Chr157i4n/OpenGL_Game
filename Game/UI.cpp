@@ -197,3 +197,24 @@ void UI::clearMessages()
 		}
 	}
 }
+
+void UI::clearUI_Elements()
+{
+	for (int i = ui_elements.size() - 1; i >= 0; i--)
+	{
+		if (ui_elements[i]->getLifespan() > 0)	//delete temporal elements
+		{
+			auto it = std::find(ui_elements.begin(), ui_elements.end(), ui_elements[i]);
+			if (it != ui_elements.end()) { ui_elements.erase(it); }
+			continue;
+		}
+
+		if (!ui_elements[i]->getIsDebugInfo())	//Palyer associated
+		{
+			auto it = std::find(ui_elements.begin(), ui_elements.end(), ui_elements[i]);
+			if (it != ui_elements.end()) { ui_elements.erase(it); }
+			continue;
+		}
+
+	}
+}

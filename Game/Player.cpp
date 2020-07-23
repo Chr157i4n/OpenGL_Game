@@ -30,12 +30,6 @@ void Player::onMouseMove(float xRel, float yRel)
 	setRotation(glm::vec3(0, -yaw + 90, 0));
 }
 
-std::shared_ptr<Bullet> Player::shoot()
-{
-	std::shared_ptr<Bullet> newBullet = std::make_shared<Bullet>(shader, cameraposition, glm::vec3(0, -yaw, pitch - 90), lookAt);
-	return newBullet;
-}
-
 void Player::updateCameraPosition()
 {
 	cameraposition.x = position.x;
@@ -110,7 +104,7 @@ void Player::toggleFlashlight()
 
 void Player::registerHit()
 {
-	health -= 50;
+	addToHealth(-20);
 	healthBar->setValue(health);
 }
 
