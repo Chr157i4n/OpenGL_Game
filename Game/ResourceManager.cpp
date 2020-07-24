@@ -2,13 +2,14 @@
 
 #include "Logger.h"
 #include "Renderer.h"
-
-#include "libs/stb_image.h"
-#include <cmath>
-#include <sstream>
+#include "Player.h"
+#include "NPC.h"
+#include "ConfigManager.h"
+#include "Object.h"
+#include "Game.h"
 
 std::string ResourceManager::modelFolder = "models";
-float ResourceManager::percentageLoading=0;
+float ResourceManager::percentageLoading = 0;
 
 
 template <typename T>
@@ -31,7 +32,7 @@ Shader* ResourceManager::loadShader(std::string vertexShaderFilename, std::strin
 std::vector<Model*> ResourceManager::loadAllModels(tinyxml2::XMLDocument* doc)
 {
 	Logger::log("Loading all Models");
-	
+
 	std::string newmodefilename;
 	std::vector<Model*> models;
 	int id = 0;
@@ -87,11 +88,11 @@ std::vector<Model*> ResourceManager::loadAllModels(tinyxml2::XMLDocument* doc)
 		newModel->setModelName(modefilename);
 		newModel->setModelID(id++);
 
-		percentageLoading +=  80 / modelCount;
-		Logger::log("loaded Model " + std::to_string(newModel->getModelID()) + ": " + newModel->getModelName() + " - " + to_string_with_precision(percentageLoading,0)+ "%");
+		percentageLoading += 80 / modelCount;
+		Logger::log("loaded Model " + std::to_string(newModel->getModelID()) + ": " + newModel->getModelName() + " - " + to_string_with_precision(percentageLoading, 0) + "%");
 		Renderer::loadingProgressBar->setValue(percentageLoading);
 		Renderer::showLoadingScreen();
-		
+
 		models.push_back(newModel);
 	}
 
@@ -121,8 +122,14 @@ Model* ResourceManager::getModelByName(std::string modelFileName)
 }
 
 
-void ResourceManager::loadMap(std::string mapFileName, std::vector<std::shared_ptr<Object>>* objects, std::vector< std::shared_ptr<Character>>* characters, std::vector< std::shared_ptr<Player>>* players, std::vector< std::shared_ptr<NPC>>* npcs)
+void ResourceManager::loadMap(std::string mapFileName)
 {
+	std::vector<std::shared_ptr<Object>>* map = &Game::map;
+	std::vector<std::shared_ptr<Object>>* objects = &Game::objects;
+	std::vector<std::shared_ptr<Character>>* characters = &Game::characters;
+	std::vector< std::shared_ptr<Player>>* players = &Game::players;
+	std::vector< std::shared_ptr<NPC>>* npcs = &Game::npcs;
+
 	const char* mapFileNameC = mapFileName.c_str();
 	int32 numObject = 0;
 	tinyxml2::XMLDocument doc;
@@ -156,7 +163,7 @@ void ResourceManager::loadMap(std::string mapFileName, std::vector<std::shared_p
 	{
 		objectCount++;
 	}
-	
+
 	for (tinyxml2::XMLElement* xmlNodeObject = doc.FirstChildElement("map")->FirstChildElement("objects")->FirstChildElement("object"); xmlNodeObject != NULL; xmlNodeObject = xmlNodeObject->NextSiblingElement())
 	{
 		xmlNodeText = xmlNodeObject->FirstChildElement("modelfile")->GetText();
@@ -196,7 +203,12 @@ void ResourceManager::loadMap(std::string mapFileName, std::vector<std::shared_p
 		Renderer::showLoadingScreen();
 		objects->push_back(newObject);
 
-		
+		if (newObject->getType() == ObjectType::Object_Environment)
+		{
+			map->push_back(newObject);
+		}
+
+
 
 		numObject++;
 	}
@@ -210,7 +222,7 @@ void ResourceManager::loadMap(std::string mapFileName, std::vector<std::shared_p
 	{
 		npcCount++;
 	}
-	
+
 	for (tinyxml2::XMLElement* xmlNodeBot = doc.FirstChildElement("map")->FirstChildElement("bots")->FirstChildElement("bot"); xmlNodeBot != NULL; xmlNodeBot = xmlNodeBot->NextSiblingElement())
 	{
 		xmlNodeText = xmlNodeBot->FirstChildElement("modelfile")->GetText();
@@ -267,7 +279,7 @@ void ResourceManager::loadMap(std::string mapFileName, std::vector<std::shared_p
 
 		numObject++;
 	}
-	
+
 
 
 	//random bots
@@ -295,9 +307,14 @@ void ResourceManager::loadMap(std::string mapFileName, std::vector<std::shared_p
 
 }
 
-void ResourceManager::reloadMap(std::string mapFileName, std::vector<std::shared_ptr<Object>>* objects, std::vector< std::shared_ptr<Character>>* characters, std::vector< std::shared_ptr<Player>>* players, std::vector< std::shared_ptr<NPC>>* npcs)
+void ResourceManager::reloadMap(std::string mapFileName)
 {
 	percentageLoading = 0;
+
+	std::vector<std::shared_ptr<Object>>* objects = &Game::objects;
+	std::vector<std::shared_ptr<Character>>* characters = &Game::characters;
+	std::vector< std::shared_ptr<Player>>* players = &Game::players;
+	std::vector< std::shared_ptr<NPC>>* npcs = &Game::npcs;
 
 	const char* mapFileNameC = mapFileName.c_str();
 	int32 numObject = 0;

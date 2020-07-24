@@ -1,7 +1,8 @@
 #pragma once
+#include "defines.h"
+
 #include <GL/glew.h>
 
-#include "defines.h"
 
 enum FrameBufferTextureType {
     colorMap    = 1,

@@ -56,6 +56,7 @@ uniform sampler2D u_normal_map;
 uniform sampler2D u_shadowMap;
 
 uniform int u_showNormalMode;
+uniform int u_isgettingdamaged;
 
 //Output
 layout(location = 0) out vec4 f_color;
@@ -140,5 +141,10 @@ void main()
 
     //sum phong elements
     f_color = vec4(ambient + (1.0 - shadow) * (diffuse + specular + u_material.emissive), alpha);
+
+    if(u_isgettingdamaged==1)
+    {
+    f_color.r += 0.5;
+    }
 
 }

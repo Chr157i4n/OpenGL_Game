@@ -21,28 +21,28 @@ void Character::resetVerticalMovement()
 }
 
 void Character::moveForward() {
-	glm::vec3 v = glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f) * getLookDirection()) * forwardSpeed;
+	glm::vec3 v = glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f) * getLookDirection()) * forwardSpeed * Game::getDelta();
 
 	movement.x += v.x;
 	movement.z += v.z;
 }
 
 void Character::moveBackward() {
-	glm::vec3 v = glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f) * getLookDirection()) * -backwardSidewaySpeed;
+	glm::vec3 v = glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f) * getLookDirection()) * -backwardSidewaySpeed * Game::getDelta();
 
 	movement.x += v.x;
 	movement.z += v.z;
 }
 
 void Character::moveRight() {
-	glm::vec3 v = glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f) * glm::cross(getLookDirection(), up)) * backwardSidewaySpeed;
+	glm::vec3 v = glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f) * glm::cross(getLookDirection(), up)) * backwardSidewaySpeed * Game::getDelta();
 
 	movement.x += v.x;
 	movement.z += v.z;
 }
 
 void Character::moveLeft() {
-	glm::vec3 v = glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f) * glm::cross(getLookDirection(), up)) * -backwardSidewaySpeed;
+	glm::vec3 v = glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f) * glm::cross(getLookDirection(), up)) * -backwardSidewaySpeed * Game::getDelta();
 
 	movement.x += v.x;
 	movement.z += v.z;
@@ -55,11 +55,11 @@ void Character::jump()
 		Logger::log("Character: " + printObject() + " jumped");
 
 		irrklang::vec3df SPosition = irrklang::vec3df(getPosition().x, getPosition().y, getPosition().z);
-		irrklang::ISound* jumpSound = Game::getSoundEngine()->play3D("audio/jump.wav", SPosition, false, false, true);
+		irrklang::ISound* jumpSound = Game::SoundEngine->play3D("audio/jump.wav", SPosition, false, false, true);
 
 		//jumpSound->setPosition(SPosition);
 
-		movement.y = 0.5;
+		movement.y += 0.5;
 		canJump = false;
 	}
 }
@@ -113,8 +113,9 @@ std::shared_ptr<Bullet> Character::shoot()
 {
 	if (Game::getTimestamp() > lastTimeShot+1)
 	{
-		glm::vec3 bulletCreationPosition = position + glm::vec3(0, 3, 0);
+		glm::vec3 bulletCreationPosition = position + glm::vec3(0, 3, 0) +glm::vec3(0.5, 0.5, 0.5) * getLookDirection();
 		std::shared_ptr<Bullet> newBullet = std::make_shared<Bullet>(shader, bulletCreationPosition, glm::vec3(0, rotation.y - 90, -rotation.x - 90), getLookDirection());
+		newBullet->setNumber(Game::objects.size());
 
 		Game::bullets.push_back(newBullet);
 		Game::objects.push_back(newBullet);

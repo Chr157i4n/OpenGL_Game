@@ -1,6 +1,9 @@
 #pragma once
-#include "UI_Element.h"
+#include "defines.h"
+
 #include <string>
+
+#include "UI_Element.h"
 
 class UI_Element_Label	: public UI_Element
 {

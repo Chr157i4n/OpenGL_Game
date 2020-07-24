@@ -1,13 +1,14 @@
 #pragma once
+#include "defines.h"
 
 #include <GL/glew.h>
 #include <SDL.h>
 
-#include "Shader.h"
-#include "ResourceManager.h"
-#include "VertexBuffer.h"
 #include "FrameBuffer.h"
-#include "UI.h"
+#include "Shader.h"
+#include "VertexBuffer.h"
+#include "Model.h"
+#include "UI_Element_ProgressBar.h"
 
 enum ShaderType {
 	basic,
@@ -23,11 +24,11 @@ enum PostProcessingEffect {
 static class Renderer
 {
 public:
-	static void initOpenGL(SDL_Window** window);
+	static void initOpenGL();
 
 	static void loadShader();
 
-	static void init(std::shared_ptr<Player> player);
+	static void init();
 
 	static void initFrameBuffer();
 
@@ -36,19 +37,19 @@ public:
 	static void showLoadingScreen();
 
 
-	static void calcLight(std::shared_ptr<Player> player);
+	static void calcLight();
 
-	static void calcShadows(std::vector< std::shared_ptr<Object>> objects);
+	static void calcShadows();
 
-	static void renderShadowsMap(std::vector< std::shared_ptr<Object>> objects);
+	static void renderShadowsMap();
 
 	static void showShadowMap();
 
-	static void renderSkybox(std::shared_ptr<Player> player);
+	static void renderSkybox();
 
 	static void renderImage(VertexBuffer* imageVertexBuffer, int imageIndex);
 
-	static void renderObjects(std::shared_ptr<Player> player, std::vector< std::shared_ptr<Object>> objects);
+	static void renderObjects();
 
 	static void renderAxis(glm::vec3 vector, int x, int y);
 
@@ -71,8 +72,6 @@ public:
 
 private:
 	static void initLight();
-
-	static SDL_Window** window;
 	
 	static Shader* shaderSkybox;
 	static Shader* shaderBasic;

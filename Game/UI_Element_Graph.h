@@ -1,8 +1,10 @@
 #pragma once
-#include "UI_Element.h"
-#include <GL/glew.h>
 #include "defines.h"
+
+#include <GL/glew.h>
 #include <vector>
+
+#include "UI_Element.h"
 
 class UI_Element_Graph : public UI_Element
 {

@@ -1,33 +1,34 @@
 #include "Map.h"
+
 #include "UI.h"
+#include "ResourceManager.h"
+#include "Game.h"
 
 std::string Map::mapFileName = "";
 std::string Map::mapFileFolder = "levels/";
 
-void Map::load(std::string mapFileName, std::vector<std::shared_ptr<Object>>* objects, std::vector< std::shared_ptr<Character>>* characters, std::vector< std::shared_ptr<Player>>* players, std::vector< std::shared_ptr<NPC>>* npcs)
+void Map::load(std::string mapFileName)
 {
 	Map::mapFileName = mapFileName;
 	
-	ResourceManager::loadMap(mapFileFolder+mapFileName, objects, characters, players, npcs);
+	ResourceManager::loadMap(mapFileFolder+mapFileName);
 }
 
-void Map::restart(std::vector<std::shared_ptr<Object>>* objects, std::vector< std::shared_ptr<Character>>* characters, std::vector< std::shared_ptr<Player>>* players, std::vector< std::shared_ptr<NPC>>* npcs)
+void Map::restart()
 {	
-	objects->clear();
-	characters->clear();
-	players->clear();
-	npcs->clear();
+	Game::objects.clear();
+	Game::characters.clear();
+	Game::players.clear();
+	Game::npcs.clear();
 
-	ResourceManager::reloadMap(mapFileFolder+mapFileName, objects, characters, players, npcs);
+	ResourceManager::reloadMap(mapFileFolder+mapFileName);
 
-	for (std::shared_ptr<Object> object : *objects)
+	for (std::shared_ptr<Object> object : Game::objects)
 	{
 		object->setHealth(100);
 	}
 
 	UI::clearUI_Elements();
 
-	(*players)[0]->createHealthbar();
-
-
+	Game::players[0]->createHealthbar();
 }

@@ -1,23 +1,19 @@
 #pragma once
+#include "defines.h"
+
 #include <vector>
 #include <memory>
+#include <string>
 
-#include "Object.h"
-#include "Character.h"
-#include "Player.h"
-#include "NPC.h"
-#include "Bullet.h"
-
-#include "ResourceManager.h"
 
 
 class Map
 {
 
 public:
-	static void load(std::string mapFileName, std::vector<std::shared_ptr<Object>>* objects, std::vector< std::shared_ptr<Character>>* characters, std::vector< std::shared_ptr<Player>>* players, std::vector< std::shared_ptr<NPC>>* npcs);
+	static void load(std::string mapFileName);
 
-	static void restart(std::vector<std::shared_ptr<Object>>* objects, std::vector< std::shared_ptr<Character>>* characters, std::vector< std::shared_ptr<Player>>* players, std::vector< std::shared_ptr<NPC>>* npcs);
+	static void restart();
 private:
 
 	static std::string mapFileName;

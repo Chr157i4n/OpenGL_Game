@@ -1,7 +1,7 @@
 #pragma once
-#include <GL/glew.h>
-
 #include "defines.h"
+
+#include <GL/glew.h>
 
 struct IndexBuffer {
     IndexBuffer(void* data, uint32 numIndices, uint8 elementSize) {

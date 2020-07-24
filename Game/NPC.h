@@ -1,4 +1,9 @@
 #pragma once
+#include "defines.h"
+
+#include <string>
+#include <vector>
+
 #include "Character.h"
 
 enum CurrentTask {
@@ -14,9 +19,9 @@ public:
 
 	NPC(Shader* shader);
 
-	void followCharacter(float32 deltaTime, std::vector< std::shared_ptr<Object>> objects, std::shared_ptr<Character> character);
+	void followCharacter(std::shared_ptr<Character> character);
 
-	void followNavPoints(float32 deltaTime, std::vector< std::shared_ptr<Object>> objects);
+	void followNavPoints();
 
 	void addNavPoint(glm::vec3 newNavPoint);
 
@@ -24,13 +29,15 @@ public:
 
 	std::vector<glm::vec3> getNavPoints();
 
-	void doCurrentTask(float32 deltaTime, std::vector< std::shared_ptr<Object>> objects, std::vector< std::shared_ptr<Character>> character);
+	void doCurrentTask();
 
 	void setCurrentTask(CurrentTask newCurrentTask);
 
 	CurrentTask getGurrentTask();
 
-	void evade(float32 deltaTime, CollisionResult collisionResult, std::vector< std::shared_ptr<Object>> objects);
+	void evade(CollisionResult collisionResult);
+
+	void reactToCollision(CollisionResult collisionResult);
 
 private:
 

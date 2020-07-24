@@ -1,4 +1,5 @@
 #pragma once
+#include "defines.h"
 
 #include <stdio.h>      /* printf, scanf, puts, NULL */
 #include <stdlib.h>     /* srand, rand */
@@ -7,6 +8,7 @@
 #include <fstream>
 #include <vector>
 #include <cmath>
+#include <memory>
 
 //#define GLEW_STATIC
 #include <GL/glew.h>
@@ -15,10 +17,10 @@
 
 #include <irrKlang.h>
 
-
 #include "libs/glm/glm.hpp"
 #include "libs/glm/ext/matrix_transform.hpp"
 #include "libs/glm/gtc/matrix_transform.hpp"
+
 
 #include "UI.h"
 #include "UI_Element_Label.h"
@@ -26,8 +28,6 @@
 #include "UI_Element_Graph.h"
 
 #include "Renderer.h"
-
-#include "defines.h"
 
 #include "Shader.h"
 #include "Object.h"
@@ -41,9 +41,10 @@
 #include "Map.h"
 
 
-#define DEBUG_COLLISION
-#define DEBUG_OUTOFBOUNDS
-#define DEBUG_GRAVITY
+//#define DEBUG_COLLISION
+//#define DEBUG_OUTOFBOUNDS
+//#define DEBUG_GRAVITY
+//#define DEBUG_NPC
 
 enum GameState {
 	GAME_ACTIVE,
@@ -113,14 +114,18 @@ public:
 
 	static float32 getTimestamp();
 
+	/// <summary>
+	/// returns the delta time between this and the last frame in seconds
+	/// </summary>
+	/// <returns>delta time in s</returns>
 	static float32 getDelta()
 	{
 		return delta;
 	}
 
-	static irrklang::ISoundEngine* getSoundEngine()
+	static float32 getFPS()
 	{
-		return SoundEngine;
+		return FPS;
 	}
 
 	static void setGameState(GameState newGameState)
@@ -138,13 +143,16 @@ public:
 		return showInfo;
 	}
 
+	static std::vector< std::shared_ptr<Object> > map;
 	static std::vector< std::shared_ptr<Object> > objects;
 	static std::vector< std::shared_ptr<Character> > characters;
 	static std::vector< std::shared_ptr<Player> > players;
 	static std::vector< std::shared_ptr<NPC> > npcs;
 	static std::vector< std::shared_ptr<Bullet> > bullets;
 
+	static SDL_Window* window;
 
+	static irrklang::ISoundEngine* SoundEngine;
 
 private:
 
@@ -172,10 +180,6 @@ private:
 
 	static void openConsole();
 
-
-	static SDL_Window* window;
-
-	static irrklang::ISoundEngine* SoundEngine;
 
 
 	static bool pressedKeys[20];

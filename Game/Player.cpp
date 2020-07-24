@@ -1,5 +1,8 @@
 #include "Player.h"
+
 #include "Game.h"
+#include "Bullet.h"
+#include "Shader.h"
 
 Player::Player(Shader* shader, float fov, float width, float height) : Character(shader), FPSCamera(fov, width, height)
 {
@@ -110,12 +113,7 @@ void Player::registerHit()
 
 void Player::reactToCollision(CollisionResult collisionResult)
 {
-	float speed = glm::length(collisionResult.movementBeforeCollision);
-	if (speed > 1)
-	{
-		addToHealth(-10 * speed);
-		
-	}
+	this->Object::reactToCollision(collisionResult);
 }
 
 void Player::createHealthbar()
@@ -146,7 +144,7 @@ void Player::addToHealth(float32 addHealth)
 	if (health <= 0)
 	{
 		Logger::log(printObject() + " got destroyed");
-		UI_Element* victoryLabel = new UI_Element_Label(UI::getWidth() / 2 - 80, UI::getHeight() / 2, "Du bist gestorben", 5, 1, glm::vec4(1, 0, 0, 1), false);
+		UI_Element* victoryLabel = new UI_Element_Label(Game::getWindowWidth() / 2 - 80, Game::getWindowHeight() / 2, "Du bist gestorben", 5, 1, glm::vec4(1, 0, 0, 1), false);
 		UI::addElement(victoryLabel);
 		Game::setGameState(GameState::GAME_GAME_OVER);
 	}

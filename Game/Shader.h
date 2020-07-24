@@ -1,7 +1,8 @@
 #pragma once
+#include "defines.h"
+
 #include <GL/glew.h>
 #include <string>
-#include "defines.h"
 
 struct Shader {
     Shader(std::string vertexShaderFilename, std::string fragmentShaderFilename);

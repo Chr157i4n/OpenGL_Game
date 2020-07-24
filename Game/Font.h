@@ -1,10 +1,10 @@
 #pragma once
+#include "defines.h"
+
+#include "libs/stb_truetype.h"
 #include <cstdio>
 #include <GL/glew.h>
 
-#include "defines.h"
-
-#include "defines.h"
 #include "Shader.h"
 
 #ifdef _DEBUG123
@@ -13,8 +13,6 @@ void _GLGetError(const char* file, int line, const char* call);
 #else
 #define GLCALL(call) call
 #endif
-
-#include "libs/stb_truetype.h"
 
 struct FontVertex {
     glm::vec2 position;

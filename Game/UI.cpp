@@ -1,27 +1,25 @@
 #include "UI.h"
+
 #include "Game.h"
+#include "UI_Element_Label.h"
+#include "UI_Element_ProgressBar.h"
 
-
-SDL_Window* UI::window;
 Shader* UI::fontShader;
 Font* UI::font;
 int UI::fontColorUniformIndex;
-int UI::width, UI::height;
 std::vector<UI_Element*> UI::ui_elements;
 
 std::vector<MenuItem*> UI::menuItemList;
 
-void UI::init(SDL_Window* newWindow)
+void UI::init()
 {
-	window = newWindow;
 
 	font = new Font();
 	font->initFont("fonts/OpenSans-Regular.ttf");
 
 	fontShader = new Shader("shaders/font.vert", "shaders/font.frag");
 
-	SDL_GetWindowSize(window, &width, &height);
-	glm::mat4 ortho = glm::ortho(0.0f, (float)width, (float)height, 0.0f);
+	glm::mat4 ortho = glm::ortho(0.0f, (float)Game::getWindowWidth(), (float)Game::getWindowHeight(), 0.0f);
 
 	fontShader->bind();
 	GLCALL(glUniformMatrix4fv(glGetUniformLocation(fontShader->getShaderId(), "u_modelViewProj"), 1, GL_FALSE, &ortho[0][0]));
@@ -42,19 +40,19 @@ void UI::init(SDL_Window* newWindow)
 	menuItemList.push_back(newItem);
 }
 
-void UI::drawFPS(int fps)
+void UI::drawFPS()
 {
-	drawString(20, 20, std::to_string(fps), glm::vec4(1,1,0,1));
+	drawString(20, 20, std::to_string((int)Game::getFPS()), glm::vec4(1,1,0,1));
 }
 
 void UI::drawPos(std::shared_ptr<Object> object)
 {
-	drawVec3(object->getPosition(), 1, "Pos", width - 300, 20);
+	drawVec3(object->getPosition(), 1, "Pos", Game::getWindowWidth() - 300, 20);
 }
 
 void UI::drawRot(std::shared_ptr<Player> object)
 {
-	drawVec3(object->getLookDirection(), 1, "Rot", width - 300, 50);
+	drawVec3(object->getLookDirection(), 1, "Rot", Game::getWindowWidth() - 300, 50);
 }
 
 void UI::drawString(float x, float y, std::string text, glm::vec4 color)
@@ -92,16 +90,6 @@ void UI::drawVec3(glm::vec3 vector, int precision, std::string text, float x, fl
 
 }
 
-int UI::getHeight()
-{
-	return height;
-}
-
-int UI::getWidth()
-{
-	return width;
-}
-
 void UI::drawUI()
 {
 	GLCALL(glDepthMask(GL_FALSE));
@@ -135,8 +123,8 @@ void UI::addElement(UI_Element* newElement)
 
 void UI::drawMenu()
 {
-	int x = width / 2 - 50;
-	int y = height / 2-menuItemList.size()*40/2;
+	int x = Game::getWindowWidth() / 2 - 50;
+	int y = Game::getWindowHeight() / 2-menuItemList.size()*40/2;
 
 
 	for (MenuItem* menuItem : menuItemList)
@@ -156,8 +144,8 @@ void UI::drawMenu()
 
 void UI::drawPause()
 {
-	int x = width / 2 - 50;
-	int y = height / 2;
+	int x = Game::getWindowWidth() / 2 - 50;
+	int y = Game::getWindowHeight() / 2;
 
 	drawString(x, y, "Pause", glm::vec4(1, 1, 1, 1));
 }

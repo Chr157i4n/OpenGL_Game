@@ -12,6 +12,7 @@
 
 SDL_Window* Game::window;
 
+std::vector<std::shared_ptr<Object>> Game::map;
 std::vector<std::shared_ptr<Object>> Game::objects;
 std::vector< std::shared_ptr<Character> > Game::characters;
 std::vector< std::shared_ptr<Player> > Game::players;
@@ -60,25 +61,25 @@ void Game::startGame()
 
 void Game::init()
 {
-	Renderer::initOpenGL(&window);
+	Renderer::initOpenGL();
 	Renderer::loadShader();
 
-	UI::init(window);
+	UI::init();
 
 	Renderer::showLoadingScreen();
 
 
 	maxBulletCount = stoi(ConfigManager::readConfig("max_bullets"));
 	std::string levelname = ConfigManager::readConfig("level");
-	Map::load(levelname, &objects, &characters, &players, &npcs);
+	Map::load(levelname);
 
-	Renderer::init(players[0]);
+	Renderer::init();
 }
 
 void Game::gameLoop()
 {
 
-	UI_Element_Graph* fpsGraph = new UI_Element_Graph(10, UI::getHeight() * 3 / 4, 100, 100, 0, glm::vec4(0, 0, 1, 1), true);
+	UI_Element_Graph* fpsGraph = new UI_Element_Graph(10, getWindowHeight() * 3 / 4, 100, 100, 0, glm::vec4(0, 0, 1, 1), true);
 	UI::addElement(fpsGraph);
 
 	while (!close)
@@ -101,27 +102,22 @@ void Game::gameLoop()
 
 			for (std::shared_ptr<NPC> npc : npcs)
 			{
-				//npc->followCharacter(delta / 1000, objects, players[0]);
-				//npc->followNavPoints(delta / 1000, objects);
-				npc->doCurrentTask(delta / 1000, objects, characters);
+				npc->doCurrentTask();
 			}
 
 			//Move every Object
 			for (std::shared_ptr<Object> object : objects)
 			{
 				if (object->getType() == ObjectType::Object_Environment) continue; //Environment doesnt move
-
-				object->move(delta / 1000, objects[1]);
-
-				object->fall(delta / 1000);
-
+				
+				object->fall();
+				object->move();
+				
 			}
 
 			for (std::shared_ptr<Bullet> bullet : bullets)
 			{
-				//bullet->fall(delta / 1000);
-				//bullet->move(delta / 1000);
-				bullet->checkHit(objects);
+				bullet->checkHit();
 			}
 
 			//Check every Object for collision
@@ -133,7 +129,7 @@ void Game::gameLoop()
 				//player->update();
 				if (player->getPosition().x > 95 && player->getPosition().z > 95)
 				{
-					UI_Element* eastereggLabel = new UI_Element_Label(UI::getWidth() / 2-200, UI::getHeight() / 2-100, "Nice, du hast das Easter-Egg gefunden",1, 1, glm::vec4(1, 0, 0, 1), false);
+					UI_Element* eastereggLabel = new UI_Element_Label(getWindowWidth() / 2-200, getWindowHeight() / 2-100, "Nice, du hast das Easter-Egg gefunden",1, 1, glm::vec4(1, 0, 0, 1), false);
 					UI::addElement(eastereggLabel);
 				}
 			}
@@ -147,7 +143,7 @@ void Game::gameLoop()
 
 			if (npcs.size() <= 0 && gameState== GameState::GAME_ACTIVE)
 			{
-				UI_Element* victoryLabel = new UI_Element_Label(UI::getWidth() / 2-100, UI::getHeight() / 2, "Du hast alle Bots besiegt", 1, 1, glm::vec4(0, 0, 1, 1), false);
+				UI_Element* victoryLabel = new UI_Element_Label(getWindowWidth() / 2-100, getWindowHeight() / 2, "Du hast alle Bots besiegt", 1, 1, glm::vec4(0, 0, 1, 1), false);
 				UI::addElement(victoryLabel);
 				gameState = GameState::GAME_GAME_OVER;
 			}
@@ -192,7 +188,7 @@ void Game::processCollision()
 {
 	for (std::shared_ptr<Object> object : objects)
 	{
-		CollisionResult collisionResult = object->checkCollision(objects);
+		CollisionResult collisionResult = object->checkCollision();
 		if (!collisionResult.collided) continue;
 
 		for (CollidedObject* collidedObject : collisionResult.collidedObjectList)
@@ -205,9 +201,8 @@ void Game::processCollision()
 
 			if ((object->getType() & ObjectType::Object_NPC) && (collidedObject->object->getType() & (ObjectType::Object_Entity | ObjectType::Object_Character)))
 			{
-				//Logger::log("test");
 				NPC* npc = static_cast<NPC*>(object.get());
-				npc->evade(delta / 1000, collisionResult, objects);
+				npc->evade(collisionResult);
 			}
 		}
 
@@ -220,15 +215,15 @@ void Game::processCollision()
 void Game::render()
 {
 
-	Renderer::calcLight(players[0]);
+	Renderer::calcLight();
 
-	Renderer::calcShadows(objects);
+	Renderer::calcShadows();
 
 
 	if (postprocess) Renderer::frameBuffer.bind();
 	Renderer::clearBuffer();
-	Renderer::renderSkybox(players[0]);
-	Renderer::renderObjects(players[0], objects);
+	Renderer::renderSkybox();
+	Renderer::renderObjects();
 	if (postprocess) Renderer::frameBuffer.unbind();
 
 	//Postprocessing
@@ -242,7 +237,7 @@ void Game::render()
 		Renderer::renderAxis(players[0]->getLookDirection(), 8, 5);
 		Renderer::renderAxis(Renderer::transformedSunDirection3, 8, 3);
 
-		UI::drawFPS(FPS);
+		UI::drawFPS();
 		UI::drawPos(players[0]);
 		UI::drawRot(players[0]);
 	}
@@ -278,10 +273,10 @@ void Game::processInput()
 		else if (event.type == SDL_MOUSEBUTTONDOWN) {
 			if (event.button.button == SDL_BUTTON_LEFT) {
 				if (SDL_GetRelativeMouseMode()) {
-					players[0]->shoot();
+					std::shared_ptr<Bullet> newBullet = players[0]->shoot();
 					//objects.push_back(newBullet);
 					//bullets.push_back(newBullet);
-					SoundEngine->play2D("audio/shoot.wav", false);
+					if(newBullet!=nullptr)	SoundEngine->play2D("audio/shoot.wav", false);
 				}
 
 				SDL_SetRelativeMouseMode(SDL_TRUE);
@@ -426,7 +421,7 @@ void Game::keyPressed(SDL_Keycode key)
 				}
 				if (selectedMenuItem->type == MenuItemType::restart)
 				{
-					Map::restart(&objects, &characters, &players, &npcs);
+					Map::restart();
 					toggleMenu();
 					gameState = GameState::GAME_ACTIVE;
 				}

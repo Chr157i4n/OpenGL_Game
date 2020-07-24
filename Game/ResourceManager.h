@@ -1,15 +1,18 @@
 #pragma once
-#include "Model.h"
-#include "Shader.h"
-#include "Player.h"
-#include "NPC.h"
+#include "defines.h"
+
+#include "tinyxml2.h"
 #include <fstream>
 #include <vector>
 #include <cmath>
 #include <algorithm>
-#include "ConfigManager.h"
-#include "Object.h"
-#include "tinyxml2.h"
+#include "libs/stb_image.h"
+#include <cmath>
+#include <sstream>
+
+#include "Shader.h"
+#include "Model.h"
+
 
 static class ResourceManager
 {
@@ -23,9 +26,9 @@ public:
 
 	static Model* getModelByName(std::string modelFileName);
 
-	static void loadMap(std::string mapFileName, std::vector<std::shared_ptr<Object>>* objects, std::vector<std::shared_ptr<Character>>* characters, std::vector< std::shared_ptr<Player>>* players, std::vector< std::shared_ptr<NPC>>* npcs);
+	static void loadMap(std::string mapFileName);
 
-	static void reloadMap(std::string mapFileName, std::vector<std::shared_ptr<Object>>* objects, std::vector<std::shared_ptr<Character>>* characters, std::vector< std::shared_ptr<Player>>* players, std::vector< std::shared_ptr<NPC>>* npcs);
+	static void reloadMap(std::string mapFileName);
 
 
 	static int loadCubemap(std::vector<std::string> faces);

@@ -1,11 +1,12 @@
 #pragma once
+#include "defines.h"
+
 #include <vector>
 #include <fstream>
 #include <iostream>
-
-#include "defines.h"
-
+#include "libs/stb_image.h"
 #include "libs/glm/glm.hpp"
+
 #include "shader.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"

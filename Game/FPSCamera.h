@@ -1,5 +1,8 @@
 #pragma once
+#include "defines.h"
+
 #include "Camera.h"
+
 #include <iostream>
 
 class FPSCamera : public Camera {

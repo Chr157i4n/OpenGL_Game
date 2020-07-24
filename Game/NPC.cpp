@@ -1,6 +1,7 @@
 #include "NPC.h"
+
+#include "Game.h"
 #include "ConfigManager.h"
-#include <string>
 
 NPC::NPC(Shader* shader) : Character(shader)
 {
@@ -9,17 +10,23 @@ NPC::NPC(Shader* shader) : Character(shader)
 	lookDirection = glm::vec3(1, 0, 1);
 	float npc_speed_mult = std::stof(ConfigManager::readConfig("bot_speed_mult"));
 	forwardSpeed = forwardSpeed * npc_speed_mult;
+	backwardSidewaySpeed = backwardSidewaySpeed * npc_speed_mult;
 }
 
-void NPC::followCharacter(float32 deltaTime, std::vector< std::shared_ptr<Object>> objects, std::shared_ptr <Character> character)
+void NPC::followCharacter(std::shared_ptr <Character> character)
 {
 	glm::vec3 myPosition = position;
 	glm::vec3 targetPosition = character->getPosition();
 
-	glm::vec3 direction = targetPosition - myPosition;
+	lookDirection = targetPosition - myPosition;		//aim at the target
 
-	lookDirection.x = direction.x;
-	lookDirection.z = direction.z;
+	float distance = glm::length(this->getPosition() - character->getPosition());
+	float maxDistance = 30;
+
+	if (distance < maxDistance)
+	{
+		lookDirection.y += (0.2 * Game::getDelta() * pow(distance,2));		//aim a little bit higher, when the enemy is more far away
+	}
 
 	lookDirection = glm::normalize(lookDirection);
 
@@ -27,42 +34,40 @@ void NPC::followCharacter(float32 deltaTime, std::vector< std::shared_ptr<Object
 	float yaw = glm::degrees(atan2(lookDirection.x, lookDirection.z));
 	setRotation(glm::vec3(0, yaw, 0));
 
-	float distance = glm::length(this->getPosition() - character->getPosition());
-	float maxDistance = 50;
-
 	if (distance < maxDistance)
 	{
-		lookDirection.y = (0.3*distance)/maxDistance;
 		this->shoot();
 	}
+
 	if (distance > 5)
 	{
 		this->moveForward();
 	}
 }
 
-void NPC::followNavPoints(float32 deltaTime, std::vector< std::shared_ptr<Object>> objects)
+void NPC::followNavPoints()
 {
-	if (round(position) == round(navPoints[currentNavPoint]))
-	{
-		currentNavPoint = (currentNavPoint + 1) % navPoints.size();
-	}
 	
 	glm::vec3 myPosition = position;
 	glm::vec3 targetPosition = navPoints[currentNavPoint];
 
-	glm::vec3 direction = targetPosition - myPosition;
-
-	lookDirection.x = direction.x;
-	lookDirection.z = direction.z;
-
+	lookDirection = targetPosition - myPosition;
 	lookDirection = glm::normalize(lookDirection);
 
 	float pitch = glm::degrees(asin(-lookDirection.y));
 	float yaw = glm::degrees(atan2(lookDirection.x, lookDirection.z));
 	setRotation(glm::vec3(0, yaw, 0));
 
-	this->moveForward();
+	float distance = glm::length(targetPosition - myPosition);
+
+	if (distance < 0.5)
+	{
+		currentNavPoint = (currentNavPoint + 1) % navPoints.size();
+	}
+	else
+	{
+		this->moveForward();
+	}
 }
 
 void NPC::addNavPoint(glm::vec3 newNavPoint)
@@ -80,7 +85,7 @@ std::vector<glm::vec3> NPC::getNavPoints()
 	return navPoints;
 }
 
-void NPC::doCurrentTask(float32 deltaTime, std::vector< std::shared_ptr<Object>> objects, std::vector< std::shared_ptr<Character>> character)
+void NPC::doCurrentTask()
 {
 	if (currentTask == CurrentTask::Idle)
 	{
@@ -88,11 +93,11 @@ void NPC::doCurrentTask(float32 deltaTime, std::vector< std::shared_ptr<Object>>
 	}
 	if (currentTask == CurrentTask::Follow_Character)
 	{
-		followCharacter(deltaTime, objects, character[0]);
+		followCharacter(Game::players[0]);
 	}
 	if (currentTask == CurrentTask::Follow_NavPoint)
 	{
-		followNavPoints(deltaTime, objects);
+		followNavPoints();
 	}
 }
 
@@ -106,8 +111,12 @@ CurrentTask NPC::getGurrentTask()
 	return currentTask;
 }
 
-void NPC::evade(float32 deltaTime, CollisionResult collisionResult, std::vector< std::shared_ptr<Object>> objects)
+void NPC::evade(CollisionResult collisionResult)
 {	
+#ifdef DEBUG_NPC
+	Logger::log("npc needs to evade an object");
+#endif
+
 	for (CollidedObject* collidedObject : collisionResult.collidedObjectList)
 	{
 		if (collidedObject->onTop) continue;
@@ -124,7 +133,12 @@ void NPC::evade(float32 deltaTime, CollisionResult collisionResult, std::vector<
 		}
 
 		bool onOtherObjectTemp = this->onOtherObject;
-		this->move(deltaTime, objects[1]);
+		this->move();
 		this->onOtherObject = onOtherObjectTemp;
 	}
+}
+
+void NPC::reactToCollision(CollisionResult collisionResult)
+{
+	this->Object::reactToCollision(collisionResult);
 }

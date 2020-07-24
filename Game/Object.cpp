@@ -1,10 +1,10 @@
 #include "Object.h"
-#include "UI.h"
-#include <algorithm>
-#include "Logger.h"
-#include "libs/glm/gtx/rotate_vector.hpp"
-#include "ResourceManager.h"
 
+#include "UI.h"
+#include "Logger.h"
+#include "ResourceManager.h"
+#include "Game.h"
+#include "Logger.h"
 
 float projectedOverlap(float minA, float maxA, float minB, float maxB) {
 	return std::max(0.0f, std::min(maxA, maxB) - std::max(minA, minB));
@@ -55,14 +55,16 @@ void Object::unbindShader()
 }
 
 
-CollisionResult Object::checkCollision(std::vector< std::shared_ptr<Object>> objects)
+CollisionResult Object::checkCollision()
 {
+	
+	
 	CollisionResult collisionResult;
 	collisionResult.collided = false;
 
 	if (this->movement == glm::vec3(0, 0, 0)) return collisionResult;
 
-	for (std::shared_ptr<Object> object : objects)
+	for (std::shared_ptr<Object> object : Game::objects)
 	{
 		if (object->getNumber() == this->getNumber()) continue;		//dont check collision with yourself
 		if (object->getType() == ObjectType::Object_Bullet) continue;	//bullets move faster than everything else, so only bullets need to check collision wiht other objects
@@ -75,7 +77,6 @@ CollisionResult Object::checkCollision(std::vector< std::shared_ptr<Object>> obj
 	}
 
 	return collisionResult;
-
 }
 
 bool Object::checkCollision_AABB(std::shared_ptr < Object> object)
@@ -249,11 +250,10 @@ bool Object::checkCollision_SAT(std::shared_ptr < Object> object, CollisionResul
 
 void Object::reactToCollision(CollisionResult collisionResult)
 {
-	float speed = glm::length(collisionResult.movementBeforeCollision);
-	if (speed > 1)
+	float collisionSpeed = glm::length(collisionResult.movementBeforeCollision)* Game::getDelta();
+	if (collisionSpeed > 1)
 	{
-		addToHealth(-10 * speed);
-
+		addToHealth(-10 * collisionSpeed);
 	}
 }
 
@@ -497,8 +497,9 @@ std::vector<glm::vec3> Object::getCubeNormals()
 	return cubeNormals;
 }
 
-bool Object::checkBoundaries(std::shared_ptr<Object> map)
+bool Object::checkBoundaries()
 {
+	std::shared_ptr<Object> map = Game::map[0];
 	bool outOfBounds = false;
 	glm::vec3 newPosition = position + movement;
 
@@ -553,7 +554,7 @@ bool Object::checkBoundaries(std::shared_ptr<Object> map)
 	return outOfBounds;
 }
 
-void Object::fall(float32 deltaTime)
+void Object::fall()
 {
 	if (!this->getGravity()) return;
 
@@ -562,15 +563,15 @@ void Object::fall(float32 deltaTime)
 #ifdef DEBUG_GRAVITY
 		Logger::log("Object: " + printObject() + " is falling");
 #endif
-		movement.y -= 9.81 * 200 * deltaTime;
-}
+		movement.y -= 9.81 * 0.2 *Game::getDelta();
+	}
 
 
 }
 
-void Object::move(float32 deltaTime, std::shared_ptr<Object> map)
+void Object::move()
 {
-	checkBoundaries(map);
+	checkBoundaries();
 
 	position += movement;
 
@@ -685,6 +686,19 @@ void Object::renderShadowMap()
 void Object::registerHit()
 {
 	addToHealth(-20);
+	lastHitTimestamp = Game::getTimestamp();
+}
+
+bool Object::isGettingDamaged()
+{
+	if (Game::getTimestamp() > lastHitTimestamp + 0.5)
+	{
+		return false;
+	}
+	else
+	{
+		return true;
+	}
 }
 
 void Object::setHealth(float32 newHealth)

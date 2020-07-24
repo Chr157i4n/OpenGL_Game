@@ -1,4 +1,6 @@
 #pragma once
+#include "defines.h"
+
 #include "FPSCamera.h"
 
 class FloatingCamera : public FPSCamera 

@@ -1,10 +1,13 @@
 #pragma once
-#include "Character.h"
-#include "Bullet.h"
+#include "defines.h"
+
 #include "libs/glm/glm.hpp"
 #include "libs/glm/ext/matrix_transform.hpp"
 #include "libs/glm/gtc/matrix_transform.hpp"
+
+#include "FPSCamera.h"
 #include "UI_Element_ProgressBar.h"
+#include "Character.h"
 
 class Player : public Character, public FPSCamera
 {

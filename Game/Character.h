@@ -1,8 +1,9 @@
 #pragma once
-#include "FPSCamera.h"
 #include "defines.h"
-#include "Model.h"
+
 #include "Object.h"
+
+#include "Model.h"
 #include "Bullet.h"
 
 
@@ -42,11 +43,11 @@ protected:
 	bool canJump = true;
 
 	glm::vec3 lookDirection;
-	glm::vec3 speed;
 
-	float32 forwardSpeed = 0.2;
-	float32 backwardSidewaySpeed = 0.1;
-	float32 upwardSpeed = 0;
+
+	float32 forwardSpeed = 20;				//per second
+	float32 backwardSidewaySpeed = 10;		//per second
+	float32 upwardSpeed = 0;				//per second
 
 	const float32 heigth = 4;
 

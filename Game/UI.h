@@ -1,4 +1,5 @@
 #pragma once
+#include "defines.h"
 
 #include <iomanip>
 #include <sstream>
@@ -7,14 +8,10 @@
 #include <string>
 
 #include "Font.h"
-#include "Shader.h"
 #include "Object.h"
-#include "Player.h"
-
 #include "UI_Element.h"
-#include "UI_Element_Label.h"
-#include "UI_Element_ProgressBar.h"
-
+#include "Shader.h"
+#include "Player.h"
 
 enum class MenuItemType
 {
@@ -36,9 +33,9 @@ static class UI
 {
 public:
 
-	static void init(SDL_Window* newWindow);
+	static void init();
 
-	static void drawFPS(int fps);
+	static void drawFPS();
 
 	static void drawPos(std::shared_ptr<Object> object);
 
@@ -47,10 +44,6 @@ public:
 	static void drawString(float x, float y, std::string text, glm::vec4 color);
 
 	static void drawVec3(glm::vec3 vector, int precision, std::string text, float x, float y);
-
-	static int getHeight();
-
-	static int getWidth();
 
 	static void drawUI();
 
@@ -75,13 +68,11 @@ public:
 
 
 private:
-	static SDL_Window* window;
 	static Shader* fontShader;
 	static Font* font;
 
 	static int fontColorUniformIndex;
 
-	static int width, height;
 
 	static std::vector<UI_Element*> ui_elements;
 

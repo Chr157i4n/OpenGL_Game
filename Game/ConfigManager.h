@@ -1,4 +1,6 @@
 #pragma once
+#include "defines.h"
+
 #include <iostream>
 #include <fstream>
 #include <vector>

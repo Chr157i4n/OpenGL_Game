@@ -1,5 +1,9 @@
 #include "Renderer.h"
+
 #include "Game.h"
+#include "ResourceManager.h"
+#include "UI.h"
+#include "Player.h"
 
 #ifdef _DEBUG
 void openGLDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
@@ -88,8 +92,6 @@ float axisVertices[] = {
 };
 
 
-SDL_Window** Renderer::window;
-
 Shader* Renderer::shaderSkybox = nullptr;
 Shader* Renderer::shaderBasic = nullptr;
 Shader* Renderer::shaderImage = nullptr;
@@ -135,10 +137,8 @@ int Renderer::shadowMapResolution;
 std::vector<float32> Renderer::postprocessingEffectDuration = { 0,0,0 };
 
 
-void Renderer::initOpenGL(SDL_Window** window)
+void Renderer::initOpenGL()
 {
-	Renderer::window = window;
-
 	SDL_Init(SDL_INIT_EVERYTHING);
 
 	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
@@ -178,8 +178,8 @@ void Renderer::initOpenGL(SDL_Window** window)
 
 
 
-	*window = SDL_CreateWindow("OpenGL-Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, resolution_width, resolution_height, flags);
-	SDL_GLContext glContext = SDL_GL_CreateContext(*window);
+	Game::window = SDL_CreateWindow("OpenGL-Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, resolution_width, resolution_height, flags);
+	SDL_GLContext glContext = SDL_GL_CreateContext(Game::window);
 
 	GLenum err = glewInit();
 	if (err != GLEW_OK)
@@ -218,7 +218,7 @@ void Renderer::loadShader()
 	shaderDepthMap = ResourceManager::loadShader("shaders/depthmap.vert", "shaders/depthmap.frag");
 }
 
-void Renderer::init(std::shared_ptr<Player> player)
+void Renderer::init()
 {
 	skyboxVertexBuffer = new VertexBuffer(skyboxVertices, 36, VertexType::_VertexPos);
 	axisVertexBuffer = new VertexBuffer(axisVertices, 6, VertexType::_VertexPosCol);
@@ -313,16 +313,16 @@ void Renderer::showLoadingScreen() {
 
 	UI::drawUI();
 
-	SDL_GL_SwapWindow(*window);
+	SDL_GL_SwapWindow(Game::window);
 }
 
 
-void Renderer::calcLight(std::shared_ptr<Player> player)
+void Renderer::calcLight()
 {
 
 	//Directionallight
 	//glm::vec4 transformedSunDirection = glm::vec4(sunDirection, 1.0f);
-	glm::vec4 transformedSunDirection = -glm::transpose(glm::inverse(player->getView())) * glm::vec4(sunDirection, 1.0f);
+	glm::vec4 transformedSunDirection = -glm::transpose(glm::inverse(Game::players[0]->getView())) * glm::vec4(sunDirection, 1.0f);
 	transformedSunDirection3 = glm::vec3(transformedSunDirection.x, transformedSunDirection.y, transformedSunDirection.z);
 
 	//Logger::log("Sun Direction: x:"+std::to_string(transformedSunDirection.x)+" y:" + std::to_string(transformedSunDirection.y) + " z:" + std::to_string(transformedSunDirection.y));
@@ -333,13 +333,13 @@ void Renderer::calcLight(std::shared_ptr<Player> player)
 	//Pointlight
 	glm::mat4 pointLightMatrix = glm::mat4(1.0f);
 	pointLightPosition = pointLightMatrix * pointLightPosition;
-	glm::vec3 transformedPointLightPosition = (glm::vec3) (player->getView() * pointLightPosition);
+	glm::vec3 transformedPointLightPosition = (glm::vec3) (Game::players[0]->getView() * pointLightPosition);
 	glUniform3fv(lightpositionUniformIndex, 1, (float*)&transformedPointLightPosition);
 
 	shaderBasic->unbind();
 }
 
-void Renderer::calcShadows(std::vector< std::shared_ptr<Object>> objects)
+void Renderer::calcShadows()
 {
 	depthMapBuffer.bind();
 
@@ -350,13 +350,11 @@ void Renderer::calcShadows(std::vector< std::shared_ptr<Object>> objects)
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glCullFace(GL_BACK);
 
-	renderShadowsMap(objects);
+	renderShadowsMap();
 
 	depthMapBuffer.unbind();
 	// 2. then render scene as normal with shadow mapping (using depth map)
-	int width, height;
-	SDL_GetWindowSize(*window, &width, &height);
-	glViewport(0, 0, width, height); //actual resolution
+	glViewport(0, 0, Game::getWindowWidth(), Game::getWindowHeight()); //actual resolution
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
@@ -385,7 +383,7 @@ void Renderer::calcShadows(std::vector< std::shared_ptr<Object>> objects)
 
 }
 
-void Renderer::renderShadowsMap(std::vector< std::shared_ptr<Object>> objects)
+void Renderer::renderShadowsMap()
 {
 	glCullFace(GL_FRONT);
 
@@ -406,7 +404,7 @@ void Renderer::renderShadowsMap(std::vector< std::shared_ptr<Object>> objects)
 
 	shaderDepthMap->bind();
 
-	for (std::shared_ptr<Object> object : objects)
+	for (std::shared_ptr<Object> object : Game::objects)
 	{
 		//if (object->getType() & ObjectType::Object_Player) continue;
 		//if (object->getType() & ObjectType::Object_Environment) continue;
@@ -454,7 +452,7 @@ void Renderer::showShadowMap()
 	//SDL_GL_SwapWindow(*window);
 }
 
-void Renderer::renderSkybox(std::shared_ptr<Player> player)
+void Renderer::renderSkybox()
 {
 	shaderSkybox->bind();
 	skyboxVertexBuffer->bind();
@@ -462,7 +460,7 @@ void Renderer::renderSkybox(std::shared_ptr<Player> player)
 	glDepthMask(GL_FALSE);
 	glCullFace(GL_BACK);
 	// ... set view and projection matrix
-	glm::mat4 viewproj = player->getViewProj();
+	glm::mat4 viewproj = Game::players[0]->getViewProj();
 	glUniformMatrix4fv(skyboxViewProjectionUniformIndex, 1, GL_FALSE, &viewproj[0][0]);
 
 	glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
@@ -495,13 +493,13 @@ void Renderer::renderImage(VertexBuffer* imageVertexBuffer, int imageIndex)
 	shaderImage->unbind();
 }
 
-void Renderer::renderObjects(std::shared_ptr<Player> player, std::vector< std::shared_ptr<Object>> objects)
+void Renderer::renderObjects()
 {
 	glCullFace(GL_BACK);
 
 	for (int i = 0; i <= 1; i++)
 	{
-		for (std::shared_ptr<Object> object : objects)
+		for (std::shared_ptr<Object> object : Game::objects)
 		{
 			if (i == 0 && object->getModel()->getHasTransparentTexture()) continue;
 			if (i == 1 && !object->getModel()->getHasTransparentTexture()) continue;
@@ -526,15 +524,24 @@ void Renderer::renderObjects(std::shared_ptr<Player> player, std::vector< std::s
 			model = glm::rotate(model, glm::radians(angle), glm::vec3(0, 0, 1));
 
 			//view and projection
-			modelViewProj = player->getViewProj() * model;
-			glm::mat4 modelView = player->getView() * model;
+			modelViewProj = Game::players[0]->getViewProj() * model;
+			glm::mat4 modelView = Game::players[0]->getView() * model;
 			glm::mat4 invModelView = glm::transpose(glm::inverse(modelView));
 
 
-			glm::mat4 view = player->getView();
-			glm::mat4 proj = player->getProj();
+			glm::mat4 view = Game::players[0]->getView();
+			glm::mat4 proj = Game::players[0]->getProj();
 
 			object->bindShader();
+
+			int isGettingDamagedUniformLocation = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_isgettingdamaged"));
+			if (object->isGettingDamaged()) {
+				
+				GLCALL(glUniform1i(isGettingDamagedUniformLocation, 1));
+			}
+			else {
+				GLCALL(glUniform1i(isGettingDamagedUniformLocation, 0));
+			}
 
 			int modelUniformLocation = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_model"));
 			GLCALL(glUniformMatrix4fv(modelUniformLocation, 1, GL_FALSE, &model[0][0]));

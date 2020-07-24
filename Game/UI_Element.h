@@ -1,7 +1,7 @@
 #pragma once
+#include "defines.h"
 
 #include "libs/glm/glm.hpp"
-#include "defines.h"
 #include <SDL.h>
 
 enum UI_Element_Type {
