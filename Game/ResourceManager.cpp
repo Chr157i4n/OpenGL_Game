@@ -29,7 +29,7 @@ Shader* ResourceManager::loadShader(std::string vertexShaderFilename, std::strin
 }
 
 
-std::vector<Model*> ResourceManager::loadAllModels(tinyxml2::XMLDocument* doc)
+std::vector<Model*> ResourceManager::loadAllModels(std::string modelFileName)
 {
 	Logger::log("Loading all Models");
 
@@ -38,9 +38,10 @@ std::vector<Model*> ResourceManager::loadAllModels(tinyxml2::XMLDocument* doc)
 	int id = 0;
 	std::list<std::string> modelfilenames;
 
+	tinyxml2::XMLDocument doc;
+	doc.LoadFile(modelFileName.c_str());
 
-
-	for (tinyxml2::XMLElement* xmlNodeObject = doc->FirstChildElement("map")->FirstChildElement("models")->FirstChildElement("model"); xmlNodeObject != NULL; xmlNodeObject = xmlNodeObject->NextSiblingElement())
+	for (tinyxml2::XMLElement* xmlNodeObject = doc.FirstChildElement("map")->FirstChildElement("models")->FirstChildElement("model"); xmlNodeObject != NULL; xmlNodeObject = xmlNodeObject->NextSiblingElement())
 	{
 		newmodefilename = xmlNodeObject->GetText();
 		bool alreadyLoaded = false;
@@ -59,7 +60,26 @@ std::vector<Model*> ResourceManager::loadAllModels(tinyxml2::XMLDocument* doc)
 		}
 	}
 
-	for (tinyxml2::XMLElement* xmlNodeObject = doc->FirstChildElement("map")->FirstChildElement("objects")->FirstChildElement("object"); xmlNodeObject != NULL; xmlNodeObject = xmlNodeObject->NextSiblingElement())
+	for (tinyxml2::XMLElement* xmlNodeObject = doc.FirstChildElement("map")->FirstChildElement("objects")->FirstChildElement("object"); xmlNodeObject != NULL; xmlNodeObject = xmlNodeObject->NextSiblingElement())
+	{
+		newmodefilename = xmlNodeObject->FirstChildElement("modelfile")->GetText();
+		bool alreadyLoaded = false;
+
+		for (std::string modefilename : modelfilenames)
+		{
+			if (modefilename == newmodefilename)
+			{
+				alreadyLoaded = true;
+				break;
+			}
+		}
+		if (!alreadyLoaded)
+		{
+			modelfilenames.push_back(newmodefilename);
+		}
+	}
+
+	for (tinyxml2::XMLElement* xmlNodeObject = doc.FirstChildElement("map")->FirstChildElement("bots")->FirstChildElement("bot"); xmlNodeObject != NULL; xmlNodeObject = xmlNodeObject->NextSiblingElement())
 	{
 		newmodefilename = xmlNodeObject->FirstChildElement("modelfile")->GetText();
 		bool alreadyLoaded = false;
@@ -95,6 +115,8 @@ std::vector<Model*> ResourceManager::loadAllModels(tinyxml2::XMLDocument* doc)
 
 		models.push_back(newModel);
 	}
+
+	Renderer::setModels(models);
 
 	Logger::log("Loading all Models - finished");
 	return models;
@@ -140,9 +162,6 @@ void ResourceManager::loadMap(std::string mapFileName)
 	doc.LoadFile(mapFileNameC);
 
 	std::string title = doc.FirstChildElement("map")->FirstChildElement("name")->GetText();
-
-	std::vector<Model*> models = loadAllModels(&doc);
-	Renderer::setModels(models);
 
 	//Player(s)
 	float fov = std::stof(ConfigManager::readConfig("fov"));
@@ -225,9 +244,12 @@ void ResourceManager::loadMap(std::string mapFileName)
 
 	for (tinyxml2::XMLElement* xmlNodeBot = doc.FirstChildElement("map")->FirstChildElement("bots")->FirstChildElement("bot"); xmlNodeBot != NULL; xmlNodeBot = xmlNodeBot->NextSiblingElement())
 	{
-		xmlNodeText = xmlNodeBot->FirstChildElement("modelfile")->GetText();
+
 
 		std::shared_ptr<NPC> newNPC = std::make_shared<NPC>(Renderer::getShader(ShaderType::basic));
+
+		xmlNodeText = xmlNodeBot->FirstChildElement("modelfile")->GetText();
+		newNPC->setModel(xmlNodeText);
 
 		xmlNodeText = xmlNodeBot->FirstChildElement("position")->GetText();
 		split(xmlNodeText, params, ';');
@@ -245,15 +267,22 @@ void ResourceManager::loadMap(std::string mapFileName)
 		xmlNodeText = xmlNodeBot->FirstChildElement("name")->GetText();
 		newNPC->setName(xmlNodeText);
 
+		xmlNodeText = xmlNodeBot->FirstChildElement("team")->GetText();
+		newNPC->setTeam(std::stoi(xmlNodeText));
+
 		if (xmlNodeBot->FirstChildElement("navpoints"))
 		{
 			if (xmlNodeBot->FirstChildElement("navpoints")->FirstChildElement("navpoint"))
 			{
 				newNPC->setCurrentTask(CurrentTask::Follow_NavPoint);
 			}
-			else
+			else if (newNPC->getTeam() == 0)
 			{
 				newNPC->setCurrentTask(CurrentTask::Follow_Character);
+			}
+			else
+			{
+				newNPC->setCurrentTask(CurrentTask::Attack);
 			}
 
 
@@ -303,178 +332,6 @@ void ResourceManager::loadMap(std::string mapFileName)
 	Logger::log("Loading all NPCs - finished");
 
 	Logger::log("Loading Map - finished");
-	Renderer::loadingProgressBar->setLifespan(-1);
-
-}
-
-void ResourceManager::reloadMap(std::string mapFileName)
-{
-	percentageLoading = 0;
-
-	std::vector<std::shared_ptr<Object>>* objects = &Game::objects;
-	std::vector<std::shared_ptr<Character>>* characters = &Game::characters;
-	std::vector< std::shared_ptr<Player>>* players = &Game::players;
-	std::vector< std::shared_ptr<NPC>>* npcs = &Game::npcs;
-
-	const char* mapFileNameC = mapFileName.c_str();
-	int32 numObject = 0;
-	tinyxml2::XMLDocument doc;
-	std::string xmlNodeText;
-	std::vector<std::string> params;
-
-
-	doc.LoadFile(mapFileNameC);
-
-	std::string title = doc.FirstChildElement("map")->FirstChildElement("name")->GetText();
-
-	//Player(s)
-	float fov = std::stof(ConfigManager::readConfig("fov"));
-	std::shared_ptr<Player> player = std::make_shared<Player>(Renderer::getShader(ShaderType::basic), fov, 800.0f, 600.0f);
-	player->setCollisionBoxType(CollisionBoxType::cube);
-	player->setName("Player");
-	player->setNumber(numObject);
-	objects->push_back(player);
-	players->push_back(player);
-	characters->push_back(player);
-	numObject++;
-
-
-
-	Logger::log("Loading all Objects");
-	float objectCount = 0;
-	for (tinyxml2::XMLElement* xmlNodeObject = doc.FirstChildElement("map")->FirstChildElement("objects")->FirstChildElement("object"); xmlNodeObject != NULL; xmlNodeObject = xmlNodeObject->NextSiblingElement())
-	{
-		objectCount++;
-	}
-
-	for (tinyxml2::XMLElement* xmlNodeObject = doc.FirstChildElement("map")->FirstChildElement("objects")->FirstChildElement("object"); xmlNodeObject != NULL; xmlNodeObject = xmlNodeObject->NextSiblingElement())
-	{
-		xmlNodeText = xmlNodeObject->FirstChildElement("modelfile")->GetText();
-
-		std::shared_ptr<Object> newObject = std::make_shared<Object>(Renderer::getShader(ShaderType::basic), xmlNodeText);
-
-		xmlNodeText = xmlNodeObject->FirstChildElement("position")->GetText();
-		split(xmlNodeText, params, ';');
-		newObject->setPosition(glm::vec3(stof(params[0]), stof(params[1]), stof(params[2])));
-
-		xmlNodeText = xmlNodeObject->FirstChildElement("rotation")->GetText();
-		split(xmlNodeText, params, ';');
-		newObject->setRotation(glm::vec3(stof(params[0]), stof(params[1]), stof(params[2])));
-
-		xmlNodeText = xmlNodeObject->FirstChildElement("scale")->GetText();
-		split(xmlNodeText, params, ';');
-		newObject->setScale(glm::vec3(stof(params[0]), stof(params[1]), stof(params[2])));
-
-		xmlNodeText = xmlNodeObject->FirstChildElement("type")->GetText();
-		newObject->setType(Object::convertStringToType(xmlNodeText));
-
-		xmlNodeText = xmlNodeObject->FirstChildElement("collisionboxtype")->GetText();
-		newObject->setCollisionBoxType(Object::convertStringToCollisionBoxType(xmlNodeText));
-
-		xmlNodeText = xmlNodeObject->FirstChildElement("gravity")->GetText();
-		if (xmlNodeText == "true") { newObject->setGravity(true); }
-		else { newObject->setGravity(false); }
-
-		xmlNodeText = xmlNodeObject->FirstChildElement("name")->GetText();
-		newObject->setName(xmlNodeText);
-
-		newObject->setNumber(numObject);
-
-		percentageLoading += 50 / objectCount;
-		Logger::log("loaded Object:" + newObject->printObject() + " - " + to_string_with_precision(percentageLoading, 0) + "%");
-		objects->push_back(newObject);
-
-
-
-		numObject++;
-	}
-	Logger::log("Loading all Objects - finished");
-
-
-
-	Logger::log("Loading all NPCs");
-	float npcCount = 0;
-	for (tinyxml2::XMLElement* xmlNodeBot = doc.FirstChildElement("map")->FirstChildElement("bots")->FirstChildElement("bot"); xmlNodeBot != NULL; xmlNodeBot = xmlNodeBot->NextSiblingElement())
-	{
-		npcCount++;
-	}
-
-	for (tinyxml2::XMLElement* xmlNodeBot = doc.FirstChildElement("map")->FirstChildElement("bots")->FirstChildElement("bot"); xmlNodeBot != NULL; xmlNodeBot = xmlNodeBot->NextSiblingElement())
-	{
-		xmlNodeText = xmlNodeBot->FirstChildElement("modelfile")->GetText();
-
-		std::shared_ptr<NPC> newNPC = std::make_shared<NPC>(Renderer::getShader(ShaderType::basic));
-
-		xmlNodeText = xmlNodeBot->FirstChildElement("position")->GetText();
-		split(xmlNodeText, params, ';');
-		newNPC->setPosition(glm::vec3(stof(params[0]), stof(params[1]), stof(params[2])));
-
-		xmlNodeText = xmlNodeBot->FirstChildElement("rotation")->GetText();
-		split(xmlNodeText, params, ';');
-		newNPC->setRotation(glm::vec3(stof(params[0]), stof(params[1]), stof(params[2])));
-
-		xmlNodeText = xmlNodeBot->FirstChildElement("scale")->GetText();
-		split(xmlNodeText, params, ';');
-		newNPC->setScale(glm::vec3(stof(params[0]), stof(params[1]), stof(params[2])));
-
-
-		xmlNodeText = xmlNodeBot->FirstChildElement("name")->GetText();
-		newNPC->setName(xmlNodeText);
-
-		if (xmlNodeBot->FirstChildElement("navpoints"))
-		{
-			if (xmlNodeBot->FirstChildElement("navpoints")->FirstChildElement("navpoint"))
-			{
-				newNPC->setCurrentTask(CurrentTask::Follow_NavPoint);
-			}
-			else
-			{
-				newNPC->setCurrentTask(CurrentTask::Follow_Character);
-			}
-
-
-			for (tinyxml2::XMLElement* xmlNodeNavPoint = xmlNodeBot->FirstChildElement("navpoints")->FirstChildElement("navpoint"); xmlNodeNavPoint != NULL; xmlNodeNavPoint = xmlNodeNavPoint->NextSiblingElement())
-			{
-				xmlNodeText = xmlNodeNavPoint->GetText();
-				split(xmlNodeText, params, ';');
-				newNPC->addNavPoint(glm::vec3(stof(params[0]), stof(params[1]), stof(params[2])));
-			}
-		}
-
-
-		newNPC->setNumber(numObject);
-
-		percentageLoading += 50 / npcCount;
-		Logger::log("loaded NPC:" + newNPC->printObject() + " - " + to_string_with_precision(percentageLoading, 0) + "%");
-		objects->push_back(newNPC);
-		npcs->push_back(newNPC);
-		characters->push_back(newNPC);
-
-		numObject++;
-	}
-
-
-
-	//random bots
-	int botcount = std::stoi(ConfigManager::readConfig("bots"));
-	for (int i = 0; i < botcount; i++)
-	{
-		float x = rand() % 100 - 50;
-		float z = rand() % 100 - 50;
-
-		std::shared_ptr<NPC> newNpc = std::make_shared<NPC>(Renderer::getShader(ShaderType::basic));
-		newNpc->setPosition(glm::vec3(x, 0, z));
-		newNpc->setNumber(numObject);
-		newNpc->setCurrentTask(CurrentTask::Follow_Character);
-
-		Logger::log("created NPC:" + newNpc->printObject());
-		objects->push_back(newNpc);
-		npcs->push_back(newNpc);
-		characters->push_back(newNpc);
-		numObject++;
-	}
-	Logger::log("Loading all NPCs - finished");
-
 }
 
 

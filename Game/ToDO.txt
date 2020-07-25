@@ -44,3 +44,5 @@
 - Vehicles
 
 - interactable objects in the world (buttons, levers)
+
+- collision detection with sweeping (now more running trough objects)

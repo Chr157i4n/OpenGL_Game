@@ -11,7 +11,9 @@ void Map::load(std::string mapFileName)
 {
 	Map::mapFileName = mapFileName;
 	
+	ResourceManager::loadAllModels(mapFileFolder + mapFileName);
 	ResourceManager::loadMap(mapFileFolder+mapFileName);
+	Renderer::loadingProgressBar->setLifespan(-1);
 }
 
 void Map::restart()
@@ -21,7 +23,7 @@ void Map::restart()
 	Game::players.clear();
 	Game::npcs.clear();
 
-	ResourceManager::reloadMap(mapFileFolder+mapFileName);
+	ResourceManager::loadMap(mapFileFolder+mapFileName);
 
 	for (std::shared_ptr<Object> object : Game::objects)
 	{

@@ -188,6 +188,10 @@ public:
 
 	float32 getHealth();
 
+	bool isAlive() {
+		return (this->getHealth() > 0) ? true : false;
+	}
+
 	virtual void addToHealth(float32 addHealth);
 
 	std::string printObject();
@@ -205,6 +209,8 @@ public:
 	bool getGravity();
 
 	void setModel(Model* newModel);
+
+	void setModel(std::string newModelFileName);
 
 	Model* getModel();
 

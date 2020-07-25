@@ -769,6 +769,11 @@ void Object::setModel(Model* newModel)
 	model = newModel;
 }
 
+void Object::setModel(std::string newModelFileName)
+{
+	this->model = ResourceManager::getModelByName(newModelFileName);
+}
+
 Model* Object::getModel()
 {
 	return model;

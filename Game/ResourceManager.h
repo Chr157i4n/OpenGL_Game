@@ -20,15 +20,13 @@ public:
 
 	static Shader* loadShader(std::string vertexShaderFilename, std::string fragmentShaderFilename);
 
-	static std::vector<Model*> loadAllModels(tinyxml2::XMLDocument* doc);
+	static std::vector<Model*> loadAllModels(std::string modelFileName);
 
 	static Model* loadModel(std::string modelFileName);
 
 	static Model* getModelByName(std::string modelFileName);
 
 	static void loadMap(std::string mapFileName);
-
-	static void reloadMap(std::string mapFileName);
 
 
 	static int loadCubemap(std::vector<std::string> faces);

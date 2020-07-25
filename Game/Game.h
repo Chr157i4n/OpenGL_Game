@@ -47,6 +47,7 @@
 //#define DEBUG_NPC
 
 enum GameState {
+	GAME_LOADING,
 	GAME_ACTIVE,
 	GAME_GAME_OVER,
 	GAME_PAUSED,

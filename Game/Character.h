@@ -36,6 +36,14 @@ public:
 
 	std::shared_ptr<Bullet> shoot();
 
+	int getTeam() {
+		return team;
+	}
+
+	void setTeam(int newTeam){
+		team = newTeam;
+	}
+
 protected:
 
 	bool isCrouched = false;
@@ -45,8 +53,8 @@ protected:
 	glm::vec3 lookDirection;
 
 
-	float32 forwardSpeed = 20;				//per second
-	float32 backwardSidewaySpeed = 10;		//per second
+	float32 forwardSpeed = 10;				//per second
+	float32 backwardSidewaySpeed = 5;		//per second
 	float32 upwardSpeed = 0;				//per second
 
 	const float32 heigth = 4;
@@ -54,5 +62,7 @@ protected:
 	float32 lastTimeShot=0;
 
 	glm::vec3 up;
+
+	int team = 0;
 };
 

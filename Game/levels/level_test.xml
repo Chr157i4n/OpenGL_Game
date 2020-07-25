@@ -3,14 +3,9 @@
   <name>Test Level</name>
   <models>
     <model>character.bmf</model>
-    <model>barrel.bmf</model>
     <model>arrow.bmf</model>
     <model>ground.bmf</model>
     <model>box.bmf</model>
-    <model>wall.bmf</model>
-    <model>block_low.bmf</model>
-    <model>block_low_ramp.bmf</model>
-    <model>fence.bmf</model>
   </models>
   <objects>
     <object>
@@ -556,8 +551,31 @@
   </objects>
   <bots>
     <bot>
+      <name>Bot_Team1_0</name>
+      <type>Bot</type>
+      <team>1</team>
+      <modelfile>character_team1.bmf</modelfile>
+      <position>-50;0;-50</position>
+      <rotation>0;0;0</rotation>
+      <scale>1;1;1</scale>
+      <navpoints>
+      </navpoints>
+    </bot>
+    <bot>
+      <name>Bot_Team2_0</name>
+      <type>Bot</type>
+      <team>2</team>
+      <modelfile>character_team2.bmf</modelfile>
+      <position>50;0;50</position>
+      <rotation>0;0;0</rotation>
+      <scale>1;1;1</scale>
+      <navpoints>
+      </navpoints>
+    </bot>
+    <bot>
       <name>Bot0</name>
       <type>Bot</type>
+      <team>0</team>
       <modelfile>character.bmf</modelfile>
       <position>15;0;40</position>
       <rotation>0;0;0</rotation>
@@ -568,6 +586,7 @@
     <bot>
       <name>Bot1</name>
       <type>Bot</type>
+      <team>0</team>
       <modelfile>character.bmf</modelfile>
       <position>10;0;10</position>
       <rotation>0;0;0</rotation>
@@ -582,6 +601,7 @@
     <bot>
       <name>Bot2</name>
       <type>Bot</type>
+      <team>0</team>
       <modelfile>character.bmf</modelfile>
       <position>20;0;20</position>
       <rotation>0;0;0</rotation>
@@ -594,6 +614,7 @@
     <bot>
       <name>Bot3</name>
       <type>Bot</type>
+      <team>0</team>
       <modelfile>character.bmf</modelfile>
       <position>-40;0;-40</position>
       <rotation>0;0;0</rotation>

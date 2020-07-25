@@ -87,17 +87,20 @@ std::vector<glm::vec3> NPC::getNavPoints()
 
 void NPC::doCurrentTask()
 {
-	if (currentTask == CurrentTask::Idle)
+	switch (currentTask)
 	{
+	case CurrentTask::Idle:
 
-	}
-	if (currentTask == CurrentTask::Follow_Character)
-	{
+		break;
+	case CurrentTask::Follow_Character:
 		followCharacter(Game::players[0]);
-	}
-	if (currentTask == CurrentTask::Follow_NavPoint)
-	{
+		break;
+	case CurrentTask::Follow_NavPoint:
 		followNavPoints();
+		break;
+	case CurrentTask::Attack:
+		attackCurrentTarget();
+		break;
 	}
 }
 
@@ -141,4 +144,42 @@ void NPC::evade(CollisionResult collisionResult)
 void NPC::reactToCollision(CollisionResult collisionResult)
 {
 	this->Object::reactToCollision(collisionResult);
+}
+
+void NPC::calculateNextTarget()
+{
+	std::shared_ptr<Character> nextTarget = nullptr;
+	float nextTargetdistance= std::numeric_limits<float>::max();
+
+	for (std::shared_ptr<Character> character : Game::characters)
+	{
+		if (character->getType() & ObjectType::Object_Player) continue;
+		if (character->getNumber() == this->getNumber()) continue;
+		if (character->getTeam() == this->getTeam()) continue;
+
+		float distance = glm::length( character->getPosition() - this->getPosition() );
+
+		if (distance < nextTargetdistance)
+		{
+			nextTargetdistance = distance;
+			nextTarget = character;
+		}
+	}
+
+	currentTarget = nextTarget;
+}
+
+void NPC::attackCurrentTarget()
+{
+	if (currentTarget != nullptr)
+	{
+		if (currentTarget->isAlive())
+		{
+			followCharacter(currentTarget);
+			return;
+		}
+	}
+
+	calculateNextTarget();
+
 }
