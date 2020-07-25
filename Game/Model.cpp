@@ -79,13 +79,13 @@ inline void Mesh::renderShadowMap()
 
 
 
-void Model::init(const char* filename, Shader* shader) {
+bool Model::init(const char* filename, Shader* shader) {
 	uint64 numMeshes = 0;
 	uint64 numMaterials = 0;
 	std::ifstream input = std::ifstream(filename, std::ios::in | std::ios::binary);
 	if (!input.is_open()) {
 		Logger::log("Modelfile "+ std::string(filename) +" not found");
-		return;
+		return false;
 	}
 
 	// Materials
@@ -219,6 +219,8 @@ void Model::init(const char* filename, Shader* shader) {
 	boundingBoxDimension.x = dimension.x + dimension.z;
 	boundingBoxDimension.y = dimension.y*2;
 	boundingBoxDimension.z = dimension.x + dimension.z;
+
+	return true;
 
 }
 

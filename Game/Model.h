@@ -66,7 +66,7 @@ private:
 
 class Model {
 public:
-    void init(const char* filename, Shader* shader);
+    bool init(const char* filename, Shader* shader);
 
     void render();
 

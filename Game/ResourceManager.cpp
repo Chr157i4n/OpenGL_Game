@@ -41,6 +41,10 @@ std::vector<Model*> ResourceManager::loadAllModels(std::string modelFileName)
 	tinyxml2::XMLDocument doc;
 	doc.LoadFile(modelFileName.c_str());
 
+
+	//get all modelnames
+	modelfilenames.push_back("replacemeball.bmf");
+
 	for (tinyxml2::XMLElement* xmlNodeObject = doc.FirstChildElement("map")->FirstChildElement("models")->FirstChildElement("model"); xmlNodeObject != NULL; xmlNodeObject = xmlNodeObject->NextSiblingElement())
 	{
 		newmodefilename = xmlNodeObject->GetText();
@@ -98,13 +102,15 @@ std::vector<Model*> ResourceManager::loadAllModels(std::string modelFileName)
 		}
 	}
 
-
+	//load models
 	float modelCount = modelfilenames.size();
 
 	for (std::string modefilename : modelfilenames)
 	{
 
 		Model* newModel = loadModel(modelFolder + "/" + modefilename);
+		if (newModel == nullptr) continue;
+
 		newModel->setModelName(modefilename);
 		newModel->setModelID(id++);
 
@@ -127,7 +133,10 @@ Model* ResourceManager::loadModel(std::string modelFileName)
 	Model* newModel = new Model();
 
 	const char* fileNameChar = modelFileName.c_str();
-	newModel->init(fileNameChar, Renderer::getShader(ShaderType::basic));
+	if (!newModel->init(fileNameChar, Renderer::getShader(ShaderType::basic)))
+	{
+		return nullptr;
+	}
 
 	return newModel;
 }
@@ -141,6 +150,7 @@ Model* ResourceManager::getModelByName(std::string modelFileName)
 			return model;
 		}
 	}
+	return Renderer::getModels()[0];
 }
 
 
