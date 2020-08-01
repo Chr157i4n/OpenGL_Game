@@ -34,7 +34,7 @@ public:
 
 	static void initLoadingScreen();
 
-	static void showLoadingScreen();
+	static void drawLoadingScreen();
 
 
 	static void calcLight();
@@ -50,6 +50,10 @@ public:
 	static void renderImage(VertexBuffer* imageVertexBuffer, int imageIndex);
 
 	static void renderObjects();
+
+	static void renderTransparentObjects();
+
+	static void renderOpaqueObjects();
 
 	static void renderAxis(glm::vec3 vector, int x, int y);
 
@@ -69,10 +73,18 @@ public:
 
 	static void applyPostprocessingEffect(PostProcessingEffect postprocessingeffect, float32 duration);
 
+	static FrameBuffer frameBuffer;
+	static FrameBuffer depthMapBuffer;
+
+	static glm::vec3 transformedSunDirection3;
+
+	static UI_Element_ProgressBar* loadingProgressBar;
+
 
 private:
-	static void initLight();
 	
+	static std::vector<float32>postprocessingEffectDuration; //if this value is above 0 the effect will be applied
+
 	static Shader* shaderSkybox;
 	static Shader* shaderBasic;
 	static Shader* shaderImage;
@@ -80,9 +92,8 @@ private:
 	static Shader* shaderPostProcessing;
 	static Shader* shaderDepthMap;
 
-	static unsigned int loadingScreenTexture;
-
-	static unsigned int skyboxTexture;
+	static unsigned int loadingScreenTexture;		//textureslot
+	static unsigned int skyboxTexture;				//textureslot
 	static VertexBuffer* skyboxVertexBuffer;
 	static VertexBuffer* axisVertexBuffer;
 	static VertexBuffer* screenVertexBuffer;
@@ -94,9 +105,14 @@ private:
 	static int modelUniformIndex;
 	static int viewUniformIndex;
 	static int projUniformIndex;
-	static int skyboxViewProjectionUniformIndex;
+	static int skyboxViewUniformIndex;
+	static int skyboxProjUniformIndex;
 	static int lightdirectionUniformIndex;
 	static int lightpositionUniformIndex;
+	static int envmapUniformIndex;
+	static int lightspacematrixUniformIndex;
+	static int shadowmapUniformIndex;
+		
 
 	static glm::mat4 modelViewProj;
 
@@ -108,21 +124,10 @@ private:
 	static bool wireframeMode;
 	static bool showNormalMode;
 
-	static int shadowMapResolution;
-
-
-public:
-	static FrameBuffer frameBuffer;
-	static FrameBuffer depthMapBuffer;
-
-	static glm::vec3 transformedSunDirection3;
-
-	static UI_Element_ProgressBar* loadingProgressBar;
-
-	//if this value is above 0 the effect will be applied
-	static std::vector<float32>postprocessingEffectDuration;
 	
+	static void initLight();
 
+	static int shadowMapResolution;
 	
 };
 

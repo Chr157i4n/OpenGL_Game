@@ -25,7 +25,7 @@ void NPC::followCharacter(std::shared_ptr <Character> character)
 
 	if (distance < maxDistance)
 	{
-		lookDirection.y += (0.2 * Game::getDelta() * pow(distance,2));		//aim a little bit higher, when the enemy is more far away
+		lookDirection.y += (0.0002 * Game::getDelta() * pow(distance,2));		//aim a little bit higher, when the enemy is more far away
 	}
 
 	lookDirection = glm::normalize(lookDirection);

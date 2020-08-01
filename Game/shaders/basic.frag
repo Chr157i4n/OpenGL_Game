@@ -40,10 +40,12 @@ struct SpotLight {
 };
 
 //Input from VRAM
-in vec3 v_position;
-in vec4 v_position_light_space;
+in vec3 v_position_world_space;
+in vec3 v_position_view_space;
+in vec3 v_position_light_space;
 in vec2 v_tex_coord;
 in mat3 v_tbn;
+in vec3 v_normal_world_space;
 
 //Input from CPU
 uniform Material u_material;
@@ -51,24 +53,29 @@ uniform DirectionalLight u_directional_light;
 uniform PointLight u_point_light;
 uniform SpotLight u_spot_light;
 
-uniform sampler2D u_diffuse_map;
-uniform sampler2D u_normal_map;
-uniform sampler2D u_shadowMap;
+uniform sampler2D u_diffuse_map;    //textureslot 0
+uniform sampler2D u_normal_map;     //textureslot 1
+uniform samplerCube u_env_map;      //textureslot 2
+uniform sampler2D u_shadow_map;     //textureslot 3
+
+uniform vec3 u_camerapos;
 
 uniform int u_showNormalMode;
 uniform int u_isgettingdamaged;
+
+
 
 //Output
 layout(location = 0) out vec4 f_color;
 
 
 
-float ShadowCalculation(vec4 position_light_space)
+float ShadowCalculation(vec3 position_light_space)
 {
     float shadow = 0.0;
     vec3 projCoords = position_light_space.xyz;
     projCoords = projCoords * 0.5 + 0.5;    // transform to [0,1] range
-    vec2 texelSize = 1.0 / textureSize(u_shadowMap, 0);
+    vec2 texelSize = 1.0 / textureSize(u_shadow_map, 0);
     float currentDepth = projCoords.z;
 
     float bias = 0.00001;
@@ -76,7 +83,7 @@ float ShadowCalculation(vec4 position_light_space)
     {
         for(int y = -1; y <= 1; ++y)
         {
-            float pcfDepth = texture(u_shadowMap, projCoords.xy + vec2(x, y) * texelSize).r; 
+            float pcfDepth = texture(u_shadow_map, projCoords.xy + vec2(x, y) * texelSize).r; 
             shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;        
         }    
     }
@@ -87,7 +94,7 @@ float ShadowCalculation(vec4 position_light_space)
 void main()
 {
     // Vector from fragment to camera (camera always at 0,0,0)
-    vec3 view = normalize(-v_position);
+    vec3 view = normalize(-v_position_view_space);
 
     // Normal from normal map
     vec3 normal = texture(u_normal_map, v_tex_coord).rgb;
@@ -115,16 +122,16 @@ void main()
     vec3 specular = u_directional_light.specular * pow(max(dot(reflection, view), 0.000001), u_material.shininess) * u_material.specular;
 
     //PointLight
-    light = normalize(u_point_light.position - v_position);
+    light = normalize(u_point_light.position - v_position_view_space);
     reflection = reflect(-light, normal);
-    float distance = length(u_point_light.position - v_position);
+    float distance = length(u_point_light.position - v_position_view_space);
     float attentuation = 1.0 / ((1.0) + (u_point_light.linear*distance) + (u_point_light.quadratic*distance*distance));
     ambient += attentuation * u_point_light.ambient * diffuseColor.xyz;
     diffuse += attentuation * u_point_light.diffuse * max(dot(normal, light), 0.0) * diffuseColor.xyz;
     specular += attentuation * u_point_light.specular * pow(max(dot(reflection, view), 0.000001), u_material.shininess) * u_material.specular;
 
     //SpotLight
-    light = normalize(u_spot_light.position - v_position);
+    light = normalize(u_spot_light.position - v_position_view_space);
     reflection = reflect(-light, normal);
     float theta = dot(light, u_spot_light.direction);
     float epsilon = u_spot_light.innerCone - u_spot_light.outerCone;
@@ -140,11 +147,20 @@ void main()
     float shadow = ShadowCalculation(v_position_light_space); 
 
     //sum phong elements
-    f_color = vec4(ambient + (1.0 - shadow) * (diffuse + specular + u_material.emissive), alpha);
+    f_color = vec4(ambient + (1.0 - shadow) * (diffuse /*+ specular*/ + u_material.emissive), alpha);
 
     if(u_isgettingdamaged==1)
     {
-    f_color.r += 0.5;
+        f_color.r += 0.5;
     }
 
+    vec3 I = normalize(v_position_world_space - u_camerapos);
+    vec3 R = reflect(I, v_normal_world_space);
+    //float ratio = 1.00 / 1.52;
+    //vec3 R = refract(I, v_normal_world_space, ratio);
+    vec4 envmapcolor = vec4(texture(u_env_map, R).rgb, 1.0);
+
+    f_color = mix(f_color, envmapcolor, u_material.specular.x/2);
+    //f_color = vec4( envmapcolor.rgb,1);
+    
 }

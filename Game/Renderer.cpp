@@ -36,47 +36,47 @@ float screenVertices[] = {
 
 float skyboxVertices[] = {
 	// positions          
-	-400.0f,  400.0f, -400.0f,
-	-400.0f, -400.0f, -400.0f,
-	 400.0f, -400.0f, -400.0f,
-	 400.0f, -400.0f, -400.0f,
-	 400.0f,  400.0f, -400.0f,
-	-400.0f,  400.0f, -400.0f,
+	-1.0f,  1.0f, -1.0f,
+	-1.0f, -1.0f, -1.0f,
+	 1.0f, -1.0f, -1.0f,
+	 1.0f, -1.0f, -1.0f,
+	 1.0f,  1.0f, -1.0f,
+	-1.0f,  1.0f, -1.0f,
 
-	-400.0f, -400.0f,  400.0f,
-	-400.0f, -400.0f, -400.0f,
-	-400.0f,  400.0f, -400.0f,
-	-400.0f,  400.0f, -400.0f,
-	-400.0f,  400.0f,  400.0f,
-	-400.0f, -400.0f,  400.0f,
+	-1.0f, -1.0f,  1.0f,
+	-1.0f, -1.0f, -1.0f,
+	-1.0f,  1.0f, -1.0f,
+	-1.0f,  1.0f, -1.0f,
+	-1.0f,  1.0f,  1.0f,
+	-1.0f, -1.0f,  1.0f,
 
-	 400.0f, -400.0f, -400.0f,
-	 400.0f, -400.0f,  400.0f,
-	 400.0f,  400.0f,  400.0f,
-	 400.0f,  400.0f,  400.0f,
-	 400.0f,  400.0f, -400.0f,
-	 400.0f, -400.0f, -400.0f,
+	 1.0f, -1.0f, -1.0f,
+	 1.0f, -1.0f,  1.0f,
+	 1.0f,  1.0f,  1.0f,
+	 1.0f,  1.0f,  1.0f,
+	 1.0f,  1.0f, -1.0f,
+	 1.0f, -1.0f, -1.0f,
 
-	-400.0f, -400.0f,  400.0f,
-	-400.0f,  400.0f,  400.0f,
-	 400.0f,  400.0f,  400.0f,
-	 400.0f,  400.0f,  400.0f,
-	 400.0f, -400.0f,  400.0f,
-	-400.0f, -400.0f,  400.0f,
+	-1.0f, -1.0f,  1.0f,
+	-1.0f,  1.0f,  1.0f,
+	 1.0f,  1.0f,  1.0f,
+	 1.0f,  1.0f,  1.0f,
+	 1.0f, -1.0f,  1.0f,
+	-1.0f, -1.0f,  1.0f,
 
-	-400.0f,  400.0f, -400.0f,
-	 400.0f,  400.0f, -400.0f,
-	 400.0f,  400.0f,  400.0f,
-	 400.0f,  400.0f,  400.0f,
-	-400.0f,  400.0f,  400.0f,
-	-400.0f,  400.0f, -400.0f,
+	-1.0f,  1.0f, -1.0f,
+	 1.0f,  1.0f, -1.0f,
+	 1.0f,  1.0f,  1.0f,
+	 1.0f,  1.0f,  1.0f,
+	-1.0f,  1.0f,  1.0f,
+	-1.0f,  1.0f, -1.0f,
 
-	-400.0f, -400.0f, -400.0f,
-	-400.0f, -400.0f,  400.0f,
-	 400.0f, -400.0f, -400.0f,
-	 400.0f, -400.0f, -400.0f,
-	-400.0f, -400.0f,  400.0f,
-	 400.0f, -400.0f,  400.0f
+	-1.0f, -1.0f, -1.0f,
+	-1.0f, -1.0f,  1.0f,
+	 1.0f, -1.0f, -1.0f,
+	 1.0f, -1.0f, -1.0f,
+	-1.0f, -1.0f,  1.0f,
+	 1.0f, -1.0f,  1.0f
 };
 
 float axisVertices[] = {
@@ -109,14 +109,16 @@ VertexBuffer* Renderer::screenVertexBuffer;
 
 std::vector<Model*> Renderer::models;
 
-int Renderer::skyboxViewProjectionUniformIndex;
-
+int Renderer::skyboxViewUniformIndex;
+int Renderer::skyboxProjUniformIndex;
 int Renderer::modelUniformIndex;
 int Renderer::viewUniformIndex;
 int Renderer::projUniformIndex;
-
 int Renderer::lightdirectionUniformIndex;
 int Renderer::lightpositionUniformIndex;
+int Renderer::envmapUniformIndex;
+int Renderer::lightspacematrixUniformIndex;
+int Renderer::shadowmapUniformIndex;
 
 glm::vec3 Renderer::sunDirection;
 glm::vec3 Renderer::spotLightPosition;
@@ -147,12 +149,11 @@ void Renderer::initOpenGL()
 	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
 	SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-	SDL_GL_SetSwapInterval(1);
 
 	/*SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 8);*/
 
-	SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
+	//SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
 
 
 #ifdef _DEBUG
@@ -180,6 +181,9 @@ void Renderer::initOpenGL()
 
 	Game::window = SDL_CreateWindow("OpenGL-Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, resolution_width, resolution_height, flags);
 	SDL_GLContext glContext = SDL_GL_CreateContext(Game::window);
+
+	int vsync = std::stoi(ConfigManager::readConfig("v_sync"));
+	SDL_GL_SetSwapInterval(vsync);
 
 	GLenum err = glewInit();
 	if (err != GLEW_OK)
@@ -239,11 +243,16 @@ void Renderer::init()
 	skyboxTexture = ResourceManager::loadCubemap(faces);
 
 	//get Uniform location indices for passing data to the GPU
-	skyboxViewProjectionUniformIndex = GLCALL(glGetUniformLocation(shaderSkybox->getShaderId(), "u_viewprojection"));
+	skyboxViewUniformIndex = GLCALL(glGetUniformLocation(shaderSkybox->getShaderId(), "u_view"));
+	skyboxProjUniformIndex = GLCALL(glGetUniformLocation(shaderSkybox->getShaderId(), "u_proj"));
 
 	modelUniformIndex = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_model"));
 	viewUniformIndex = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_view"));
 	projUniformIndex = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_proj"));
+
+	envmapUniformIndex = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_env_map"));
+	lightspacematrixUniformIndex = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_light_space_matrix"));
+	shadowmapUniformIndex = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_shadow_map"));
 
 	initLight();
 }
@@ -304,7 +313,7 @@ void Renderer::initLoadingScreen()
 	loadingScreenTexture = ResourceManager::loadImage("images/loading_screen.png");
 }
 
-void Renderer::showLoadingScreen() {
+void Renderer::drawLoadingScreen() {
 
 	GLCALL(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
 	GLCALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
@@ -358,13 +367,8 @@ void Renderer::calcShadows()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
-	//glBindTexture(GL_TEXTURE_2D, depthMapBuffer.getTextureId()[2]);
-
-
-	GLCALL(glActiveTexture(GL_TEXTURE2));
+	GLCALL(glActiveTexture(GL_TEXTURE3));
 	GLCALL(glBindTexture(GL_TEXTURE_2D, depthMapBuffer.getTextureId()[2]));
-	GLCALL(glActiveTexture(GL_TEXTURE0));
-
 
 
 	shaderBasic->bind();
@@ -374,12 +378,9 @@ void Renderer::calcShadows()
 	glm::mat4 depthViewMatrix = glm::lookAt(sunDirection, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 	glm::mat4 lightSpaceMatrix = depthProjectionMatrix * depthViewMatrix;
 
-	int lightSpaceMatrixLocation1 = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_light_space_matrix"));
-	GLCALL(glUniformMatrix4fv(lightSpaceMatrixLocation1, 1, GL_FALSE, &lightSpaceMatrix[0][0]));
+	GLCALL(glUniformMatrix4fv(lightspacematrixUniformIndex, 1, GL_FALSE, &lightSpaceMatrix[0][0]));
 
-	int shadowMapUniformLocation = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_shadowMap"));
-	GLCALL(glUniform1i(shadowMapUniformLocation, 2));
-	//GLCALL(glUniform1i(normalMapLocation, 1));
+	GLCALL(glUniform1i(shadowmapUniformIndex, 3));
 
 }
 
@@ -457,15 +458,18 @@ void Renderer::renderSkybox()
 	shaderSkybox->bind();
 	skyboxVertexBuffer->bind();
 
-	glDepthMask(GL_FALSE);
 	glCullFace(GL_BACK);
-	// ... set view and projection matrix
-	glm::mat4 viewproj = Game::players[0]->getViewProj();
-	glUniformMatrix4fv(skyboxViewProjectionUniformIndex, 1, GL_FALSE, &viewproj[0][0]);
+	glDepthFunc(GL_LEQUAL);
+
+	glm::mat4 view = glm::mat4(glm::mat3(Game::players[0]->getView()));
+	glm::mat4 proj = Game::players[0]->getProj();
+	glUniformMatrix4fv(skyboxViewUniformIndex, 1, GL_FALSE, &view[0][0]);
+	glUniformMatrix4fv(skyboxProjUniformIndex, 1, GL_FALSE, &proj[0][0]);
 
 	glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
 	glDrawArrays(GL_TRIANGLES, 0, 36);
-	glDepthMask(GL_TRUE);
+
+	glDepthFunc(GL_LESS);
 
 	skyboxVertexBuffer->unbind();
 	shaderSkybox->unbind();
@@ -481,8 +485,9 @@ void Renderer::renderImage(VertexBuffer* imageVertexBuffer, int imageIndex)
 	GLCALL(glDisable(GL_CULL_FACE));
 	GLCALL(glDisable(GL_DEPTH_TEST));
 
-	glBindTexture(GL_TEXTURE_2D, imageIndex);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+	GLCALL(glActiveTexture(GL_TEXTURE0));
+	GLCALL(glBindTexture(GL_TEXTURE_2D, imageIndex));
+	GLCALL(glDrawArrays(GL_TRIANGLES, 0, 6));
 
 	GLCALL(glDepthMask(GL_TRUE));
 	GLCALL(glEnable(GL_CULL_FACE));
@@ -495,7 +500,12 @@ void Renderer::renderImage(VertexBuffer* imageVertexBuffer, int imageIndex)
 
 void Renderer::renderObjects()
 {
-	glCullFace(GL_BACK);
+	GLCALL(glCullFace(GL_BACK));
+
+	shaderBasic->bind();
+	int cameraposUniformIndex = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_camerapos"));
+	GLCALL(glUniform3fv(cameraposUniformIndex, 1, (float*) &Game::players[0]->getCameraPosition()));
+
 
 	for (int i = 0; i <= 1; i++)
 	{
@@ -546,6 +556,11 @@ void Renderer::renderObjects()
 			int modelUniformLocation = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_model"));
 			GLCALL(glUniformMatrix4fv(modelUniformLocation, 1, GL_FALSE, &model[0][0]));
 
+			//per object a different envmap can be used
+			GLCALL(glActiveTexture(GL_TEXTURE2));
+			GLCALL(glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture));
+			GLCALL(glUniform1i(envmapUniformIndex, 2));
+
 			GLCALL(glUniformMatrix4fv(modelUniformIndex, 1, GL_FALSE, &model[0][0]));
 			GLCALL(glUniformMatrix4fv(viewUniformIndex, 1, GL_FALSE, &view[0][0]));
 			GLCALL(glUniformMatrix4fv(projUniformIndex, 1, GL_FALSE, &proj[0][0]));
@@ -554,6 +569,146 @@ void Renderer::renderObjects()
 
 			object->unbindShader();
 		}
+	}
+}
+
+void Renderer::renderTransparentObjects()
+{
+	GLCALL(glCullFace(GL_BACK));
+
+	shaderBasic->bind();
+	int cameraposUniformIndex = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_camerapos"));
+	GLCALL(glUniform3fv(cameraposUniformIndex, 1, (float*)&Game::players[0]->getCameraPosition()));
+
+	//Logger::log("Camera position: " + std::to_string(Game::players[0]->getCameraPosition().x) + " " + std::to_string(Game::players[0]->getCameraPosition().y) + " " + std::to_string(Game::players[0]->getCameraPosition().z));
+
+		for (std::shared_ptr<Object> object : Game::objects)
+		{
+			if (!object->getModel()->getHasTransparentTexture()) continue;
+
+
+			glm::mat4 model = glm::mat4(1.0f);
+			//model = glm::scale(model, glm::vec3(1.0f));
+
+			//move to position of model
+			model = glm::translate(model, object->getPosition());
+
+			//rotate model around X
+			float angle = object->getRotation().x;
+			model = glm::rotate(model, glm::radians(angle), glm::vec3(1, 0, 0));
+
+			//rotate model around Y
+			angle = object->getRotation().y;
+			model = glm::rotate(model, glm::radians(angle), glm::vec3(0, 1, 0));
+
+			//rotate model around z
+			angle = object->getRotation().z;
+			model = glm::rotate(model, glm::radians(angle), glm::vec3(0, 0, 1));
+
+			//view and projection
+			modelViewProj = Game::players[0]->getViewProj() * model;
+			glm::mat4 modelView = Game::players[0]->getView() * model;
+			glm::mat4 invModelView = glm::transpose(glm::inverse(modelView));
+
+
+			glm::mat4 view = Game::players[0]->getView();
+			glm::mat4 proj = Game::players[0]->getProj();
+
+			object->bindShader();
+
+			int isGettingDamagedUniformLocation = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_isgettingdamaged"));
+			if (object->isGettingDamaged()) {
+
+				GLCALL(glUniform1i(isGettingDamagedUniformLocation, 1));
+			}
+			else {
+				GLCALL(glUniform1i(isGettingDamagedUniformLocation, 0));
+			}
+
+			int modelUniformLocation = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_model"));
+			GLCALL(glUniformMatrix4fv(modelUniformLocation, 1, GL_FALSE, &model[0][0]));
+
+			//per object a different envmap can be used
+			GLCALL(glActiveTexture(GL_TEXTURE2));
+			GLCALL(glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture));
+			GLCALL(glUniform1i(envmapUniformIndex, 2));
+
+			GLCALL(glUniformMatrix4fv(modelUniformIndex, 1, GL_FALSE, &model[0][0]));
+			GLCALL(glUniformMatrix4fv(viewUniformIndex, 1, GL_FALSE, &view[0][0]));
+			GLCALL(glUniformMatrix4fv(projUniformIndex, 1, GL_FALSE, &proj[0][0]));
+
+			object->render();
+
+			object->unbindShader();
+		}
+}
+
+void Renderer::renderOpaqueObjects()
+{
+	GLCALL(glCullFace(GL_BACK));
+
+	shaderBasic->bind();
+	int cameraposUniformIndex = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_camerapos"));
+	GLCALL(glUniform3fv(cameraposUniformIndex, 1, (float*)&Game::players[0]->getCameraPosition()));
+
+	for (std::shared_ptr<Object> object : Game::objects)
+	{
+		if (object->getModel()->getHasTransparentTexture()) continue;
+
+
+		glm::mat4 model = glm::mat4(1.0f);
+		//model = glm::scale(model, glm::vec3(1.0f));
+
+		//move to position of model
+		model = glm::translate(model, object->getPosition());
+
+		//rotate model around X
+		float angle = object->getRotation().x;
+		model = glm::rotate(model, glm::radians(angle), glm::vec3(1, 0, 0));
+
+		//rotate model around Y
+		angle = object->getRotation().y;
+		model = glm::rotate(model, glm::radians(angle), glm::vec3(0, 1, 0));
+
+		//rotate model around z
+		angle = object->getRotation().z;
+		model = glm::rotate(model, glm::radians(angle), glm::vec3(0, 0, 1));
+
+		//view and projection
+		modelViewProj = Game::players[0]->getViewProj() * model;
+		glm::mat4 modelView = Game::players[0]->getView() * model;
+		glm::mat4 invModelView = glm::transpose(glm::inverse(modelView));
+
+
+		glm::mat4 view = Game::players[0]->getView();
+		glm::mat4 proj = Game::players[0]->getProj();
+
+		object->bindShader();
+
+		int isGettingDamagedUniformLocation = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_isgettingdamaged"));
+		if (object->isGettingDamaged()) {
+
+			GLCALL(glUniform1i(isGettingDamagedUniformLocation, 1));
+		}
+		else {
+			GLCALL(glUniform1i(isGettingDamagedUniformLocation, 0));
+		}
+
+		int modelUniformLocation = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_model"));
+		GLCALL(glUniformMatrix4fv(modelUniformLocation, 1, GL_FALSE, &model[0][0]));
+
+		//per object a different envmap can be used
+		GLCALL(glActiveTexture(GL_TEXTURE2));
+		GLCALL(glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture));
+		GLCALL(glUniform1i(envmapUniformIndex, 2));
+
+		GLCALL(glUniformMatrix4fv(modelUniformIndex, 1, GL_FALSE, &model[0][0]));
+		GLCALL(glUniformMatrix4fv(viewUniformIndex, 1, GL_FALSE, &view[0][0]));
+		GLCALL(glUniformMatrix4fv(projUniformIndex, 1, GL_FALSE, &proj[0][0]));
+
+		object->render();
+
+		object->unbindShader();
 	}
 }
 

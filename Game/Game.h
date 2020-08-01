@@ -9,6 +9,8 @@
 #include <vector>
 #include <cmath>
 #include <memory>
+#include <chrono>
+#include <thread>
 
 //#define GLEW_STATIC
 #include <GL/glew.h>
@@ -21,23 +23,26 @@
 #include "libs/glm/ext/matrix_transform.hpp"
 #include "libs/glm/gtc/matrix_transform.hpp"
 
-
+//UI
+#include "Menu.h"
 #include "UI.h"
 #include "UI_Element_Label.h"
 #include "UI_Element_ProgressBar.h"
 #include "UI_Element_Graph.h"
 
+//Game Graphics
 #include "Renderer.h"
-
 #include "Shader.h"
+
+//Game Logic
 #include "Object.h"
 #include "Player.h"
 #include "NPC.h"
 #include "Bullet.h"
 
+//Resourcemanagment
 #include "ResourceManager.h"
 #include "ConfigManager.h"
-
 #include "Map.h"
 
 
@@ -113,12 +118,6 @@ public:
 
 	static int getWindowHeight();
 
-	static float32 getTimestamp();
-
-	/// <summary>
-	/// returns the delta time between this and the last frame in seconds
-	/// </summary>
-	/// <returns>delta time in s</returns>
 	static float32 getDelta()
 	{
 		return delta;
@@ -144,6 +143,13 @@ public:
 		return showInfo;
 	}
 
+	static void togglePause();
+
+	static void toggleMenu();
+
+	static void toggleFullscreen();
+
+
 	static std::vector< std::shared_ptr<Object> > map;
 	static std::vector< std::shared_ptr<Object> > objects;
 	static std::vector< std::shared_ptr<Character> > characters;
@@ -154,6 +160,25 @@ public:
 	static SDL_Window* window;
 
 	static irrklang::ISoundEngine* SoundEngine;
+
+	static bool pressedKeys[20];
+
+	static float32 FPS;
+	static float32 fps_limit;
+	static bool close;
+
+	static uint64 perfCounterFrequency;
+	static uint64 lastCounter;
+	static float32 delta;
+
+	static bool showInfo;
+	static bool showShadowMap;
+	static bool postprocess;
+
+	static GameState gameState;
+	static int maxBulletCount;
+
+	static Menu* menu;
 
 private:
 
@@ -171,37 +196,8 @@ private:
 
 	static void deleteObjects();
 
-	static void togglePause();
-
-	static void toggleMenu();
-
-	static void toggleFullscreen();
-
 	static void updateAudioListener();
 
 	static void openConsole();
-
-
-
-	static bool pressedKeys[20];
-
-	static float time;
-	static uint32 FPS;
-	static bool close;
-
-	static uint64 perfCounterFrequency;
-	static uint64 lastCounter;
-	static float32 delta;
-
-	static bool showInfo;
-	static bool showShadowMap;
-	static bool postprocess;
-
-	static GameState gameState;
-	static int maxBulletCount;
-
-
-
-
 
 };

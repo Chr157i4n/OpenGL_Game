@@ -1,8 +1,5 @@
 #include "Game.h"
 
-//#include <chrono>
-//#include <thread>
-
 
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -22,8 +19,8 @@ std::vector< std::shared_ptr<Bullet> > Game::bullets;
 
 bool Game::pressedKeys[20];
 
-float Game::time = 0.0f;
-uint32  Game::FPS = 0;
+float32  Game::FPS = 0;
+float32  Game::fps_limit = 0;
 bool  Game::close = false;
 
 uint64 Game::perfCounterFrequency;
@@ -36,6 +33,8 @@ int Game::maxBulletCount = 20;
 
 bool Game::showShadowMap = false;
 bool Game::postprocess = true;
+
+Menu* Game::menu = nullptr;
 
 irrklang::ISoundEngine* Game::SoundEngine = irrklang::createIrrKlangDevice();
 
@@ -66,25 +65,34 @@ void Game::init()
 
 	UI::init();
 
-	Renderer::showLoadingScreen();
+	Renderer::drawLoadingScreen();
 
 
 	maxBulletCount = stoi(ConfigManager::readConfig("max_bullets"));
+	fps_limit = stof(ConfigManager::readConfig("fps_limit"));
 	std::string levelname = ConfigManager::readConfig("level");
 	Map::load(levelname);
+
+	menu = new Menu();
 
 	Renderer::init();
 }
 
 void Game::gameLoop()
 {
+	std::chrono::system_clock::time_point a = std::chrono::system_clock::now();
+	std::chrono::system_clock::time_point b = std::chrono::system_clock::now();
 
 	UI_Element_Graph* fpsGraph = new UI_Element_Graph(10, getWindowHeight() * 3 / 4, 100, 100, 0, glm::vec4(0, 0, 1, 1), true);
 	UI::addElement(fpsGraph);
 
+
 	while (!close)
 	{
-		time += delta;
+
+		a = std::chrono::system_clock::now();
+
+		#pragma region gameloop
 
 		processInput();
 
@@ -109,10 +117,10 @@ void Game::gameLoop()
 			for (std::shared_ptr<Object> object : objects)
 			{
 				if (object->getType() == ObjectType::Object_Environment) continue; //Environment doesnt move
-				
+
 				object->fall();
 				object->move();
-				
+
 			}
 
 			for (std::shared_ptr<Bullet> bullet : bullets)
@@ -129,7 +137,7 @@ void Game::gameLoop()
 				//player->update();
 				if (player->getPosition().x > 95 && player->getPosition().z > 95)
 				{
-					UI_Element* eastereggLabel = new UI_Element_Label(getWindowWidth() / 2-200, getWindowHeight() / 2-100, "Nice, du hast das Easter-Egg gefunden",1, 1, glm::vec4(1, 0, 0, 1), false);
+					UI_Element* eastereggLabel = new UI_Element_Label(getWindowWidth() / 2 - 200, getWindowHeight() / 2 - 100, "Nice, du hast das Easter-Egg gefunden", 1, 1, glm::vec4(1, 0, 0, 1), false);
 					UI::addElement(eastereggLabel);
 				}
 			}
@@ -141,9 +149,9 @@ void Game::gameLoop()
 
 			deleteObjects();
 
-			if (npcs.size() <= 0 && gameState== GameState::GAME_ACTIVE)
+			if (npcs.size() <= 0 && gameState == GameState::GAME_ACTIVE)
 			{
-				UI_Element* victoryLabel = new UI_Element_Label(getWindowWidth() / 2-100, getWindowHeight() / 2, "Du hast alle Bots besiegt", 1, 1, glm::vec4(0, 0, 1, 1), false);
+				UI_Element* victoryLabel = new UI_Element_Label(getWindowWidth() / 2 - 100, getWindowHeight() / 2, "Du hast alle Bots besiegt", 1, 1, glm::vec4(0, 0, 1, 1), false);
 				UI::addElement(victoryLabel);
 				gameState = GameState::GAME_GAME_OVER;
 			}
@@ -155,31 +163,42 @@ void Game::gameLoop()
 				object->calculationAfterFrame();
 			}
 
-			//std::chrono::duration<int, std::milli> timespan(100);
-			//std::this_thread::sleep_for(timespan);
-
-			
 		}
 
 		if (gameState == GameState::GAME_MENU)
 		{
-			GLCALL(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
-			GLCALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+			if (menu != nullptr)
+			{
 
-			UI::drawMenu();
+				GLCALL(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
+				GLCALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
-			SDL_GL_SwapWindow(window);
+				menu->drawMenu();
+
+				SDL_GL_SwapWindow(window);
+			}
 		}
 
-		uint64 endCounter = SDL_GetPerformanceCounter();
-		uint64 counterElasped = endCounter - lastCounter;
-		delta = ((float32)counterElasped) / (float32)perfCounterFrequency;
-		FPS = (uint32) std::round((float32)perfCounterFrequency / (float32)counterElasped);
+		#pragma endregion
 
-		fpsGraph->setValue((float32)perfCounterFrequency / (float32)counterElasped); //not rounded FPS
+		b = std::chrono::system_clock::now();
 
-		//Logger::log("FPS: " + std::to_string(FPS));
-		lastCounter = endCounter;
+		std::chrono::duration<double, std::milli> work_time = b - a;
+
+		if (work_time.count() < 1000/fps_limit && fps_limit!=0)
+		{
+			std::chrono::duration<double, std::milli> delta_ms(1000 / fps_limit - work_time.count());
+			auto delta_ms_duration = std::chrono::duration_cast<std::chrono::milliseconds>(delta_ms);
+			std::this_thread::sleep_for(std::chrono::milliseconds(delta_ms_duration.count()));
+		}
+
+		b = std::chrono::system_clock::now();
+		std::chrono::duration<double, std::milli> loop_time = b - a;
+
+		delta = loop_time.count();
+		FPS = 1 / (delta/1000);
+
+		fpsGraph->setValue(FPS);
 
 	}
 }
@@ -212,6 +231,9 @@ void Game::processCollision()
 	}
 }
 
+/// <summary>
+/// in this methods the game decides what needs to be rendered
+/// </summary>
 void Game::render()
 {
 
@@ -222,13 +244,15 @@ void Game::render()
 
 	if (postprocess) Renderer::frameBuffer.bind();
 	Renderer::clearBuffer();
+	Renderer::renderOpaqueObjects();
 	Renderer::renderSkybox();
-	Renderer::renderObjects();
+	Renderer::renderTransparentObjects();
 	if (postprocess) Renderer::frameBuffer.unbind();
 
 	//Postprocessing
 	if (postprocess) Renderer::postProcessing();
 
+	//show the Shadow map
 	if (showShadowMap) Renderer::showShadowMap();
 
 
@@ -276,7 +300,7 @@ void Game::processInput()
 					std::shared_ptr<Bullet> newBullet = players[0]->shoot();
 					//objects.push_back(newBullet);
 					//bullets.push_back(newBullet);
-					if(newBullet!=nullptr)	SoundEngine->play2D("audio/shoot.wav", false);
+					if (newBullet != nullptr)	SoundEngine->play2D("audio/shoot.wav", false);
 				}
 
 				SDL_SetRelativeMouseMode(SDL_TRUE);
@@ -339,16 +363,53 @@ void Game::keyPressed(SDL_Keycode key)
 	//Single Action Keys, just one time per pressing
 	if (!pressedKeys[action])
 	{
+		switch (gameState)
+		{
+			case GameState::GAME_ACTIVE:
+			case GameState::GAME_GAME_OVER:
+			case GameState::GAME_PAUSED:
+			{
+				switch (action)
+				{
+					case PlayerAction::interact:
+						// todo
+						break;
+					case PlayerAction::toggleFlashlight:
+						players[0]->toggleFlashlight();
+						break;
+				}
+				break;
+			}
+			case GameState::GAME_MENU:
+			{
+				switch (action)
+				{
+					case PlayerAction::moveForward:
+						menu->selectPreviousItem();
+						SoundEngine->play2D("audio/select.wav", false);
+						break;
+					case PlayerAction::moveBackward:
+						menu->selectNextItem();
+						SoundEngine->play2D("audio/select.wav", false);
+						break;
+					case PlayerAction::enter:
+						menu->enterSelectedMenuItem();
+						SoundEngine->play2D("audio/select.wav", false);
+						break;
+					case PlayerAction::jump:
+						menu->enterSelectedMenuItem();
+						SoundEngine->play2D("audio/select.wav", false);
+						break;
+				}
+				break;
+			}
+		}
+
+		//Keybind which should work in every gamemode
 		switch (action)
 		{
 		case PlayerAction::toggleInfo:
 			showInfo = !showInfo;
-			break;
-		case PlayerAction::interact:
-			// todo
-			break;
-		case PlayerAction::toggleFlashlight:
-			players[0]->toggleFlashlight();
 			break;
 		case PlayerAction::toggleWireframe:
 			Renderer::toggleWireframe();
@@ -374,59 +435,6 @@ void Game::keyPressed(SDL_Keycode key)
 		case PlayerAction::toggleConsole:
 			openConsole();
 			break;
-		}
-
-
-		if (gameState == GameState::GAME_MENU)
-		{
-			if (action == PlayerAction::moveForward)
-			{
-				for (int i = 0; i < UI::getMenuItemList().size(); i++)
-				{
-					if (UI::getMenuItemList()[i]->selected)
-					{
-						UI::getMenuItemList()[i]->selected = false;
-						UI::getMenuItemList()[(i - 1) % UI::getMenuItemList().size()]->selected = true;
-						break;
-					}
-				}
-				SoundEngine->play2D("audio/select.wav", false);
-			}
-
-			if (action == PlayerAction::moveBackward)
-			{
-				for (int i = 0; i < UI::getMenuItemList().size(); i++)
-				{
-					if (UI::getMenuItemList()[i]->selected)
-					{
-						UI::getMenuItemList()[i]->selected = false;
-						UI::getMenuItemList()[(i + 1) % UI::getMenuItemList().size()]->selected = true;
-						break;
-					}
-				}
-				SoundEngine->play2D("audio/select.wav", false);
-			}
-
-			if (action == PlayerAction::enter || action == PlayerAction::jump)
-			{
-				MenuItem* selectedMenuItem = UI::getSelectedMenuItem();
-				if (selectedMenuItem->type == MenuItemType::resume)
-				{
-					toggleMenu();
-				}
-				if (selectedMenuItem->type == MenuItemType::exit)
-				{
-					SDL_DestroyWindow(window);
-					exit(0);
-				}
-				if (selectedMenuItem->type == MenuItemType::restart)
-				{
-					Map::restart();
-					toggleMenu();
-					gameState = GameState::GAME_ACTIVE;
-				}
-				SoundEngine->play2D("audio/select.wav", false);
-			}
 		}
 
 	}
@@ -529,12 +537,12 @@ void Game::toggleFullscreen()
 	Uint32 FullscreenFlag = SDL_WINDOW_FULLSCREEN;
 	bool IsFullscreen = SDL_GetWindowFlags(window) & FullscreenFlag;
 	SDL_SetWindowFullscreen(window, IsFullscreen ? 0 : FullscreenFlag);
-	
+
 	if (IsFullscreen) //now windowed
-	{ 
+	{
 		int resolutionW = std::stoi(ConfigManager::readConfig("windowed_resolution_width"));
 		int resolutionH = std::stoi(ConfigManager::readConfig("windowed_resolution_height"));
-		
+
 		SDL_SetWindowSize(window, resolutionW, resolutionH);
 		Renderer::initFrameBuffer();
 	}
@@ -570,20 +578,15 @@ int Game::getWindowHeight()
 	return height;
 }
 
-float32 Game::getTimestamp()
-{
-	return 	SDL_GetPerformanceCounter() / SDL_GetPerformanceFrequency();
-}
-
 void Game::openConsole()
 {
-	std::string enteredText="";
+	std::string enteredText = "";
 
 	std::cin >> enteredText;
 
 	if (enteredText[0] == 'x')
 	{
-		players[0]->setPosition(glm::vec3(std::stof(enteredText.substr(1)), players[0]->getPosition().y, players[0]->getPosition().z) );
+		players[0]->setPosition(glm::vec3(std::stof(enteredText.substr(1)), players[0]->getPosition().y, players[0]->getPosition().z));
 	}
 	if (enteredText[0] == 'y')
 	{

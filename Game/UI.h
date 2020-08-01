@@ -12,22 +12,7 @@
 #include "UI_Element.h"
 #include "Shader.h"
 #include "Player.h"
-
-enum class MenuItemType
-{
-	none,
-	resume,
-	options,
-	restart,
-	exit,
-};
-
-struct MenuItem
-{
-	bool selected = false;
-	std::string text = "";
-	MenuItemType type= MenuItemType::none;
-};
+#include "Menu.h"
 
 static class UI
 {
@@ -49,16 +34,7 @@ public:
 
 	static void addElement(UI_Element* newElement);
 
-	static void drawMenu();
-
 	static void drawPause();
-
-	static std::vector<MenuItem*> getMenuItemList()
-	{
-		return menuItemList;
-	}
-
-	static MenuItem* getSelectedMenuItem();
 
 	static void checkLifeSpan();
 
@@ -73,10 +49,7 @@ private:
 
 	static int fontColorUniformIndex;
 
-
 	static std::vector<UI_Element*> ui_elements;
-
-	static std::vector<MenuItem*> menuItemList;
 
 };
 

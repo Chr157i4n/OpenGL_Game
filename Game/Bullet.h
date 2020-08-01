@@ -17,7 +17,7 @@ public:
 
 private:
 
-	float speed = 80;
+	float speed = 0.08;
 
 };
 

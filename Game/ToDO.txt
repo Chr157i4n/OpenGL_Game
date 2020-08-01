@@ -19,8 +19,6 @@
 
 - Console input to manipulate objects in the world
 
-- Menu
-	- options menu, keybinds, graphic
 
 - UI elements
 	- button
@@ -28,8 +26,20 @@
 
 - Menu mouse interaction
 
-- Main Menu
-	- level selection
+- Menu
+	- Main Menu
+		- level selection
+	- Options Menu
+		- Audio volume
+		- Graphics quality
+		- Keybindings
+
+- Graphic Effects
+	- Cube Map Reflection
+	- Environment Mapping (360° in the View of every (reflective) object as cube map for reflection of this object)
+	- Screen Space Reflection
+	- Scren Screen Ambient Occlusion
+	- PBR (Tesselation)
 
 - Ammo
 
@@ -46,3 +56,12 @@
 - interactable objects in the world (buttons, levers)
 
 - collision detection with sweeping (now more running trough objects)
+
+- destroyable objects, with debris
+
+- Arrows get stuck in wood, but ricochet from stone, metal
+
+- VFX
+
+- Postprocessing
+	- Camera Shake

@@ -9,8 +9,6 @@ Font* UI::font;
 int UI::fontColorUniformIndex;
 std::vector<UI_Element*> UI::ui_elements;
 
-std::vector<MenuItem*> UI::menuItemList;
-
 void UI::init()
 {
 
@@ -28,21 +26,11 @@ void UI::init()
 	fontColorUniformIndex = GLCALL(glGetUniformLocation(fontShader->getShaderId(), "u_color"));
 
 	fontShader->unbind();
-
-	MenuItem* newItem;
-	newItem = new MenuItem{ true,"Zurueck",MenuItemType::resume };
-	menuItemList.push_back(newItem);
-	newItem = new MenuItem{ false,"Neustart",MenuItemType::restart };
-	menuItemList.push_back(newItem);
-	newItem = new MenuItem{ false,"Einstellungen",MenuItemType::options };
-	menuItemList.push_back(newItem);
-	newItem = new MenuItem{ false,"Beenden",MenuItemType::exit };
-	menuItemList.push_back(newItem);
 }
 
 void UI::drawFPS()
 {
-	drawString(20, 20, std::to_string((int)Game::getFPS()), glm::vec4(1,1,0,1));
+	drawString(20, 20, std::to_string((int)std::round(Game::getFPS())), glm::vec4(1,1,0,1));
 }
 
 void UI::drawPos(std::shared_ptr<Object> object)
@@ -121,45 +109,12 @@ void UI::addElement(UI_Element* newElement)
 	ui_elements.push_back(newElement);
 }
 
-void UI::drawMenu()
-{
-	int x = Game::getWindowWidth() / 2 - 50;
-	int y = Game::getWindowHeight() / 2-menuItemList.size()*40/2;
-
-
-	for (MenuItem* menuItem : menuItemList)
-	{
-		if (menuItem->selected)
-		{
-			drawString(x, y, menuItem->text, glm::vec4(0, 0, 1, 1));
-		}
-		else
-		{
-			drawString(x, y, menuItem->text, glm::vec4(1, 1, 1, 1));
-		}
-
-		y += 40;
-	}
-}
-
 void UI::drawPause()
 {
 	int x = Game::getWindowWidth() / 2 - 50;
 	int y = Game::getWindowHeight() / 2;
 
 	drawString(x, y, "Pause", glm::vec4(1, 1, 1, 1));
-}
-
-MenuItem* UI::getSelectedMenuItem()
-{
-	for (MenuItem* menuItem : menuItemList)
-	{
-		if (menuItem->selected)
-		{
-			return menuItem;
-		}
-	}
-	return menuItemList[0];
 }
 
 void UI::checkLifeSpan()

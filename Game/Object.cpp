@@ -250,7 +250,7 @@ bool Object::checkCollision_SAT(std::shared_ptr < Object> object, CollisionResul
 
 void Object::reactToCollision(CollisionResult collisionResult)
 {
-	float collisionSpeed = glm::length(collisionResult.movementBeforeCollision)* Game::getDelta();
+	float collisionSpeed = glm::length(collisionResult.movementBeforeCollision)* Game::getDelta()/1000.0f;
 	if (collisionSpeed > 1)
 	{
 		addToHealth(-10 * collisionSpeed);
@@ -563,7 +563,7 @@ void Object::fall()
 #ifdef DEBUG_GRAVITY
 		Logger::log("Object: " + printObject() + " is falling");
 #endif
-		movement.y -= 9.81 * 0.2 *Game::getDelta();
+		movement.y -= 9.81 * 0.0002 *Game::getDelta();
 	}
 
 
@@ -686,12 +686,14 @@ void Object::renderShadowMap()
 void Object::registerHit()
 {
 	addToHealth(-20);
-	lastHitTimestamp = Game::getTimestamp();
+	lastHitTimestamp = std::chrono::system_clock::now();
 }
 
 bool Object::isGettingDamaged()
 {
-	if (Game::getTimestamp() > lastHitTimestamp + 0.5)
+	std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+	std::chrono::duration<double, std::milli> notGettigHitDuration = now - lastHitTimestamp;
+	if (notGettigHitDuration.count() > 1000)
 	{
 		return false;
 	}

@@ -44,17 +44,28 @@ void UI_Element_Graph::drawUI_Element()
 	for (float i = 0; i < valueBuffer.size()-1; i++)
 	{
 		float ValueX = _x + i / valueBuffer.size()* _w;
-		float ValueY = _y + valueBuffer[i]/80 *_h;
+		float ValueY = _y + _h;
+		if (valueBuffer[i] < 80)
+		{
+			ValueY = _y + valueBuffer[i] / 80 * _h;
+		}
 
 		float ValueX2 = _x + (i+1) / valueBuffer.size() * _w;
-		float ValueY2 = _y + valueBuffer[(i+1)] / 80 * _h;
+		float ValueY2 = _y + _h;
+		if (valueBuffer[(i + 1)] < 80)
+		{
+			ValueY2 = _y + valueBuffer[(i + 1)] / 80 * _h;
+		}
 
 		glBegin(GL_LINES);
 		//glColor4f(color.r, color.g, color.b, color.a);
-		if(valueBuffer[i]>30)
+		if(valueBuffer[i]>=80)
+			glColor4f(0, 0, 1, 1);
+		else if(valueBuffer[i] > 30)
 			glColor4f(1, 1, 0, 1);
 		else
 			glColor4f(1, 0, 0, 1);
+
 		glVertex2f(ValueX, ValueY);
 		glVertex2f(ValueX2, ValueY2);
 		glEnd();

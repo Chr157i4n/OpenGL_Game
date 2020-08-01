@@ -44,6 +44,7 @@ public:
 
 	void attackCurrentTarget();
 
+
 private:
 
 	std::vector<glm::vec3> navPoints;

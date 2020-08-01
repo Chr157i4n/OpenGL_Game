@@ -19,6 +19,16 @@
       <scale>1;1;1</scale>
     </object>
     <object>
+      <name>Testcube</name>
+      <type>Entity</type>
+      <collisionboxtype>cube</collisionboxtype>
+      <gravity>false</gravity>
+      <modelfile>cube.bmf</modelfile>
+      <position>20;2;-10</position>
+      <rotation>0;0;0</rotation>
+      <scale>1;1;1</scale>
+    </object>
+    <object>
       <name>Vent</name>
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>

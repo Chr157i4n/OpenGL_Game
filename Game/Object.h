@@ -9,6 +9,7 @@
 #include "libs/glm/gtx/rotate_vector.hpp"
 #include <algorithm>
 #include <memory>
+#include <chrono>
 
 #include "Shader.h"
 #include "Model.h"
@@ -241,6 +242,6 @@ protected:
 	bool onOtherObject=false;
 	bool gravity = true;
 
-	float32 lastHitTimestamp = 0;
+	std::chrono::system_clock::time_point lastHitTimestamp = std::chrono::system_clock::now() - std::chrono::hours(1);
 };
 

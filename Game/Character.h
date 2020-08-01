@@ -1,6 +1,8 @@
 #pragma once
 #include "defines.h"
 
+#include <chrono>
+
 #include "Object.h"
 
 #include "Model.h"
@@ -59,7 +61,7 @@ protected:
 
 	const float32 heigth = 4;
 
-	float32 lastTimeShot=0;
+	std::chrono::system_clock::time_point lastTimeShot = std::chrono::system_clock::now() - std::chrono::hours(1);
 
 	glm::vec3 up;
 

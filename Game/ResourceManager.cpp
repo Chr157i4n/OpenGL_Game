@@ -117,7 +117,7 @@ std::vector<Model*> ResourceManager::loadAllModels(std::string modelFileName)
 		percentageLoading += 80 / modelCount;
 		Logger::log("loaded Model " + std::to_string(newModel->getModelID()) + ": " + newModel->getModelName() + " - " + to_string_with_precision(percentageLoading, 0) + "%");
 		Renderer::loadingProgressBar->setValue(percentageLoading);
-		Renderer::showLoadingScreen();
+		Renderer::drawLoadingScreen();
 
 		models.push_back(newModel);
 	}
@@ -229,7 +229,7 @@ void ResourceManager::loadMap(std::string mapFileName)
 		percentageLoading += 10 / objectCount;
 		Logger::log("loaded Object:" + newObject->printObject() + " - " + to_string_with_precision(percentageLoading, 0) + "%");
 		Renderer::loadingProgressBar->setValue(percentageLoading);
-		Renderer::showLoadingScreen();
+		Renderer::drawLoadingScreen();
 		objects->push_back(newObject);
 
 		if (newObject->getType() == ObjectType::Object_Environment)
@@ -310,7 +310,7 @@ void ResourceManager::loadMap(std::string mapFileName)
 		percentageLoading += 10 / npcCount;
 		Logger::log("loaded NPC:" + newNPC->printObject() + " - " + to_string_with_precision(percentageLoading, 0) + "%");
 		Renderer::loadingProgressBar->setValue(percentageLoading);
-		Renderer::showLoadingScreen();
+		Renderer::drawLoadingScreen();
 
 		objects->push_back(newNPC);
 		npcs->push_back(newNPC);

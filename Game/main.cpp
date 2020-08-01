@@ -6,7 +6,7 @@
 
 int main(int argc, char* argv[])
 {
-	srand(time(NULL));
+	std::srand(std::time(nullptr));
 
 	ConfigManager::init("config.ini");
 

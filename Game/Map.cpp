@@ -33,4 +33,7 @@ void Map::restart()
 	UI::clearUI_Elements();
 
 	Game::players[0]->createHealthbar();
+
+	Game::setGameState(GameState::GAME_ACTIVE);
+	SDL_SetRelativeMouseMode(SDL_TRUE);
 }
