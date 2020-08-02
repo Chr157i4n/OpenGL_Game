@@ -175,7 +175,7 @@ void ResourceManager::loadMap(std::string mapFileName)
 
 	//Player(s)
 	float fov = std::stof(ConfigManager::readConfig("fov"));
-	std::shared_ptr<Player> player = std::make_shared<Player>(Renderer::getShader(ShaderType::basic), fov, 800.0f, 600.0f);
+	std::shared_ptr<Player> player = std::make_shared<Player>(Renderer::getShader(ShaderType::basic), fov, 1920, 1080);
 	player->setCollisionBoxType(CollisionBoxType::cube);
 	player->setName("Player");
 	player->setNumber(numObject);

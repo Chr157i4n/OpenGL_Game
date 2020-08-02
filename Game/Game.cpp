@@ -245,7 +245,8 @@ void Game::render()
 	if (postprocess) Renderer::frameBuffer.bind();
 	Renderer::clearBuffer();
 	Renderer::renderOpaqueObjects();
-	Renderer::renderSkybox();
+
+	Renderer::renderSkybox(glm::mat4(glm::mat3(players[0]->getView())),players[0]->getProj());
 	Renderer::renderTransparentObjects();
 	if (postprocess) Renderer::frameBuffer.unbind();
 

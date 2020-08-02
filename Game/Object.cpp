@@ -683,6 +683,11 @@ void Object::renderShadowMap()
 	this->model->renderShadowMap();
 }
 
+void Object::renderEnvMap()
+{
+	this->model->renderEnvMap();
+}
+
 void Object::registerHit()
 {
 	addToHealth(-20);

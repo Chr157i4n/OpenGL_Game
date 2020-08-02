@@ -8,9 +8,9 @@ void Logger::log(std::string message)
 
 	std::string time = "[";
 
-	time += std::to_string(1 + ltm->tm_hour) + ":";
-	time += std::to_string(1 + ltm->tm_min) + ":";
-	time += std::to_string(1 + ltm->tm_sec) + "] ";
+	time += std::to_string(ltm->tm_hour) + ":";
+	time += std::to_string(ltm->tm_min) + ":";
+	time += std::to_string(ltm->tm_sec) + "] ";
 
 	std::cout << time << message << std::endl;
 }

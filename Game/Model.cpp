@@ -83,6 +83,33 @@ inline void Mesh::renderShadowMap()
 	GLCALL(glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_INT, 0));
 }
 
+inline void Mesh::renderEnvMap()
+{
+	vertexBuffer->bind();
+	indexBuffer->bind();
+	int diffuseLocation = GLCALL(glGetUniformLocation(Renderer::getShader(ShaderType::envmap)->getShaderId(), "u_material.diffuse"));
+	glUniform3fv(diffuseLocation, 1, (float*)&material.material.diffuse);
+	int specularLocation = GLCALL(glGetUniformLocation(Renderer::getShader(ShaderType::envmap)->getShaderId(), "u_material.specular"));
+	glUniform3fv(specularLocation, 1, (float*)&material.material.specular);
+	int emissiveLocation = GLCALL(glGetUniformLocation(Renderer::getShader(ShaderType::envmap)->getShaderId(), "u_material.emissive"));
+	glUniform3fv(emissiveLocation, 1, (float*)&material.material.emissive);
+	int shininessLocation = GLCALL(glGetUniformLocation(Renderer::getShader(ShaderType::envmap)->getShaderId(), "u_material.shininess"));
+	glUniform1f(shininessLocation, material.material.shininess);
+
+	GLCALL(glActiveTexture(GL_TEXTURE0));
+	GLCALL(glBindTexture(GL_TEXTURE_2D, material.diffuseMap));
+	int diffuseMapLocation = GLCALL(glGetUniformLocation(Renderer::getShader(ShaderType::envmap)->getShaderId(), "u_diffuse_map"));
+	GLCALL(glUniform1i(diffuseMapLocation, 0));
+
+	GLCALL(glActiveTexture(GL_TEXTURE1));
+	GLCALL(glBindTexture(GL_TEXTURE_2D, material.normalMap));
+	int normalMapLocation = GLCALL(glGetUniformLocation(Renderer::getShader(ShaderType::envmap)->getShaderId(), "u_normal_map"));
+	GLCALL(glUniform1i(normalMapLocation, 1));
+
+	GLCALL(glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_INT, 0));
+
+}
+
 
 
 
@@ -242,6 +269,13 @@ void Model::renderShadowMap()
 {
 	for (Mesh* mesh : meshes) {
 		mesh->renderShadowMap();
+	}
+}
+
+void Model::renderEnvMap()
+{
+	for (Mesh* mesh : meshes) {
+		mesh->renderEnvMap();
 	}
 }
 

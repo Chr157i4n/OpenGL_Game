@@ -153,6 +153,11 @@ public:
 
 	glm::vec3 getRotation();
 
+	glm::vec3 getCenter()
+	{
+		return center;
+	}
+
 	void setScale(glm::vec3 newScale);
 
 	glm::vec3 getScale();
@@ -182,6 +187,8 @@ public:
 	void render();
 
 	void renderShadowMap();
+
+	void renderEnvMap();
 
 	virtual void registerHit();
 

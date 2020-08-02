@@ -55,13 +55,15 @@ uniform SpotLight u_spot_light;
 
 uniform sampler2D u_diffuse_map;    //textureslot 0
 uniform sampler2D u_normal_map;     //textureslot 1
-uniform samplerCube u_env_map;      //textureslot 2
-uniform sampler2D u_shadow_map;     //textureslot 3
+uniform sampler2D u_shadow_map;     //textureslot 2
+uniform samplerCube u_env_map;      //textureslot 3
+//uniform samplerCube u_env_map_full; //textureslot 4
 
 uniform vec3 u_camerapos;
 
 uniform int u_showNormalMode;
 uniform int u_isgettingdamaged;
+uniform int u_isusingfullenvmap;
 
 
 
@@ -158,9 +160,11 @@ void main()
     vec3 R = reflect(I, v_normal_world_space);
     //float ratio = 1.00 / 1.52;
     //vec3 R = refract(I, v_normal_world_space, ratio);
-    vec4 envmapcolor = vec4(texture(u_env_map, R).rgb, 1.0);
 
+
+    vec4 envmapcolor = vec4(texture(u_env_map, R).rgb, 1.0);
     f_color = mix(f_color, envmapcolor, u_material.specular.x/2);
-    //f_color = vec4( envmapcolor.rgb,1);
-    
+
+
+    //f_color= vec4(texture(u_shadow_map, v_position_light_space.xy).rgb, 1.0);
 }

@@ -91,18 +91,37 @@ float axisVertices[] = {
 	0.0f * 9 / 16,		0.0f,		1.0f * 9 / 16,		0.0f,	0.0f,	1.0f,	1.0f,
 };
 
+GLenum  cube_map_axis1[6] = { 
+	GL_TEXTURE_CUBE_MAP_POSITIVE_X,
+	GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
+	GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
+	GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
+	GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
+	GL_TEXTURE_CUBE_MAP_NEGATIVE_Z };
+
+GLenum fboAttachment1[6] = { 
+	GL_COLOR_ATTACHMENT0,
+	GL_COLOR_ATTACHMENT0,
+	GL_COLOR_ATTACHMENT0,
+	GL_COLOR_ATTACHMENT0,
+	GL_COLOR_ATTACHMENT0,
+	GL_COLOR_ATTACHMENT0 };
+
+
 
 Shader* Renderer::shaderSkybox = nullptr;
 Shader* Renderer::shaderBasic = nullptr;
 Shader* Renderer::shaderImage = nullptr;
 Shader* Renderer::shaderGeometry = nullptr;
 Shader* Renderer::shaderPostProcessing = nullptr;
-Shader* Renderer::shaderDepthMap = nullptr;
+Shader* Renderer::shaderShadowMap = nullptr;
+Shader* Renderer::shaderEnvMap = nullptr;
 
-unsigned int Renderer::loadingScreenTexture;
 UI_Element_ProgressBar* Renderer::loadingProgressBar;
 
+unsigned int Renderer::loadingScreenTexture;
 unsigned int Renderer::skyboxTexture;
+
 VertexBuffer* Renderer::skyboxVertexBuffer;
 VertexBuffer* Renderer::axisVertexBuffer;
 VertexBuffer* Renderer::screenVertexBuffer;
@@ -114,11 +133,14 @@ int Renderer::skyboxProjUniformIndex;
 int Renderer::modelUniformIndex;
 int Renderer::viewUniformIndex;
 int Renderer::projUniformIndex;
-int Renderer::lightdirectionUniformIndex;
+int Renderer::lightdirectionBasicUniformIndex;
+int Renderer::lightdirectionEnvUniformIndex;
 int Renderer::lightpositionUniformIndex;
-int Renderer::envmapUniformIndex;
+int Renderer::envmapBasicUniformIndex;
+int Renderer::envmapEnvUniformIndex;
 int Renderer::lightspacematrixUniformIndex;
 int Renderer::shadowmapUniformIndex;
+
 
 glm::vec3 Renderer::sunDirection;
 glm::vec3 Renderer::spotLightPosition;
@@ -132,11 +154,16 @@ bool Renderer::showNormalMode = false;
 glm::vec3 Renderer::transformedSunDirection3;
 
 FrameBuffer Renderer::frameBuffer;
-FrameBuffer Renderer::depthMapBuffer;
+FrameBuffer Renderer::shadowMapBuffer;
+FrameBuffer Renderer::envMapFacesBuffer[6];
+FrameBuffer Renderer::envMapBuffer;
 
-int Renderer::shadowMapResolution;
+int Renderer::shadowMapResolution=1024;
+int Renderer::envMapResolution=1024;
 
 std::vector<float32> Renderer::postprocessingEffectDuration = { 0,0,0 };
+
+int Renderer::frameCount=0;
 
 
 void Renderer::initOpenGL()
@@ -219,7 +246,8 @@ void Renderer::loadShader()
 	shaderImage = ResourceManager::loadShader("shaders/image.vert", "shaders/image.frag");
 	shaderGeometry = ResourceManager::loadShader("shaders/geometry.vert", "shaders/geometry.frag");
 	shaderPostProcessing = ResourceManager::loadShader("shaders/postprocessing.vert", "shaders/postprocessing.frag");
-	shaderDepthMap = ResourceManager::loadShader("shaders/depthmap.vert", "shaders/depthmap.frag");
+	shaderShadowMap = ResourceManager::loadShader("shaders/depthmap.vert", "shaders/depthmap.frag");
+	shaderEnvMap = ResourceManager::loadShader("shaders/envmap.vert", "shaders/envmap.frag");
 }
 
 void Renderer::init()
@@ -228,6 +256,7 @@ void Renderer::init()
 	axisVertexBuffer = new VertexBuffer(axisVertices, 6, VertexType::_VertexPosCol);
 
 	shadowMapResolution = std::stoi(ConfigManager::readConfig("shadow_map_resolution"));
+	envMapResolution = std::stoi(ConfigManager::readConfig("env_map_resolution"));
 
 	initFrameBuffer();
 
@@ -243,6 +272,7 @@ void Renderer::init()
 	skyboxTexture = ResourceManager::loadCubemap(faces);
 
 	//get Uniform location indices for passing data to the GPU
+	shaderBasic->bind();
 	skyboxViewUniformIndex = GLCALL(glGetUniformLocation(shaderSkybox->getShaderId(), "u_view"));
 	skyboxProjUniformIndex = GLCALL(glGetUniformLocation(shaderSkybox->getShaderId(), "u_proj"));
 
@@ -250,9 +280,14 @@ void Renderer::init()
 	viewUniformIndex = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_view"));
 	projUniformIndex = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_proj"));
 
-	envmapUniformIndex = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_env_map"));
+	envmapBasicUniformIndex = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_env_map"));
 	lightspacematrixUniformIndex = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_light_space_matrix"));
 	shadowmapUniformIndex = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_shadow_map"));
+
+
+	shaderEnvMap->bind();
+	envmapEnvUniformIndex = GLCALL(glGetUniformLocation(shaderEnvMap->getShaderId(), "u_env_map"));
+
 
 	initLight();
 }
@@ -260,15 +295,25 @@ void Renderer::init()
 void Renderer::initFrameBuffer()
 {
 	frameBuffer.create(Game::getWindowWidth(), Game::getWindowHeight(), FrameBufferTextureType::colorMap | FrameBufferTextureType::stencilMap);
-	depthMapBuffer.create(shadowMapResolution, shadowMapResolution, FrameBufferTextureType::depthMap);
+	shadowMapBuffer.create(shadowMapResolution, shadowMapResolution, FrameBufferTextureType::depthMap);
+
+	for (int i = 0; i < 6; i++)
+	{
+		envMapFacesBuffer[i].create(envMapResolution, envMapResolution, FrameBufferTextureType::envMapFace);
+	}
+
+	envMapBuffer.create(envMapResolution, envMapResolution, FrameBufferTextureType::envMap);
 }
 
 void Renderer::initLight()
 {
+#pragma region shaderBasic
+
 	shaderBasic->bind();
 
-
-	lightdirectionUniformIndex = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_directional_light.direction"));
+	lightdirectionBasicUniformIndex = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_directional_light.direction"));
+	lightpositionUniformIndex = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_point_light.position"));
+	
 	//glm::vec3 sunColor = glm::vec3(0.98f, 0.83f, 0.30f);
 	glm::vec3 sunColor = glm::vec3(0.8);
 	sunDirection = glm::vec3(-0.8, +0.4, +0.4);
@@ -276,7 +321,6 @@ void Renderer::initLight()
 	GLCALL(glUniform3fv(glGetUniformLocation(shaderBasic->getShaderId(), "u_directional_light.specular"), 1, (float*)&sunColor));
 	sunColor = glm::vec3(0.3);
 	GLCALL(glUniform3fv(glGetUniformLocation(shaderBasic->getShaderId(), "u_directional_light.ambient"), 1, (float*)&sunColor));
-
 
 	glm::vec3 pointLightColor = glm::vec3(0, 0, 0);
 	GLCALL(glUniform3fv(glGetUniformLocation(shaderBasic->getShaderId(), "u_point_light.diffuse"), 1, (float*)&pointLightColor));
@@ -286,9 +330,7 @@ void Renderer::initLight()
 	GLCALL(glUniform1f(glGetUniformLocation(shaderBasic->getShaderId(), "u_point_light.linear"), 0.007f));
 	GLCALL(glUniform1f(glGetUniformLocation(shaderBasic->getShaderId(), "u_point_light.quadratic"), 0.0002));
 	pointLightPosition = glm::vec4(80, 2.5, 10, 1.0f);
-	lightpositionUniformIndex = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_point_light.position"));
-
-
+	
 	glm::vec3 spotLightColor = glm::vec3(0);
 	GLCALL(glUniform3fv(glGetUniformLocation(shaderBasic->getShaderId(), "u_spot_light.diffuse"), 1, (float*)&spotLightColor));
 	GLCALL(glUniform3fv(glGetUniformLocation(shaderBasic->getShaderId(), "u_spot_light.specular"), 1, (float*)&spotLightColor));
@@ -302,6 +344,23 @@ void Renderer::initLight()
 	GLCALL(glUniform1f(glGetUniformLocation(shaderBasic->getShaderId(), "u_spot_light.outerCone"), 0.80f));
 
 	GLCALL(glUniform1i(glGetUniformLocation(shaderBasic->getShaderId(), "u_showNormalMode"), 0));
+
+#pragma endregion
+
+#pragma region shaderEnvMap
+	
+	shaderEnvMap->bind();
+
+	lightdirectionEnvUniformIndex = GLCALL(glGetUniformLocation(shaderEnvMap->getShaderId(), "u_directional_light.direction"));
+	//glm::vec3 sunColor = glm::vec3(0.98f, 0.83f, 0.30f);
+	sunColor = glm::vec3(0.8);
+	sunDirection = glm::vec3(-0.8, +0.4, +0.4);
+	GLCALL(glUniform3fv(glGetUniformLocation(shaderEnvMap->getShaderId(), "u_directional_light.diffuse"), 1, (float*)&sunColor));
+	GLCALL(glUniform3fv(glGetUniformLocation(shaderEnvMap->getShaderId(), "u_directional_light.specular"), 1, (float*)&sunColor));
+	sunColor = glm::vec3(0.3);
+	GLCALL(glUniform3fv(glGetUniformLocation(shaderEnvMap->getShaderId(), "u_directional_light.ambient"), 1, (float*)&sunColor));
+	GLCALL(glUniform3fv(lightdirectionEnvUniformIndex, 1, (float*)&sunDirection));
+#pragma endregion
 }
 
 void Renderer::initLoadingScreen()
@@ -334,10 +393,9 @@ void Renderer::calcLight()
 	glm::vec4 transformedSunDirection = -glm::transpose(glm::inverse(Game::players[0]->getView())) * glm::vec4(sunDirection, 1.0f);
 	transformedSunDirection3 = glm::vec3(transformedSunDirection.x, transformedSunDirection.y, transformedSunDirection.z);
 
-	//Logger::log("Sun Direction: x:"+std::to_string(transformedSunDirection.x)+" y:" + std::to_string(transformedSunDirection.y) + " z:" + std::to_string(transformedSunDirection.y));
 
 	shaderBasic->bind();
-	glUniform3fv(lightdirectionUniformIndex, 1, (float*)&transformedSunDirection);
+	glUniform3fv(lightdirectionBasicUniformIndex, 1, (float*)&transformedSunDirection);
 
 	//Pointlight
 	glm::mat4 pointLightMatrix = glm::mat4(1.0f);
@@ -350,7 +408,7 @@ void Renderer::calcLight()
 
 void Renderer::calcShadows()
 {
-	depthMapBuffer.bind();
+	shadowMapBuffer.bind();
 
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
@@ -361,26 +419,26 @@ void Renderer::calcShadows()
 
 	renderShadowsMap();
 
-	depthMapBuffer.unbind();
+	shadowMapBuffer.unbind();
 	// 2. then render scene as normal with shadow mapping (using depth map)
 	glViewport(0, 0, Game::getWindowWidth(), Game::getWindowHeight()); //actual resolution
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
-	GLCALL(glActiveTexture(GL_TEXTURE3));
-	GLCALL(glBindTexture(GL_TEXTURE_2D, depthMapBuffer.getTextureId()[2]));
 
 
 	shaderBasic->bind();
 
-	float near_plane = -150, far_plane = 250;
+	/*float near_plane = -150, far_plane = 250;
 	glm::mat4 depthProjectionMatrix = glm::ortho(-150.0f, 150.0f, -150.0f, 150.0f, near_plane, far_plane);
 	glm::mat4 depthViewMatrix = glm::lookAt(sunDirection, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
-	glm::mat4 lightSpaceMatrix = depthProjectionMatrix * depthViewMatrix;
+	glm::mat4 lightSpaceMatrix = depthProjectionMatrix * depthViewMatrix;*/
 
-	GLCALL(glUniformMatrix4fv(lightspacematrixUniformIndex, 1, GL_FALSE, &lightSpaceMatrix[0][0]));
+	//GLCALL(glUniformMatrix4fv(lightspacematrixUniformIndex, 1, GL_FALSE, &lightSpaceMatrix[0][0]));
 
-	GLCALL(glUniform1i(shadowmapUniformIndex, 3));
+	GLCALL(glActiveTexture(GL_TEXTURE2));
+	GLCALL(glBindTexture(GL_TEXTURE_2D, shadowMapBuffer.getTextureId()[2]));
+	GLCALL(glUniform1i(shadowmapUniformIndex, 2));
 
 }
 
@@ -394,16 +452,15 @@ void Renderer::renderShadowsMap()
 
 	glm::mat4 lightSpaceMatrix = depthProjectionMatrix * depthViewMatrix;
 
-
-	shaderDepthMap->bind();
-	int lightSpaceMatrixLocation = GLCALL(glGetUniformLocation(shaderDepthMap->getShaderId(), "u_light_space_matrix"));
-	GLCALL(glUniformMatrix4fv(lightSpaceMatrixLocation, 1, GL_FALSE, &lightSpaceMatrix[0][0]));
-
 	shaderBasic->bind();
 	int lightSpaceMatrixLocation1 = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_light_space_matrix"));
 	GLCALL(glUniformMatrix4fv(lightSpaceMatrixLocation1, 1, GL_FALSE, &lightSpaceMatrix[0][0]));
 
-	shaderDepthMap->bind();
+	shaderShadowMap->bind();
+	int lightSpaceMatrixLocation = GLCALL(glGetUniformLocation(shaderShadowMap->getShaderId(), "u_light_space_matrix"));
+	GLCALL(glUniformMatrix4fv(lightSpaceMatrixLocation, 1, GL_FALSE, &lightSpaceMatrix[0][0]));
+
+
 
 	for (std::shared_ptr<Object> object : Game::objects)
 	{
@@ -429,7 +486,7 @@ void Renderer::renderShadowsMap()
 		model = glm::rotate(model, glm::radians(angle), glm::vec3(0, 0, 1));
 
 		//view and projection
-		int modelUniformLocation = GLCALL(glGetUniformLocation(shaderDepthMap->getShaderId(), "u_model"));
+		int modelUniformLocation = GLCALL(glGetUniformLocation(shaderShadowMap->getShaderId(), "u_model"));
 		GLCALL(glUniformMatrix4fv(modelUniformLocation, 1, GL_FALSE, &model[0][0]));
 
 
@@ -437,7 +494,7 @@ void Renderer::renderShadowsMap()
 
 	}
 
-	shaderDepthMap->unbind();
+	shaderShadowMap->unbind();
 }
 
 void Renderer::showShadowMap()
@@ -448,12 +505,175 @@ void Renderer::showShadowMap()
 
 	//loadingScreenTexture = ResourceManager::loadImage("images/loading_screen.png");
 
-	renderImage(screenVertexBuffer, depthMapBuffer.getTextureId()[2]);
+	//renderImage(screenVertexBuffer, shadowMapBuffer.getTextureId()[2]);
+	renderImage(screenVertexBuffer, envMapFacesBuffer[2].getTextureId()[3]);
 
 	//SDL_GL_SwapWindow(*window);
 }
 
-void Renderer::renderSkybox()
+unsigned int cubemap;
+
+void Renderer::renderEnvironmentMap(std::shared_ptr<Object> objectFromView)
+{
+	std::vector<glm::mat4> views, projs, viewProjs;
+	glm::mat4 view, proj;
+	
+	
+	glViewport(0, 0, envMapResolution, envMapResolution);
+	shaderEnvMap->bind();
+
+	#pragma region ViewProjection from Object x6
+
+	float angle = 90.0f/2;
+
+	view = glm::lookAt(objectFromView->getCenter(), objectFromView->getCenter() + glm::vec3(1,0,0), glm::vec3(0,-1,0));
+	proj = glm::perspective(angle, 1.0f, 0.1f, 40.0f);
+	views.push_back(view);
+	projs.push_back(proj);
+	viewProjs.push_back(view * proj);
+
+	view = glm::lookAt(objectFromView->getCenter(), objectFromView->getCenter() + glm::vec3(-1, 0, 0), glm::vec3(0, -1, 0));
+	proj = glm::perspective(angle, 1.0f, 0.1f, 40.0f);
+	views.push_back(view);
+	projs.push_back(proj);
+	viewProjs.push_back(view * proj);
+
+	view = glm::lookAt(objectFromView->getCenter(), objectFromView->getCenter() + glm::vec3(0, 1, 0), glm::vec3(0, -1, 0));
+	proj = glm::perspective(angle, 1.0f, 0.1f, 40.0f);
+	views.push_back(view);
+	projs.push_back(proj);
+	viewProjs.push_back(view * proj);
+
+	view = glm::lookAt(objectFromView->getCenter(), objectFromView->getCenter() + glm::vec3(0, -1, 0), glm::vec3(0, -1, 0));
+	proj = glm::perspective(angle, 1.0f, 0.1f, 40.0f);
+	views.push_back(view);
+	projs.push_back(proj);
+	viewProjs.push_back(view * proj);
+
+	view = glm::lookAt(objectFromView->getCenter(), objectFromView->getCenter() + glm::vec3(0, 0, 1), glm::vec3(0, -1, 0));
+	proj = glm::perspective(angle, 1.0f, 0.1f, 40.0f);
+	views.push_back(view);
+	projs.push_back(proj);
+	viewProjs.push_back(view * proj);
+
+	view = glm::lookAt(objectFromView->getCenter(), objectFromView->getCenter() + glm::vec3(0, 0, -1), glm::vec3(0, -1, 0));
+	proj = glm::perspective(angle, 1.0f, 0.1f, 40.0f);
+	views.push_back(view);
+	projs.push_back(proj);
+	viewProjs.push_back(view * proj);
+
+	#pragma endregion
+
+
+	unsigned int  framebuffer, depthbuffer;
+
+	// create the cubemap
+	glGenTextures(1, &cubemap);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	// set textures
+	for (int i = 0; i < 6; ++i)
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, envMapResolution, envMapResolution, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+
+	// create the fbo
+	glGenFramebuffers(1, &framebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+	// create the uniform depth buffer
+	glGenRenderbuffers(1, &depthbuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, depthbuffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, envMapResolution, envMapResolution);
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+	// attach it
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthbuffer);		//	<- error invalid render buffer
+
+	// attach only the +X cubemap texture (for completeness)
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X, cubemap, 0);
+
+	GLCALL(glCullFace(GL_BACK));
+	GLCALL(glClearColor(1, 0, 0, 0.5));
+
+	for (int i=0; i<6; i++)
+	{
+		glm::mat4 view = views[i];
+		glm::mat4 proj = projs[i];
+		
+
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, cube_map_axis1[i], cubemap, 0);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		for (std::shared_ptr<Object> object : Game::objects)
+		{
+			if (object->getNumber() == objectFromView->getNumber()) continue;
+
+			glm::mat4 model = glm::mat4(1.0f);
+			//model = glm::scale(model, glm::vec3(1.0f));
+
+			//move to position of model
+			model = glm::translate(model, object->getPosition());
+
+			//rotate model around X
+			float angle = object->getRotation().x;
+			model = glm::rotate(model, glm::radians(angle), glm::vec3(1, 0, 0));
+
+			//rotate model around Y
+			angle = object->getRotation().y;
+			model = glm::rotate(model, glm::radians(angle), glm::vec3(0, 1, 0));
+
+			//rotate model around z
+			angle = object->getRotation().z;
+			model = glm::rotate(model, glm::radians(angle), glm::vec3(0, 0, 1));
+
+
+			int isGettingDamagedUniformLocation = GLCALL(glGetUniformLocation(shaderEnvMap->getShaderId(), "u_material.diffuse"));
+			if (object->isGettingDamaged()) {
+
+				GLCALL(glUniform1i(isGettingDamagedUniformLocation, 1));
+			}
+			else {
+				GLCALL(glUniform1i(isGettingDamagedUniformLocation, 0));
+			}
+
+			GLCALL(glActiveTexture(GL_TEXTURE3));
+			GLCALL(glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture));
+			GLCALL(glUniform1i(envmapEnvUniformIndex, 3));
+
+			int modelUniformIndex = GLCALL(glGetUniformLocation(shaderEnvMap->getShaderId(), "u_model"));
+			GLCALL(glUniformMatrix4fv(modelUniformIndex, 1, GL_FALSE, &model[0][0]));
+			int viewUniformIndex = GLCALL(glGetUniformLocation(shaderEnvMap->getShaderId(), "u_view"));
+			GLCALL(glUniformMatrix4fv(viewUniformIndex, 1, GL_FALSE, &view[0][0]));
+			int projUniformIndex = GLCALL(glGetUniformLocation(shaderEnvMap->getShaderId(), "u_proj"));
+			GLCALL(glUniformMatrix4fv(projUniformIndex, 1, GL_FALSE, &proj[0][0]));
+
+			object->renderEnvMap();
+
+		}
+		
+		renderSkybox(glm::mat4(glm::mat3(views[i])), projs[i]);
+		shaderEnvMap->bind();
+
+
+
+	}
+
+	// disable
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+
+
+
+
+	shaderEnvMap->unbind();
+	glViewport(0, 0, Game::getWindowWidth(), Game::getWindowHeight()); //actual resolution
+}
+
+void Renderer::renderSkybox(glm::mat4 view, glm::mat4 proj)
 {
 	shaderSkybox->bind();
 	skyboxVertexBuffer->bind();
@@ -461,8 +681,8 @@ void Renderer::renderSkybox()
 	glCullFace(GL_BACK);
 	glDepthFunc(GL_LEQUAL);
 
-	glm::mat4 view = glm::mat4(glm::mat3(Game::players[0]->getView()));
-	glm::mat4 proj = Game::players[0]->getProj();
+	//glm::mat4 view = glm::mat4(glm::mat3(Game::players[0]->getView()));
+	//glm::mat4 proj = Game::players[0]->getProj();
 	glUniformMatrix4fv(skyboxViewUniformIndex, 1, GL_FALSE, &view[0][0]);
 	glUniformMatrix4fv(skyboxProjUniformIndex, 1, GL_FALSE, &proj[0][0]);
 
@@ -475,6 +695,13 @@ void Renderer::renderSkybox()
 	shaderSkybox->unbind();
 }
 
+/// <summary>
+/// can render an image from a given VRAM location Index.
+/// Image must first be loaded into the VRAM using the ResourceManager::loadImage() function. The Image can also be from a FrameBuffer
+/// also a VertexBuffer is needed, where the image should be rendered
+/// </summary>
+/// <param name="imageVertexBuffer">position of the image on the screen</param>
+/// <param name="imageIndex">VRAM index of the image</param>
 void Renderer::renderImage(VertexBuffer* imageVertexBuffer, int imageIndex)
 {
 	shaderImage->bind();
@@ -498,7 +725,7 @@ void Renderer::renderImage(VertexBuffer* imageVertexBuffer, int imageIndex)
 	shaderImage->unbind();
 }
 
-void Renderer::renderObjects()
+void Renderer::renderObjects(bool transparent)
 {
 	GLCALL(glCullFace(GL_BACK));
 
@@ -507,13 +734,39 @@ void Renderer::renderObjects()
 	GLCALL(glUniform3fv(cameraposUniformIndex, 1, (float*) &Game::players[0]->getCameraPosition()));
 
 
-	for (int i = 0; i <= 1; i++)
-	{
 		for (std::shared_ptr<Object> object : Game::objects)
 		{
-			if (i == 0 && object->getModel()->getHasTransparentTexture()) continue;
-			if (i == 1 && !object->getModel()->getHasTransparentTexture()) continue;
+			if (transparent && !object->getModel()->getHasTransparentTexture()) continue;
+			if (!transparent && object->getModel()->getHasTransparentTexture()) continue;
 
+			object->bindShader();
+
+
+			if (object->getNumber() == 2)
+			{
+				if (frameCount % 60 == 0)
+				{
+					if (postProcessing) frameBuffer.unbind();
+					renderEnvironmentMap(object);
+					//std::thread renderEnvThread(renderEnvironmentMap, object);
+					if (postProcessing) frameBuffer.bind();
+					object->bindShader();
+				}
+
+				//GLCALL(glActiveTexture(GL_TEXTURE3));
+				//GLCALL(glBindTexture(GL_TEXTURE_CUBE_MAP, envMapBuffer.getTextureId()[3]));
+				//GLCALL(glUniform1i(envmapBasicUniformIndex, 3));
+
+				GLCALL(glActiveTexture(GL_TEXTURE3));
+				GLCALL(glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap));
+				GLCALL(glUniform1i(envmapBasicUniformIndex, 3));
+			}
+			else 
+			{
+				GLCALL(glActiveTexture(GL_TEXTURE3));
+				GLCALL(glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture));
+				GLCALL(glUniform1i(envmapBasicUniformIndex, 3));
+			}
 
 			glm::mat4 model = glm::mat4(1.0f);
 			//model = glm::scale(model, glm::vec3(1.0f));
@@ -548,6 +801,7 @@ void Renderer::renderObjects()
 			if (object->isGettingDamaged()) {
 				
 				GLCALL(glUniform1i(isGettingDamagedUniformLocation, 1));
+
 			}
 			else {
 				GLCALL(glUniform1i(isGettingDamagedUniformLocation, 0));
@@ -556,10 +810,6 @@ void Renderer::renderObjects()
 			int modelUniformLocation = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_model"));
 			GLCALL(glUniformMatrix4fv(modelUniformLocation, 1, GL_FALSE, &model[0][0]));
 
-			//per object a different envmap can be used
-			GLCALL(glActiveTexture(GL_TEXTURE2));
-			GLCALL(glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture));
-			GLCALL(glUniform1i(envmapUniformIndex, 2));
 
 			GLCALL(glUniformMatrix4fv(modelUniformIndex, 1, GL_FALSE, &model[0][0]));
 			GLCALL(glUniformMatrix4fv(viewUniformIndex, 1, GL_FALSE, &view[0][0]));
@@ -569,147 +819,17 @@ void Renderer::renderObjects()
 
 			object->unbindShader();
 		}
-	}
+
 }
 
 void Renderer::renderTransparentObjects()
 {
-	GLCALL(glCullFace(GL_BACK));
-
-	shaderBasic->bind();
-	int cameraposUniformIndex = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_camerapos"));
-	GLCALL(glUniform3fv(cameraposUniformIndex, 1, (float*)&Game::players[0]->getCameraPosition()));
-
-	//Logger::log("Camera position: " + std::to_string(Game::players[0]->getCameraPosition().x) + " " + std::to_string(Game::players[0]->getCameraPosition().y) + " " + std::to_string(Game::players[0]->getCameraPosition().z));
-
-		for (std::shared_ptr<Object> object : Game::objects)
-		{
-			if (!object->getModel()->getHasTransparentTexture()) continue;
-
-
-			glm::mat4 model = glm::mat4(1.0f);
-			//model = glm::scale(model, glm::vec3(1.0f));
-
-			//move to position of model
-			model = glm::translate(model, object->getPosition());
-
-			//rotate model around X
-			float angle = object->getRotation().x;
-			model = glm::rotate(model, glm::radians(angle), glm::vec3(1, 0, 0));
-
-			//rotate model around Y
-			angle = object->getRotation().y;
-			model = glm::rotate(model, glm::radians(angle), glm::vec3(0, 1, 0));
-
-			//rotate model around z
-			angle = object->getRotation().z;
-			model = glm::rotate(model, glm::radians(angle), glm::vec3(0, 0, 1));
-
-			//view and projection
-			modelViewProj = Game::players[0]->getViewProj() * model;
-			glm::mat4 modelView = Game::players[0]->getView() * model;
-			glm::mat4 invModelView = glm::transpose(glm::inverse(modelView));
-
-
-			glm::mat4 view = Game::players[0]->getView();
-			glm::mat4 proj = Game::players[0]->getProj();
-
-			object->bindShader();
-
-			int isGettingDamagedUniformLocation = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_isgettingdamaged"));
-			if (object->isGettingDamaged()) {
-
-				GLCALL(glUniform1i(isGettingDamagedUniformLocation, 1));
-			}
-			else {
-				GLCALL(glUniform1i(isGettingDamagedUniformLocation, 0));
-			}
-
-			int modelUniformLocation = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_model"));
-			GLCALL(glUniformMatrix4fv(modelUniformLocation, 1, GL_FALSE, &model[0][0]));
-
-			//per object a different envmap can be used
-			GLCALL(glActiveTexture(GL_TEXTURE2));
-			GLCALL(glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture));
-			GLCALL(glUniform1i(envmapUniformIndex, 2));
-
-			GLCALL(glUniformMatrix4fv(modelUniformIndex, 1, GL_FALSE, &model[0][0]));
-			GLCALL(glUniformMatrix4fv(viewUniformIndex, 1, GL_FALSE, &view[0][0]));
-			GLCALL(glUniformMatrix4fv(projUniformIndex, 1, GL_FALSE, &proj[0][0]));
-
-			object->render();
-
-			object->unbindShader();
-		}
+	renderObjects(true);
 }
 
 void Renderer::renderOpaqueObjects()
 {
-	GLCALL(glCullFace(GL_BACK));
-
-	shaderBasic->bind();
-	int cameraposUniformIndex = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_camerapos"));
-	GLCALL(glUniform3fv(cameraposUniformIndex, 1, (float*)&Game::players[0]->getCameraPosition()));
-
-	for (std::shared_ptr<Object> object : Game::objects)
-	{
-		if (object->getModel()->getHasTransparentTexture()) continue;
-
-
-		glm::mat4 model = glm::mat4(1.0f);
-		//model = glm::scale(model, glm::vec3(1.0f));
-
-		//move to position of model
-		model = glm::translate(model, object->getPosition());
-
-		//rotate model around X
-		float angle = object->getRotation().x;
-		model = glm::rotate(model, glm::radians(angle), glm::vec3(1, 0, 0));
-
-		//rotate model around Y
-		angle = object->getRotation().y;
-		model = glm::rotate(model, glm::radians(angle), glm::vec3(0, 1, 0));
-
-		//rotate model around z
-		angle = object->getRotation().z;
-		model = glm::rotate(model, glm::radians(angle), glm::vec3(0, 0, 1));
-
-		//view and projection
-		modelViewProj = Game::players[0]->getViewProj() * model;
-		glm::mat4 modelView = Game::players[0]->getView() * model;
-		glm::mat4 invModelView = glm::transpose(glm::inverse(modelView));
-
-
-		glm::mat4 view = Game::players[0]->getView();
-		glm::mat4 proj = Game::players[0]->getProj();
-
-		object->bindShader();
-
-		int isGettingDamagedUniformLocation = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_isgettingdamaged"));
-		if (object->isGettingDamaged()) {
-
-			GLCALL(glUniform1i(isGettingDamagedUniformLocation, 1));
-		}
-		else {
-			GLCALL(glUniform1i(isGettingDamagedUniformLocation, 0));
-		}
-
-		int modelUniformLocation = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_model"));
-		GLCALL(glUniformMatrix4fv(modelUniformLocation, 1, GL_FALSE, &model[0][0]));
-
-		//per object a different envmap can be used
-		GLCALL(glActiveTexture(GL_TEXTURE2));
-		GLCALL(glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture));
-		GLCALL(glUniform1i(envmapUniformIndex, 2));
-
-		GLCALL(glUniformMatrix4fv(modelUniformIndex, 1, GL_FALSE, &model[0][0]));
-		GLCALL(glUniformMatrix4fv(viewUniformIndex, 1, GL_FALSE, &view[0][0]));
-		GLCALL(glUniformMatrix4fv(projUniformIndex, 1, GL_FALSE, &proj[0][0]));
-
-		object->render();
-
-		object->unbindShader();
-	}
+	renderObjects(false);
 }
 
 void Renderer::renderAxis(glm::vec3 vector, int x, int y)
@@ -776,6 +896,8 @@ Shader* Renderer::getShader(ShaderType shadertype)
 		return shaderBasic;
 	case ShaderType::skybox:
 		return shaderSkybox;
+	case ShaderType::envmap:
+		return shaderEnvMap;
 	}
 }
 
@@ -859,7 +981,10 @@ void Renderer::postProcessing()
 void Renderer::clearBuffer()
 {
 	shaderBasic->bind();
+	GLCALL(glClearColor(0, 0, 0, 0.5));
 	GLCALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+
+	frameCount++;
 }
 
 void Renderer::applyPostprocessingEffect(PostProcessingEffect postprocessingeffect, float32 duration)

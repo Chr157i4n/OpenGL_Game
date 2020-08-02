@@ -45,6 +45,8 @@ public:
 
     inline void renderShadowMap();
 
+    inline void renderEnvMap();
+
 private:
 
     glm::vec3 calculateDimension(std::vector<Vertex>& vertices);
@@ -71,6 +73,8 @@ public:
     void render();
 
     void renderShadowMap();
+
+    void renderEnvMap();
 
     glm::vec3 getDimension();
 

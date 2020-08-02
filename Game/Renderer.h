@@ -3,16 +3,21 @@
 
 #include <GL/glew.h>
 #include <SDL.h>
+#include "libs/glm/glm.hpp"
+#include "libs/glm/ext/matrix_transform.hpp"
+#include "libs/glm/gtc/matrix_transform.hpp"
 
 #include "FrameBuffer.h"
 #include "Shader.h"
 #include "VertexBuffer.h"
 #include "Model.h"
 #include "UI_Element_ProgressBar.h"
+#include "Object.h"
 
 enum ShaderType {
 	basic,
 	skybox,
+	envmap,
 };
 
 enum PostProcessingEffect {
@@ -45,11 +50,13 @@ public:
 
 	static void showShadowMap();
 
-	static void renderSkybox();
+	static void renderEnvironmentMap(std::shared_ptr<Object> objectFromView);
+
+	static void renderSkybox(glm::mat4 view, glm::mat4 proj);
 
 	static void renderImage(VertexBuffer* imageVertexBuffer, int imageIndex);
 
-	static void renderObjects();
+	static void renderObjects(bool transparent = false);
 
 	static void renderTransparentObjects();
 
@@ -74,7 +81,9 @@ public:
 	static void applyPostprocessingEffect(PostProcessingEffect postprocessingeffect, float32 duration);
 
 	static FrameBuffer frameBuffer;
-	static FrameBuffer depthMapBuffer;
+	static FrameBuffer shadowMapBuffer;
+	static FrameBuffer envMapFacesBuffer[6];
+	static FrameBuffer envMapBuffer;
 
 	static glm::vec3 transformedSunDirection3;
 
@@ -90,7 +99,8 @@ private:
 	static Shader* shaderImage;
 	static Shader* shaderGeometry;
 	static Shader* shaderPostProcessing;
-	static Shader* shaderDepthMap;
+	static Shader* shaderShadowMap;
+	static Shader* shaderEnvMap;
 
 	static unsigned int loadingScreenTexture;		//textureslot
 	static unsigned int skyboxTexture;				//textureslot
@@ -107,9 +117,11 @@ private:
 	static int projUniformIndex;
 	static int skyboxViewUniformIndex;
 	static int skyboxProjUniformIndex;
-	static int lightdirectionUniformIndex;
+	static int lightdirectionBasicUniformIndex;
+	static int lightdirectionEnvUniformIndex;
 	static int lightpositionUniformIndex;
-	static int envmapUniformIndex;
+	static int envmapBasicUniformIndex;
+	static int envmapEnvUniformIndex;
 	static int lightspacematrixUniformIndex;
 	static int shadowmapUniformIndex;
 		
@@ -128,6 +140,9 @@ private:
 	static void initLight();
 
 	static int shadowMapResolution;
+	static int envMapResolution;
+
+	static int frameCount;
 	
 };
 

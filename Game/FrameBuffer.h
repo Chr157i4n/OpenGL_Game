@@ -8,6 +8,8 @@ enum FrameBufferTextureType {
     colorMap    = 1,
     stencilMap  = 2,
     depthMap    = 4,
+    envMap      = 8,
+    envMapFace = 16,
 };
 
 inline FrameBufferTextureType operator|(FrameBufferTextureType a, FrameBufferTextureType b)
@@ -30,6 +32,6 @@ struct FrameBuffer {
 
 private:
     GLuint fbo;
-    GLuint textures[3];
+    GLuint textures[16];
 };
 
