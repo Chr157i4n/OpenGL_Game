@@ -68,5 +68,8 @@ void main()
     {
         f_color.r += 0.5;
     }
+
+    float gamma=1;
+    f_color.rgb = clamp( pow(f_color.rgb, vec3(1.0/gamma)), 0, 1);
     
 }

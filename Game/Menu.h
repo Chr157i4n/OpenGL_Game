@@ -3,6 +3,14 @@
 #include <vector>
 #include <string>
 
+#include <SDL.h>
+
+#include "UI_Element.h"
+#include "UI_Element_Button.h"
+#include "UI_Element_Graph.h"
+#include "UI_Element_Label.h"
+#include "UI_Element_ProgressBar.h"
+
 enum class MenuItemType
 {
 	none,
@@ -42,11 +50,16 @@ public:
 
 	void enterSelectedMenuItem();
 
+	void onMouseMove(float x, float y);
+
+	void onMouseDown(SDL_MouseButtonEvent buttonEvent);
+
 private:
 	std::vector<MenuItem*> menuItemList;
 
 	int selectedItemIndex = 0;
 
+	UI_Element_Button* testButton = new UI_Element_Button(10, 10, 50, 20, 0, "Test");
 
 };
 

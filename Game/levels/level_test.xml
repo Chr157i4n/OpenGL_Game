@@ -19,6 +19,16 @@
       <scale>1;1;1</scale>
     </object>
     <object>
+      <name>Puddle</name>
+      <type>Environment</type>
+      <collisionboxtype>none</collisionboxtype>
+      <gravity>false</gravity>
+      <modelfile>puddle.bmf</modelfile>
+      <position>15;0.01;30</position>
+      <rotation>0;0;0</rotation>
+      <scale>1;1;1</scale>
+    </object>
+    <object>
       <name>Testcube</name>
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>

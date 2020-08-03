@@ -234,6 +234,16 @@ public:
 		return envCubeMap;
 	}
 
+	void setEnvCubeMapFrameBuffer(unsigned int newEnvCubeMapFrameBuffer)
+	{
+		envCubeMapFrameBuffer = newEnvCubeMapFrameBuffer;
+	}
+
+	unsigned int getEnvCubeMapFrameBuffer()
+	{
+		return envCubeMapFrameBuffer;
+	}
+
 protected:
 
 	glm::vec3 position;						//x, y, z
@@ -261,6 +271,6 @@ protected:
 
 	std::chrono::system_clock::time_point lastHitTimestamp = std::chrono::system_clock::now() - std::chrono::hours(1);
 
-	unsigned int envCubeMap;
+	unsigned int envCubeMap, envCubeMapFrameBuffer;
 };
 

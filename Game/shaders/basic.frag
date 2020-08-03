@@ -57,7 +57,6 @@ uniform sampler2D u_diffuse_map;    //textureslot 0
 uniform sampler2D u_normal_map;     //textureslot 1
 uniform sampler2D u_shadow_map;     //textureslot 2
 uniform samplerCube u_env_map;      //textureslot 3
-//uniform samplerCube u_env_map_full; //textureslot 4
 
 uniform vec3 u_camerapos;
 
@@ -149,10 +148,10 @@ void main()
     float shadow = ShadowCalculation(v_position_light_space); 
 
     //sum phong elements
-    f_color.r = clamp(ambient.r + (1.0 - shadow) * (diffuse.r + specular.r + u_material.emissive.r),0,1);
-    f_color.g = clamp(ambient.g + (1.0 - shadow) * (diffuse.g + specular.g + u_material.emissive.g),0,1);
-    f_color.b = clamp(ambient.b + (1.0 - shadow) * (diffuse.b + specular.b + u_material.emissive.b),0,1);
-    f_color.a = clamp(alpha,0,1);
+    f_color = vec4( ambient + (1.0 - shadow) * (diffuse + specular + u_material.emissive), alpha);
+    f_color = clamp( f_color, 0, 1);
+
+
 
     if(u_isgettingdamaged==1)
     {
@@ -168,4 +167,6 @@ void main()
     vec4 envmapcolor = vec4(texture(u_env_map, R).rgb, 1.0);
     f_color = mix(f_color, envmapcolor, u_material.specular.x/2);
 
+    float gamma=1;
+    f_color.rgb = clamp( pow(f_color.rgb, vec3(1.0/gamma)), 0, 1);
 }

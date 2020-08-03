@@ -91,7 +91,7 @@ float axisVertices[] = {
 	0.0f * 9 / 16,		0.0f,		1.0f * 9 / 16,		0.0f,	0.0f,	1.0f,	1.0f,
 };
 
-GLenum  cube_map_axis1[6] = { 
+GLenum  cube_map_axis1[6] = {
 	GL_TEXTURE_CUBE_MAP_POSITIVE_X,
 	GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
 	GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
@@ -99,7 +99,7 @@ GLenum  cube_map_axis1[6] = {
 	GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
 	GL_TEXTURE_CUBE_MAP_NEGATIVE_Z };
 
-GLenum fboAttachment1[6] = { 
+GLenum fboAttachment1[6] = {
 	GL_COLOR_ATTACHMENT0,
 	GL_COLOR_ATTACHMENT0,
 	GL_COLOR_ATTACHMENT0,
@@ -158,12 +158,12 @@ FrameBuffer Renderer::shadowMapBuffer;
 FrameBuffer Renderer::envMapFacesBuffer[6];
 FrameBuffer Renderer::envMapBuffer;
 
-int Renderer::shadowMapResolution=1024;
-int Renderer::envMapResolution=1024;
+int Renderer::shadowMapResolution = 1024;
+int Renderer::envMapResolution = 1024;
 
 std::vector<float32> Renderer::postprocessingEffectDuration = { 0,0,0 };
 
-int Renderer::frameCount=0;
+int Renderer::frameCount = 0;
 
 
 void Renderer::initOpenGL()
@@ -290,6 +290,51 @@ void Renderer::init()
 
 
 	initLight();
+
+
+	for (std::shared_ptr<Object> object : Game::objects)
+	{
+		unsigned int  framebuffer, depthbuffer;
+
+		// create the cubemap
+		unsigned int cubemap;
+		glGenTextures(1, &cubemap);
+		object->setEnvCubeMap(cubemap);
+
+		glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		// set textures
+		for (int i = 0; i < 6; ++i)
+			glTexImage2D(cube_map_axis1[i], 0, GL_RGB, envMapResolution, envMapResolution, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+
+		// create the fbo
+		glGenFramebuffers(1, &framebuffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+		object->setEnvCubeMapFrameBuffer(framebuffer);
+
+		// create the uniform depth buffer
+		glGenRenderbuffers(1, &depthbuffer);
+		glBindRenderbuffer(GL_RENDERBUFFER, depthbuffer);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, envMapResolution, envMapResolution);
+		glBindRenderbuffer(GL_RENDERBUFFER, 0);
+		// attach it
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthbuffer);
+	}
+
+	/*for (std::shared_ptr<Object> object : Game::objects)
+	{
+		if (postProcessing) frameBuffer.unbind();
+		renderEnvironmentMap(object);
+		//std::thread renderEnvThread(renderEnvironmentMap, object);
+		if (postProcessing) frameBuffer.bind();
+		object->bindShader();
+	}*/
 }
 
 void Renderer::initFrameBuffer()
@@ -313,7 +358,7 @@ void Renderer::initLight()
 
 	lightdirectionBasicUniformIndex = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_directional_light.direction"));
 	lightpositionUniformIndex = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_point_light.position"));
-	
+
 	//glm::vec3 sunColor = glm::vec3(0.98f, 0.83f, 0.30f);
 	glm::vec3 sunColor = glm::vec3(0.8);
 	sunDirection = glm::vec3(-0.8, +0.4, +0.4);
@@ -330,7 +375,7 @@ void Renderer::initLight()
 	GLCALL(glUniform1f(glGetUniformLocation(shaderBasic->getShaderId(), "u_point_light.linear"), 0.007f));
 	GLCALL(glUniform1f(glGetUniformLocation(shaderBasic->getShaderId(), "u_point_light.quadratic"), 0.0002));
 	pointLightPosition = glm::vec4(80, 2.5, 10, 1.0f);
-	
+
 	glm::vec3 spotLightColor = glm::vec3(0);
 	GLCALL(glUniform3fv(glGetUniformLocation(shaderBasic->getShaderId(), "u_spot_light.diffuse"), 1, (float*)&spotLightColor));
 	GLCALL(glUniform3fv(glGetUniformLocation(shaderBasic->getShaderId(), "u_spot_light.specular"), 1, (float*)&spotLightColor));
@@ -348,7 +393,7 @@ void Renderer::initLight()
 #pragma endregion
 
 #pragma region shaderEnvMap
-	
+
 	shaderEnvMap->bind();
 
 	lightdirectionEnvUniformIndex = GLCALL(glGetUniformLocation(shaderEnvMap->getShaderId(), "u_directional_light.direction"));
@@ -517,12 +562,16 @@ void Renderer::renderEnvironmentMap(std::shared_ptr<Object> objectFromView)
 	glm::mat4 view, proj;
 
 	Logger::log("Rendering new EnvMap for object: " + objectFromView->printObject());
-	
-	
+
+
 	glViewport(0, 0, envMapResolution, envMapResolution);
+	glBindFramebuffer(GL_FRAMEBUFFER, objectFromView->getEnvCubeMapFrameBuffer());
+	GLCALL(glActiveTexture(GL_TEXTURE3));
+	glBindTexture(GL_TEXTURE_CUBE_MAP, objectFromView->getEnvCubeMap());
 	shaderEnvMap->bind();
 
-	#pragma region ViewProjection from Object x6
+
+#pragma region ViewProjection from Object x6
 
 	float angle = 90.0f;
 	proj = glm::perspective(glm::radians(angle), 1.0f, 0.1f, 40.0f);
@@ -546,47 +595,17 @@ void Renderer::renderEnvironmentMap(std::shared_ptr<Object> objectFromView)
 	views.push_back(view);
 
 
-	#pragma endregion
+#pragma endregion
 
-
-	unsigned int  framebuffer, depthbuffer;
-
-	// create the cubemap
-	unsigned int cubemap;
-	glGenTextures(1, &cubemap);
-	objectFromView->setEnvCubeMap(cubemap);
-
-	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	// set textures
-	for (int i = 0; i < 6; ++i)
-		glTexImage2D(cube_map_axis1[i], 0, GL_RGB, envMapResolution, envMapResolution, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
-
-	// create the fbo
-	glGenFramebuffers(1, &framebuffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-
-	// create the uniform depth buffer
-	glGenRenderbuffers(1, &depthbuffer);
-	glBindRenderbuffer(GL_RENDERBUFFER, depthbuffer);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, envMapResolution, envMapResolution);
-	glBindRenderbuffer(GL_RENDERBUFFER, 0);
-	// attach it
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthbuffer);
 
 
 	GLCALL(glCullFace(GL_BACK));
 	GLCALL(glClearColor(1, 0, 0, 0.5));
 
-	for (int i=0; i<6; i++)
-	{	
+	for (int i = 0; i < 6; i++)
+	{
 
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, cube_map_axis1[i], cubemap, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, cube_map_axis1[i], objectFromView->getEnvCubeMap(), 0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		for (std::shared_ptr<Object> object : Game::objects)
@@ -637,7 +656,7 @@ void Renderer::renderEnvironmentMap(std::shared_ptr<Object> objectFromView)
 			object->renderEnvMap();
 
 		}
-		
+
 		renderSkybox(glm::mat4(glm::mat3(views[i])), proj);
 		shaderEnvMap->bind();
 
@@ -664,11 +683,10 @@ void Renderer::renderSkybox(glm::mat4 view, glm::mat4 proj)
 	glCullFace(GL_BACK);
 	glDepthFunc(GL_LEQUAL);
 
-	//glm::mat4 view = glm::mat4(glm::mat3(Game::players[0]->getView()));
-	//glm::mat4 proj = Game::players[0]->getProj();
 	glUniformMatrix4fv(skyboxViewUniformIndex, 1, GL_FALSE, &view[0][0]);
 	glUniformMatrix4fv(skyboxProjUniformIndex, 1, GL_FALSE, &proj[0][0]);
 
+	GLCALL(glActiveTexture(GL_TEXTURE0));
 	glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 
@@ -714,91 +732,83 @@ void Renderer::renderObjects(bool transparent)
 
 	shaderBasic->bind();
 	int cameraposUniformIndex = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_camerapos"));
-	GLCALL(glUniform3fv(cameraposUniformIndex, 1, (float*) &Game::players[0]->getCameraPosition()));
+	GLCALL(glUniform3fv(cameraposUniformIndex, 1, (float*)&Game::players[0]->getCameraPosition()));
 
 
-		for (std::shared_ptr<Object> object : Game::objects)
+	for (std::shared_ptr<Object> object : Game::objects)
+	{
+		if (transparent && !object->getModel()->getHasTransparentTexture()) continue;
+		if (!transparent && object->getModel()->getHasTransparentTexture()) continue;
+
+		object->bindShader();
+
+
+		if (frameCount % 100000 == 0 || frameCount == 1)
+			//if(false)
 		{
-			if (transparent && !object->getModel()->getHasTransparentTexture()) continue;
-			if (!transparent && object->getModel()->getHasTransparentTexture()) continue;
-
+			if (postProcessing) frameBuffer.unbind();
+			renderEnvironmentMap(object);
+			//std::thread renderEnvThread(renderEnvironmentMap, object);
+			if (postProcessing) frameBuffer.bind();
 			object->bindShader();
-
-
-			//if (object->getNumber() == 2 || object->getNumber() == 25)
-			if(true)
-			{
-				if (frameCount % 100000 == 0 || frameCount == 1)
-				{
-					if (postProcessing) frameBuffer.unbind();
-					renderEnvironmentMap(object);
-					//std::thread renderEnvThread(renderEnvironmentMap, object);
-					if (postProcessing) frameBuffer.bind();
-					object->bindShader();
-				}
-
-				GLCALL(glActiveTexture(GL_TEXTURE3));
-				GLCALL(glBindTexture(GL_TEXTURE_CUBE_MAP, object->getEnvCubeMap()));
-				GLCALL(glUniform1i(envmapBasicUniformIndex, 3));
-			}
-			else 
-			{
-				GLCALL(glActiveTexture(GL_TEXTURE3));
-				GLCALL(glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture));
-				GLCALL(glUniform1i(envmapBasicUniformIndex, 3));
-			}
-
-			glm::mat4 model = glm::mat4(1.0f);
-			//model = glm::scale(model, glm::vec3(1.0f));
-
-			//move to position of model
-			model = glm::translate(model, object->getPosition());
-
-			//rotate model around X
-			float angle = object->getRotation().x;
-			model = glm::rotate(model, glm::radians(angle), glm::vec3(1, 0, 0));
-
-			//rotate model around Y
-			angle = object->getRotation().y;
-			model = glm::rotate(model, glm::radians(angle), glm::vec3(0, 1, 0));
-
-			//rotate model around z
-			angle = object->getRotation().z;
-			model = glm::rotate(model, glm::radians(angle), glm::vec3(0, 0, 1));
-
-			//view and projection
-			modelViewProj = Game::players[0]->getViewProj() * model;
-			glm::mat4 modelView = Game::players[0]->getView() * model;
-			glm::mat4 invModelView = glm::transpose(glm::inverse(modelView));
-
-
-			glm::mat4 view = Game::players[0]->getView();
-			glm::mat4 proj = Game::players[0]->getProj();
-
-			object->bindShader();
-
-			int isGettingDamagedUniformLocation = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_isgettingdamaged"));
-			if (object->isGettingDamaged()) {
-				
-				GLCALL(glUniform1i(isGettingDamagedUniformLocation, 1));
-
-			}
-			else {
-				GLCALL(glUniform1i(isGettingDamagedUniformLocation, 0));
-			}
-
-			int modelUniformLocation = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_model"));
-			GLCALL(glUniformMatrix4fv(modelUniformLocation, 1, GL_FALSE, &model[0][0]));
-
-
-			GLCALL(glUniformMatrix4fv(modelUniformIndex, 1, GL_FALSE, &model[0][0]));
-			GLCALL(glUniformMatrix4fv(viewUniformIndex, 1, GL_FALSE, &view[0][0]));
-			GLCALL(glUniformMatrix4fv(projUniformIndex, 1, GL_FALSE, &proj[0][0]));
-
-			object->render();
-
-			object->unbindShader();
 		}
+
+		GLCALL(glActiveTexture(GL_TEXTURE3));
+		GLCALL(glBindTexture(GL_TEXTURE_CUBE_MAP, object->getEnvCubeMap()));
+		GLCALL(glUniform1i(envmapBasicUniformIndex, 3));
+
+
+		glm::mat4 model = glm::mat4(1.0f);
+		//model = glm::scale(model, glm::vec3(1.0f));
+
+		//move to position of model
+		model = glm::translate(model, object->getPosition());
+
+		//rotate model around X
+		float angle = object->getRotation().x;
+		model = glm::rotate(model, glm::radians(angle), glm::vec3(1, 0, 0));
+
+		//rotate model around Y
+		angle = object->getRotation().y;
+		model = glm::rotate(model, glm::radians(angle), glm::vec3(0, 1, 0));
+
+		//rotate model around z
+		angle = object->getRotation().z;
+		model = glm::rotate(model, glm::radians(angle), glm::vec3(0, 0, 1));
+
+		//view and projection
+		modelViewProj = Game::players[0]->getViewProj() * model;
+		glm::mat4 modelView = Game::players[0]->getView() * model;
+		glm::mat4 invModelView = glm::transpose(glm::inverse(modelView));
+
+
+		glm::mat4 view = Game::players[0]->getView();
+		glm::mat4 proj = Game::players[0]->getProj();
+
+		object->bindShader();
+
+		int isGettingDamagedUniformLocation = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_isgettingdamaged"));
+		if (object->isGettingDamaged()) {
+
+			GLCALL(glUniform1i(isGettingDamagedUniformLocation, 1));
+
+		}
+		else {
+			GLCALL(glUniform1i(isGettingDamagedUniformLocation, 0));
+		}
+
+		int modelUniformLocation = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_model"));
+		GLCALL(glUniformMatrix4fv(modelUniformLocation, 1, GL_FALSE, &model[0][0]));
+
+
+		GLCALL(glUniformMatrix4fv(modelUniformIndex, 1, GL_FALSE, &model[0][0]));
+		GLCALL(glUniformMatrix4fv(viewUniformIndex, 1, GL_FALSE, &view[0][0]));
+		GLCALL(glUniformMatrix4fv(projUniformIndex, 1, GL_FALSE, &proj[0][0]));
+
+		object->render();
+
+		object->unbindShader();
+	}
 
 }
 

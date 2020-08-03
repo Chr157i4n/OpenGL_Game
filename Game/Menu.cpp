@@ -61,6 +61,11 @@ void Menu::drawMenu()
 
 		y += 40;
 	}
+
+
+	testButton->drawUI_Element();
+
+	//delete testButton;
 }
 
 
@@ -94,5 +99,29 @@ void Menu::enterSelectedMenuItem()
 	if (selectedMenuItem->type == MenuItemType::restart)
 	{
 		Map::restart();
+	}
+}
+
+void Menu::onMouseMove(float x, float y)
+{
+	//Logger::log("Mouse Position: " + std::to_string(x) + " " + std::to_string(y));
+
+	testButton->setIsSelected(false);
+
+
+	if (x > testButton->getX() && x < testButton->getX() + testButton->getW() && Game::getWindowHeight() - y > testButton->getY() && Game::getWindowHeight() - y < testButton->getY() + testButton->getH())
+	{
+		testButton->setIsSelected(true);
+	}
+}
+
+void Menu::onMouseDown(SDL_MouseButtonEvent buttonEvent)
+{
+	if (buttonEvent.button == SDL_BUTTON_LEFT)
+	{
+		if (testButton->getIsSelected())
+		{
+			Map::restart();
+		}
 	}
 }

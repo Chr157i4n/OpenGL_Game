@@ -24,6 +24,7 @@ protected:
     uint64 lifespan = 0;
     uint64 startTimestamp = 0;
     int ID = -1;
+    bool isSelected = false;
 
 public:
     int getX() const;
@@ -54,6 +55,16 @@ public:
 
     int getID() const;
     void setID(int ID);
+
+    bool getIsSelected()
+    {
+        return isSelected;
+    }
+
+    void setIsSelected(bool isSelected)
+    {
+        this->isSelected = isSelected;
+    }
 
 };
 

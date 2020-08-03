@@ -290,21 +290,37 @@ void Game::processInput()
 			keyReleased(event.key.keysym.sym);
 		}
 		else if (event.type == SDL_MOUSEMOTION) {
-			if (SDL_GetRelativeMouseMode()) {
-				players[0]->onMouseMove(event.motion.xrel, event.motion.yrel);
-				updateAudioListener();
+			if (gameState == GameState::GAME_ACTIVE)
+			{
+				if (SDL_GetRelativeMouseMode()) {
+					players[0]->onMouseMove(event.motion.xrel, event.motion.yrel);
+					updateAudioListener();
+				}
+			}
+			else if (gameState == GameState::GAME_MENU)
+			{
+				menu->onMouseMove(event.motion.x, event.motion.y);
 			}
 		}
 		else if (event.type == SDL_MOUSEBUTTONDOWN) {
-			if (event.button.button == SDL_BUTTON_LEFT) {
-				if (SDL_GetRelativeMouseMode()) {
-					std::shared_ptr<Bullet> newBullet = players[0]->shoot();
-					//objects.push_back(newBullet);
-					//bullets.push_back(newBullet);
-					if (newBullet != nullptr)	SoundEngine->play2D("audio/shoot.wav", false);
-				}
+			if (gameState == GameState::GAME_ACTIVE)
+			{
+				if (event.button.button == SDL_BUTTON_LEFT)
+				{
 
-				SDL_SetRelativeMouseMode(SDL_TRUE);
+					if (SDL_GetRelativeMouseMode()) {
+						std::shared_ptr<Bullet> newBullet = players[0]->shoot();
+						//objects.push_back(newBullet);
+						//bullets.push_back(newBullet);
+						if (newBullet != nullptr)	SoundEngine->play2D("audio/shoot.wav", false);
+					}
+					SDL_SetRelativeMouseMode(SDL_TRUE);
+
+				}
+			}
+			else if (gameState == GameState::GAME_MENU)
+			{
+				menu->onMouseDown(event.button);
 			}
 		}
 	}

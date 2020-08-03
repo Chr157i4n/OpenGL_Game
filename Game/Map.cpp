@@ -18,6 +18,15 @@ void Map::load(std::string mapFileName)
 
 void Map::restart()
 {	
+	std::vector<unsigned int> envCubeMaps, envCubeMapFrameBuffers;
+
+	for (std::shared_ptr<Object> object : Game::objects)
+	{
+		envCubeMaps.push_back(object->getEnvCubeMap());
+		envCubeMapFrameBuffers.push_back(object->getEnvCubeMapFrameBuffer());
+	}
+
+
 	Game::objects.clear();
 	Game::characters.clear();
 	Game::players.clear();
@@ -34,7 +43,15 @@ void Map::restart()
 
 	Game::players[0]->createHealthbar();
 
-	Renderer::resetFrameCount();
+	//Renderer::resetFrameCount();
+	//todo: if object dies, this doesnt work anymore. perhaps died objects should only be "disabled" instead of deleted
+	for (int i = 0; i < Game::objects.size(); i++)
+	{
+		if(i < envCubeMaps.size())
+			Game::objects[i]->setEnvCubeMap(envCubeMaps[i]);
+		if (i < envCubeMapFrameBuffers.size())
+			Game::objects[i]->setEnvCubeMapFrameBuffer(envCubeMapFrameBuffers[i]);
+	}
 
 	Game::setGameState(GameState::GAME_ACTIVE);
 	SDL_SetRelativeMouseMode(SDL_TRUE);
