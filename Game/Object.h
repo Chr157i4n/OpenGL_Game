@@ -224,6 +224,16 @@ public:
 
 	bool isGettingDamaged();
 
+	void setEnvCubeMap(unsigned int newEnvCubeMap)
+	{
+		envCubeMap = newEnvCubeMap;
+	}
+
+	unsigned int getEnvCubeMap()
+	{
+		return envCubeMap;
+	}
+
 protected:
 
 	glm::vec3 position;						//x, y, z
@@ -250,5 +260,7 @@ protected:
 	bool gravity = true;
 
 	std::chrono::system_clock::time_point lastHitTimestamp = std::chrono::system_clock::now() - std::chrono::hours(1);
+
+	unsigned int envCubeMap;
 };
 

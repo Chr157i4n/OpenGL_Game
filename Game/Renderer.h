@@ -80,6 +80,11 @@ public:
 
 	static void applyPostprocessingEffect(PostProcessingEffect postprocessingeffect, float32 duration);
 
+	static void resetFrameCount()
+	{
+		frameCount = 0;
+	}
+
 	static FrameBuffer frameBuffer;
 	static FrameBuffer shadowMapBuffer;
 	static FrameBuffer envMapFacesBuffer[6];

@@ -57,7 +57,7 @@ void Character::jump()
 		irrklang::vec3df SPosition = irrklang::vec3df(getPosition().x, getPosition().y, getPosition().z);
 		irrklang::ISound* jumpSound = Game::SoundEngine->play3D("audio/jump.wav", SPosition, false, false, true);
 
-		movement.y += 0.03 * Game::getDelta();
+		movement.y += 0.5; //0.03 *Game::getDelta();
 		canJump = false;
 	}
 }

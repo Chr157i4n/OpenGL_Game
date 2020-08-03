@@ -34,6 +34,8 @@ void Map::restart()
 
 	Game::players[0]->createHealthbar();
 
+	Renderer::resetFrameCount();
+
 	Game::setGameState(GameState::GAME_ACTIVE);
 	SDL_SetRelativeMouseMode(SDL_TRUE);
 }

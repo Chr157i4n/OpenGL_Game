@@ -249,7 +249,7 @@
       <scale>1;1;1</scale>
     </object>
     <object>
-      <name>Crystal</name>
+      <name>MetalTestBall</name>
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
@@ -305,6 +305,16 @@
       <gravity>false</gravity>
       <modelfile>testball09.bmf</modelfile>
       <position>25;2;42</position>
+      <rotation>0;0;0</rotation>
+      <scale>1;1;1</scale>
+    </object>
+    <object>
+      <name>Crystal</name>
+      <type>Entity</type>
+      <collisionboxtype>cube</collisionboxtype>
+      <gravity>false</gravity>
+      <modelfile>testball10.bmf</modelfile>
+      <position>25;2;46</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
     </object>

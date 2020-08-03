@@ -511,12 +511,12 @@ void Renderer::showShadowMap()
 	//SDL_GL_SwapWindow(*window);
 }
 
-unsigned int cubemap;
-
 void Renderer::renderEnvironmentMap(std::shared_ptr<Object> objectFromView)
 {
-	std::vector<glm::mat4> views, projs, viewProjs;
+	std::vector<glm::mat4> views;
 	glm::mat4 view, proj;
+
+	Logger::log("Rendering new EnvMap for object: " + objectFromView->printObject());
 	
 	
 	glViewport(0, 0, envMapResolution, envMapResolution);
@@ -524,43 +524,27 @@ void Renderer::renderEnvironmentMap(std::shared_ptr<Object> objectFromView)
 
 	#pragma region ViewProjection from Object x6
 
-	float angle = 90.0f/2;
+	float angle = 90.0f;
+	proj = glm::perspective(glm::radians(angle), 1.0f, 0.1f, 40.0f);
 
-	view = glm::lookAt(objectFromView->getCenter(), objectFromView->getCenter() + glm::vec3(1,0,0), glm::vec3(0,-1,0));
-	proj = glm::perspective(angle, 1.0f, 0.1f, 40.0f);
+	view = glm::lookAt(objectFromView->getCenter(), objectFromView->getCenter() + glm::vec3(1, 0, 0), glm::vec3(0, -1, 0));
 	views.push_back(view);
-	projs.push_back(proj);
-	viewProjs.push_back(view * proj);
 
 	view = glm::lookAt(objectFromView->getCenter(), objectFromView->getCenter() + glm::vec3(-1, 0, 0), glm::vec3(0, -1, 0));
-	proj = glm::perspective(angle, 1.0f, 0.1f, 40.0f);
 	views.push_back(view);
-	projs.push_back(proj);
-	viewProjs.push_back(view * proj);
 
-	view = glm::lookAt(objectFromView->getCenter(), objectFromView->getCenter() + glm::vec3(0, 1, 0), glm::vec3(0, -1, 0));
-	proj = glm::perspective(angle, 1.0f, 0.1f, 40.0f);
+	view = glm::lookAt(objectFromView->getCenter(), objectFromView->getCenter() + glm::vec3(0, 1, 0), glm::vec3(0, 0, 1));
 	views.push_back(view);
-	projs.push_back(proj);
-	viewProjs.push_back(view * proj);
 
-	view = glm::lookAt(objectFromView->getCenter(), objectFromView->getCenter() + glm::vec3(0, -1, 0), glm::vec3(0, -1, 0));
-	proj = glm::perspective(angle, 1.0f, 0.1f, 40.0f);
+	view = glm::lookAt(objectFromView->getCenter(), objectFromView->getCenter() + glm::vec3(0, -1, 0), glm::vec3(0, 0, 1));// too dark
 	views.push_back(view);
-	projs.push_back(proj);
-	viewProjs.push_back(view * proj);
 
 	view = glm::lookAt(objectFromView->getCenter(), objectFromView->getCenter() + glm::vec3(0, 0, 1), glm::vec3(0, -1, 0));
-	proj = glm::perspective(angle, 1.0f, 0.1f, 40.0f);
 	views.push_back(view);
-	projs.push_back(proj);
-	viewProjs.push_back(view * proj);
 
 	view = glm::lookAt(objectFromView->getCenter(), objectFromView->getCenter() + glm::vec3(0, 0, -1), glm::vec3(0, -1, 0));
-	proj = glm::perspective(angle, 1.0f, 0.1f, 40.0f);
 	views.push_back(view);
-	projs.push_back(proj);
-	viewProjs.push_back(view * proj);
+
 
 	#pragma endregion
 
@@ -568,7 +552,10 @@ void Renderer::renderEnvironmentMap(std::shared_ptr<Object> objectFromView)
 	unsigned int  framebuffer, depthbuffer;
 
 	// create the cubemap
+	unsigned int cubemap;
 	glGenTextures(1, &cubemap);
+	objectFromView->setEnvCubeMap(cubemap);
+
 	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP);
@@ -578,7 +565,7 @@ void Renderer::renderEnvironmentMap(std::shared_ptr<Object> objectFromView)
 
 	// set textures
 	for (int i = 0; i < 6; ++i)
-		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, envMapResolution, envMapResolution, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+		glTexImage2D(cube_map_axis1[i], 0, GL_RGB, envMapResolution, envMapResolution, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
 
 	// create the fbo
 	glGenFramebuffers(1, &framebuffer);
@@ -589,21 +576,15 @@ void Renderer::renderEnvironmentMap(std::shared_ptr<Object> objectFromView)
 	glBindRenderbuffer(GL_RENDERBUFFER, depthbuffer);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, envMapResolution, envMapResolution);
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
 	// attach it
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthbuffer);		//	<- error invalid render buffer
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthbuffer);
 
-	// attach only the +X cubemap texture (for completeness)
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X, cubemap, 0);
 
 	GLCALL(glCullFace(GL_BACK));
 	GLCALL(glClearColor(1, 0, 0, 0.5));
 
 	for (int i=0; i<6; i++)
-	{
-		glm::mat4 view = views[i];
-		glm::mat4 proj = projs[i];
-		
+	{	
 
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, cube_map_axis1[i], cubemap, 0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -611,6 +592,8 @@ void Renderer::renderEnvironmentMap(std::shared_ptr<Object> objectFromView)
 		for (std::shared_ptr<Object> object : Game::objects)
 		{
 			if (object->getNumber() == objectFromView->getNumber()) continue;
+			if (object->getType() & ObjectType::Object_Character) continue;
+			if (object->getType() & ObjectType::Object_Bullet) continue;
 
 			glm::mat4 model = glm::mat4(1.0f);
 			//model = glm::scale(model, glm::vec3(1.0f));
@@ -647,7 +630,7 @@ void Renderer::renderEnvironmentMap(std::shared_ptr<Object> objectFromView)
 			int modelUniformIndex = GLCALL(glGetUniformLocation(shaderEnvMap->getShaderId(), "u_model"));
 			GLCALL(glUniformMatrix4fv(modelUniformIndex, 1, GL_FALSE, &model[0][0]));
 			int viewUniformIndex = GLCALL(glGetUniformLocation(shaderEnvMap->getShaderId(), "u_view"));
-			GLCALL(glUniformMatrix4fv(viewUniformIndex, 1, GL_FALSE, &view[0][0]));
+			GLCALL(glUniformMatrix4fv(viewUniformIndex, 1, GL_FALSE, &views[i][0][0]));
 			int projUniformIndex = GLCALL(glGetUniformLocation(shaderEnvMap->getShaderId(), "u_proj"));
 			GLCALL(glUniformMatrix4fv(projUniformIndex, 1, GL_FALSE, &proj[0][0]));
 
@@ -655,7 +638,7 @@ void Renderer::renderEnvironmentMap(std::shared_ptr<Object> objectFromView)
 
 		}
 		
-		renderSkybox(glm::mat4(glm::mat3(views[i])), projs[i]);
+		renderSkybox(glm::mat4(glm::mat3(views[i])), proj);
 		shaderEnvMap->bind();
 
 
@@ -742,9 +725,10 @@ void Renderer::renderObjects(bool transparent)
 			object->bindShader();
 
 
-			if (object->getNumber() == 2)
+			//if (object->getNumber() == 2 || object->getNumber() == 25)
+			if(true)
 			{
-				if (frameCount % 60 == 0)
+				if (frameCount % 100000 == 0 || frameCount == 1)
 				{
 					if (postProcessing) frameBuffer.unbind();
 					renderEnvironmentMap(object);
@@ -753,12 +737,8 @@ void Renderer::renderObjects(bool transparent)
 					object->bindShader();
 				}
 
-				//GLCALL(glActiveTexture(GL_TEXTURE3));
-				//GLCALL(glBindTexture(GL_TEXTURE_CUBE_MAP, envMapBuffer.getTextureId()[3]));
-				//GLCALL(glUniform1i(envmapBasicUniformIndex, 3));
-
 				GLCALL(glActiveTexture(GL_TEXTURE3));
-				GLCALL(glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap));
+				GLCALL(glBindTexture(GL_TEXTURE_CUBE_MAP, object->getEnvCubeMap()));
 				GLCALL(glUniform1i(envmapBasicUniformIndex, 3));
 			}
 			else 
