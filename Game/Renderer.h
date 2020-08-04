@@ -85,6 +85,23 @@ public:
 		frameCount = 0;
 	}
 
+	static void enableVSync(bool enable)
+	{
+		SDL_GL_SetSwapInterval(enable);
+	}
+
+	static void toggleVSync()
+	{
+		if (SDL_GL_GetSwapInterval() == 0)
+		{
+			SDL_GL_SetSwapInterval(1);
+		}
+		else
+		{
+			SDL_GL_SetSwapInterval(0);
+		}
+	}
+
 	static FrameBuffer frameBuffer;
 	static FrameBuffer shadowMapBuffer;
 	static FrameBuffer envMapFacesBuffer[6];

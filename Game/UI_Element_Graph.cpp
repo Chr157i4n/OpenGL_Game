@@ -1,16 +1,9 @@
 #include "UI_Element_Graph.h"
 #include "Game.h"
 
-UI_Element_Graph::UI_Element_Graph(int x, int y, int w, int h, uint64 lifespan, glm::vec4 color, bool isDebugInfo) : UI_Element()
+UI_Element_Graph::UI_Element_Graph(int x, int y, int w, int h, uint64 lifespan, glm::vec4 foreColor, glm::vec4 backColor, bool isDebugInfo) : UI_Element(x, y, w, h, lifespan, foreColor, backColor, isDebugInfo)
 {
-	this->x = x;
-	this->y = y;
-	this->w = w;
-	this->h = h;
-	this->isDebugInfo = isDebugInfo;
-	this->lifespan = lifespan;
-	this->axisColor = glm::vec4(0.2, 0.2, 0.2, 0.4);
-	this->color = glm::vec4(0, 0, 1, 1);
+
 }
 
 void UI_Element_Graph::drawUI_Element()
@@ -33,7 +26,7 @@ void UI_Element_Graph::drawUI_Element()
 
 
 	//background
-	glColor4f(axisColor.r, axisColor.g, axisColor.b, axisColor.a);
+	glColor4f(backColor.r, backColor.g, backColor.b, backColor.a);
 	glBegin(GL_QUADS);
 	glVertex2f(_x - outlineThickness, _y - outlineThickness);
 	glVertex2f(_x + _w + outlineThickness, _y - outlineThickness);
@@ -87,15 +80,4 @@ void UI_Element_Graph::setValue(float value)
 	{
 		valueBuffer.erase(valueBuffer.begin());
 	}
-}
-
-
-glm::vec4 UI_Element_Graph::getAxisColor() const
-{
-	return axisColor;
-}
-
-void UI_Element_Graph::setAxisColor(glm::vec4 axisColor)
-{
-	this->axisColor = axisColor;
 }

@@ -23,8 +23,13 @@
 #include "libs/glm/ext/matrix_transform.hpp"
 #include "libs/glm/gtc/matrix_transform.hpp"
 
-//UI
+//Menu
 #include "Menu.h"
+#include "Menu_Main.h"
+#include "Menu_Options.h"
+#include "Menu_Pause.h"
+
+//UI
 #include "UI.h"
 #include "UI_Element_Label.h"
 #include "UI_Element_ProgressBar.h"
@@ -56,7 +61,7 @@ enum GameState {
 	GAME_ACTIVE,
 	GAME_GAME_OVER,
 	GAME_PAUSED,
-	GAME_MENU
+	GAME_MENU,
 };
 
 enum PlayerAction {
@@ -105,6 +110,22 @@ std::unordered_map<SDL_Keycode, PlayerAction> const keybindings =
 	{SDLK_CARET,	toggleConsole},
 };
 
+enum MouseAction {
+	lmb,
+	mmb,
+	rmb,
+	x1mb,
+	x2mb,
+};
+
+std::unordered_map<Uint8, MouseAction> const mousebindings =
+{
+	{SDL_BUTTON_LEFT,		lmb},
+	{SDL_BUTTON_MIDDLE,		mmb},
+	{SDL_BUTTON_RIGHT,		rmb},
+	{SDL_BUTTON_X1,			x1mb},
+	{SDL_BUTTON_X2,			x2mb},
+};
 
 static class Game
 {
@@ -145,9 +166,17 @@ public:
 
 	static void togglePause();
 
-	static void toggleMenu();
+	static bool toggleMenu();
+
+	static bool toggleMenuOptions();
 
 	static void toggleFullscreen();
+
+	static void quit()
+	{
+		SDL_DestroyWindow(Game::window);
+		exit(0);
+	}
 
 
 	static std::vector< std::shared_ptr<Object> > map;
@@ -162,6 +191,7 @@ public:
 	static irrklang::ISoundEngine* SoundEngine;
 
 	static bool pressedKeys[20];
+	static bool pressedMouseButtons[3];
 
 	static float32 FPS;
 	static float32 fps_limit;
@@ -178,7 +208,11 @@ public:
 	static GameState gameState;
 	static int maxBulletCount;
 
-	static Menu* menu;
+	static Menu* menu_Main;
+	static Menu* menu_Pause;
+	static Menu* menu_Options;
+
+	static Menu* menu_Current;
 
 private:
 

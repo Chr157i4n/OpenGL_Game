@@ -1,8 +1,19 @@
 #include "UI_Element.h"
 
-UI_Element::UI_Element()
+#include "Game.h"
+
+UI_Element::UI_Element(int x, int y, int w, int h, float lifespan, glm::vec4 foreColor, glm::vec4 backColor, bool isDebugInfo)
 {
-    startTimestamp = SDL_GetPerformanceCounter() / SDL_GetPerformanceFrequency();
+    startTimestamp = std::chrono::system_clock::now();
+
+    this->x = x;
+    this->y = y;
+    this->w = w;
+    this->h = h;
+    this->isDebugInfo = isDebugInfo;
+    this->lifespan = lifespan;
+    this->foreColor = foreColor;
+    this->backColor = backColor;
 }
 
 
@@ -46,14 +57,24 @@ void UI_Element::setH(int h)
     this->h = h;
 }
 
-glm::vec4 UI_Element::getColor() const
+glm::vec4 UI_Element::getForeColor() const
 {
-    return color;
+    return foreColor;
 }
 
-void UI_Element::setColor(glm::vec4 color)
+void UI_Element::setForeColor(glm::vec4 color)
 {
-    this->color = color;
+    this->foreColor = color;
+}
+
+glm::vec4 UI_Element::getBackColor() const
+{
+    return backColor;
+}
+
+void UI_Element::setBackColor(glm::vec4 color)
+{
+    this->backColor = color;
 }
 
 bool UI_Element::getIsDebugInfo() const
@@ -78,25 +99,28 @@ void UI_Element::setUielementtype(UI_Element_Type uielementtype)
 }
 
 
-uint64 UI_Element::getLifespan() const
+float UI_Element::getLifespan() const
 {
     return lifespan;
 }
 
-void UI_Element::setLifespan(uint64 lifespan)
+void UI_Element::setLifespan(float lifespan)
 {
     this->lifespan = lifespan;
 }
 
 bool UI_Element::isStillAlive()
 {
-    uint64 timestamp = SDL_GetPerformanceCounter()/SDL_GetPerformanceFrequency();
-
     if (lifespan == 0)
         return true;
     else if (lifespan == -1)
         return false;
-    else if (timestamp > startTimestamp + lifespan)
+
+    std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+    std::chrono::duration<double, std::milli> duration = now - startTimestamp;
+
+
+    if (duration.count() > lifespan)
         return false;
     else
         return true;
@@ -113,3 +137,22 @@ void UI_Element::setID(int ID)
     this->ID = ID;
 }
 
+bool UI_Element::isMouseOver(float mouseX, float mouseY)
+{
+    return (mouseX > this->getX() && mouseX < this->getX() + this->getW() && Game::getWindowHeight() - mouseY > this->getY() && Game::getWindowHeight() - mouseY < this->getY() + this->getH());
+}
+
+void UI_Element::action(float mouseX, float mouseY)
+{
+
+}
+
+void UI_Element::increase()
+{
+
+}
+
+void UI_Element::decrease()
+{
+
+}

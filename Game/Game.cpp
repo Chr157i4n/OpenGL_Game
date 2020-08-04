@@ -18,6 +18,7 @@ std::vector< std::shared_ptr<Bullet> > Game::bullets;
 
 
 bool Game::pressedKeys[20];
+bool Game::pressedMouseButtons[3];
 
 float32  Game::FPS = 0;
 float32  Game::fps_limit = 0;
@@ -34,7 +35,11 @@ int Game::maxBulletCount = 20;
 bool Game::showShadowMap = false;
 bool Game::postprocess = true;
 
-Menu* Game::menu = nullptr;
+Menu* Game::menu_Main = nullptr;
+Menu* Game::menu_Pause = nullptr;
+Menu* Game::menu_Options = nullptr;
+
+Menu* Game::menu_Current = nullptr;
 
 irrklang::ISoundEngine* Game::SoundEngine = irrklang::createIrrKlangDevice();
 
@@ -73,7 +78,9 @@ void Game::init()
 	std::string levelname = ConfigManager::readConfig("level");
 	Map::load(levelname);
 
-	menu = new Menu();
+	menu_Main = new Menu_Main();
+	menu_Pause = new Menu_Pause();
+	menu_Options = new Menu_Options();
 
 	Renderer::init();
 }
@@ -83,7 +90,7 @@ void Game::gameLoop()
 	std::chrono::system_clock::time_point a = std::chrono::system_clock::now();
 	std::chrono::system_clock::time_point b = std::chrono::system_clock::now();
 
-	UI_Element_Graph* fpsGraph = new UI_Element_Graph(10, getWindowHeight() * 3 / 4, 100, 100, 0, glm::vec4(0, 0, 1, 1), true);
+	UI_Element_Graph* fpsGraph = new UI_Element_Graph(10, getWindowHeight() * 3 / 4, 100, 100, 0, glm::vec4(0, 0, 1, 1), glm::vec4(0.2, 0.2, 0.2, 0.4), true);
 	UI::addElement(fpsGraph);
 
 
@@ -137,7 +144,7 @@ void Game::gameLoop()
 				//player->update();
 				if (player->getPosition().x > 95 && player->getPosition().z > 95)
 				{
-					UI_Element* eastereggLabel = new UI_Element_Label(getWindowWidth() / 2 - 200, getWindowHeight() / 2 - 100, "Nice, du hast das Easter-Egg gefunden", 1, 1, glm::vec4(1, 0, 0, 1), false);
+					UI_Element* eastereggLabel = new UI_Element_Label(getWindowWidth() / 2 - 200, getWindowHeight() / 2 - 100, "Nice, du hast das Easter-Egg gefunden", 1, 1, glm::vec4(1, 0, 0, 1), glm::vec4(0.2, 0.2, 0.2, 0.4), false);
 					UI::addElement(eastereggLabel);
 				}
 			}
@@ -151,7 +158,7 @@ void Game::gameLoop()
 
 			if (npcs.size() <= 0 && gameState == GameState::GAME_ACTIVE)
 			{
-				UI_Element* victoryLabel = new UI_Element_Label(getWindowWidth() / 2 - 100, getWindowHeight() / 2, "Du hast alle Bots besiegt", 1, 1, glm::vec4(0, 0, 1, 1), false);
+				UI_Element* victoryLabel = new UI_Element_Label(getWindowWidth() / 2 - 100, getWindowHeight() / 2, "Du hast alle Bots besiegt", 1, 1, glm::vec4(0, 0, 1, 1), glm::vec4(0.2, 0.2, 0.2, 0.4), false);
 				UI::addElement(victoryLabel);
 				gameState = GameState::GAME_GAME_OVER;
 			}
@@ -167,13 +174,13 @@ void Game::gameLoop()
 
 		if (gameState == GameState::GAME_MENU)
 		{
-			if (menu != nullptr)
+			if (menu_Current != nullptr)
 			{
 
 				GLCALL(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
 				GLCALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
-				menu->drawMenu();
+				menu_Current->drawMenu();
 
 				SDL_GL_SwapWindow(window);
 			}
@@ -299,30 +306,38 @@ void Game::processInput()
 			}
 			else if (gameState == GameState::GAME_MENU)
 			{
-				menu->onMouseMove(event.motion.x, event.motion.y);
+				menu_Current->onMouseMove(event.motion.x, event.motion.y);
 			}
 		}
 		else if (event.type == SDL_MOUSEBUTTONDOWN) {
 			if (gameState == GameState::GAME_ACTIVE)
 			{
-				if (event.button.button == SDL_BUTTON_LEFT)
+				if (!SDL_GetRelativeMouseMode())
 				{
-
-					if (SDL_GetRelativeMouseMode()) {
-						std::shared_ptr<Bullet> newBullet = players[0]->shoot();
-						//objects.push_back(newBullet);
-						//bullets.push_back(newBullet);
-						if (newBullet != nullptr)	SoundEngine->play2D("audio/shoot.wav", false);
-					}
 					SDL_SetRelativeMouseMode(SDL_TRUE);
-
+					continue;
 				}
 			}
-			else if (gameState == GameState::GAME_MENU)
-			{
-				menu->onMouseDown(event.button);
-			}
+
+			pressedMouseButtons[event.button.button] = true;
+
 		}
+		else if (event.type == SDL_MOUSEBUTTONUP) {
+			pressedMouseButtons[event.button.button] = false;
+		}
+	}
+
+	if (pressedMouseButtons[SDL_BUTTON_LEFT])
+	{
+		if (gameState == GameState::GAME_ACTIVE)
+		{
+			if (players[0]->shoot())	SoundEngine->play2D("audio/shoot.wav", false);
+		}
+		else if (gameState == GameState::GAME_MENU)
+		{
+			menu_Current->onMouseDown(event.motion.x, event.motion.y, event.button);
+		}
+
 	}
 
 	if (pressedKeys[PlayerAction::moveForward])
@@ -337,13 +352,27 @@ void Game::processInput()
 	}
 	if (pressedKeys[PlayerAction::moveLeft])
 	{
-		players[0]->moveLeft();
-		updateAudioListener();
+		if (gameState == GameState::GAME_ACTIVE)
+		{
+			players[0]->moveLeft();
+			updateAudioListener();
+		}
+		else if (gameState == GameState::GAME_MENU)
+		{
+			menu_Current->leftOnSelectedMenuElement();
+		}
 	}
 	if (pressedKeys[PlayerAction::moveRight])
 	{
-		players[0]->moveRight();
-		updateAudioListener();
+		if (gameState == GameState::GAME_ACTIVE)
+		{
+			players[0]->moveRight();
+			updateAudioListener();
+		}
+		else if (gameState == GameState::GAME_MENU)
+		{
+			menu_Current->rightOnSelectedMenuElement();
+		}
 	}
 	if (pressedKeys[PlayerAction::jump])
 	{
@@ -402,19 +431,19 @@ void Game::keyPressed(SDL_Keycode key)
 				switch (action)
 				{
 					case PlayerAction::moveForward:
-						menu->selectPreviousItem();
+						menu_Current->selectPreviousElement();
 						SoundEngine->play2D("audio/select.wav", false);
 						break;
 					case PlayerAction::moveBackward:
-						menu->selectNextItem();
+						menu_Current->selectNextElement();
 						SoundEngine->play2D("audio/select.wav", false);
 						break;
 					case PlayerAction::enter:
-						menu->enterSelectedMenuItem();
+						menu_Current->enterSelectedMenuElement();
 						SoundEngine->play2D("audio/select.wav", false);
 						break;
 					case PlayerAction::jump:
-						menu->enterSelectedMenuItem();
+						menu_Current->enterSelectedMenuElement();
 						SoundEngine->play2D("audio/select.wav", false);
 						break;
 				}
@@ -444,7 +473,8 @@ void Game::keyPressed(SDL_Keycode key)
 			togglePause();
 			break;
 		case PlayerAction::menu:
-			toggleMenu();
+			if (toggleMenu()) break;
+			if (toggleMenuOptions()) break;
 			break;
 		case PlayerAction::toggleFullscreen:
 			toggleFullscreen();
@@ -535,18 +565,39 @@ void Game::togglePause()
 	}
 }
 
-void Game::toggleMenu()
+bool Game::toggleMenu()
 {
 	if (gameState == GameState::GAME_PAUSED || gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
 	{
 		gameState = GameState::GAME_MENU;
+		menu_Current = menu_Pause;
 		SDL_SetRelativeMouseMode(SDL_FALSE);
+		return true;
 	}
 	else if (gameState == GameState::GAME_MENU)
 	{
 		gameState = GameState::GAME_ACTIVE;
 		SDL_SetRelativeMouseMode(SDL_TRUE);
+		return true;
 	}
+	return false;
+}
+
+bool Game::toggleMenuOptions()
+{
+	if (gameState == GameState::GAME_MENU && menu_Current == menu_Pause)
+	{
+		gameState = GameState::GAME_MENU;
+		menu_Current = menu_Options;
+		return true;
+	}
+	else if (gameState == GameState::GAME_MENU && menu_Current == menu_Options)
+	{
+		gameState = GameState::GAME_MENU;
+		menu_Current = menu_Pause;
+		return true;
+	}
+	return false;
 }
 
 void Game::toggleFullscreen()

@@ -9,7 +9,7 @@
 class UI_Element_Button : public UI_Element
 {
 public:
-    UI_Element_Button(int x, int y, int w, int h, uint64 lifespan, std::string label, glm::vec4 color = glm::vec4(1, 1, 1, 1), bool isDebugInfo = false);
+    UI_Element_Button(int x, int y, int w, int h, uint64 lifespan, std::string label, glm::vec4 foreColor = glm::vec4(1, 1, 1, 1), glm::vec4 backColor = glm::vec4(0.2, 0.2, 0.2, 0.4), bool isDebugInfo = false);
 
     virtual void drawUI_Element();
 
@@ -37,7 +37,7 @@ public:
 
 private:
     std::string label;
-    glm::vec4 backColor;
     int fontSize = 1;
+    int labelOffsetX, labelOffsetY;
 };
 

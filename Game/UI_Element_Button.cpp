@@ -2,17 +2,12 @@
 
 #include "Game.h"
 
-UI_Element_Button::UI_Element_Button(int x, int y, int w, int h, uint64 lifespan, std::string label, glm::vec4 color, bool isDebugInfo)
-{
-	this->x = x;
-	this->y = y;
-	this->w = w;
-	this->h = h;
-	this->isDebugInfo = isDebugInfo;
-	this->lifespan = lifespan;
-	this->color = color;
+UI_Element_Button::UI_Element_Button(int x, int y, int w, int h, uint64 lifespan, std::string label, glm::vec4 foreColor, glm::vec4 backColor, bool isDebugInfo) : UI_Element(x, y, w, h, lifespan, foreColor, backColor, isDebugInfo)
+{	
 	this->label = label;
-	this->backColor = glm::vec4(0.2, 0.2, 0.2, 0.4);
+
+	labelOffsetX = w/2 - 6*label.size();		//todo: pixelsize of character are different. calculate the offset correctly
+	labelOffsetY = h/2 - 10;					//todo: make it an option, how the label should be alligned
 }
 
 void UI_Element_Button::drawUI_Element()
@@ -21,7 +16,7 @@ void UI_Element_Button::drawUI_Element()
 	float _y = y;
 	float _w = w;
 	float _h = h;
-	float outlineThickness = 0.01;
+	float outlineThickness = 0;//0.01;
 
 	_x /= Game::getWindowWidth();
 	_y /= Game::getWindowHeight();
@@ -33,17 +28,16 @@ void UI_Element_Button::drawUI_Element()
 	_w = _w * 2;
 	_h = _h * 2;
 
-	if (isSelected)
+
+	float alpha=1;
+
+	if (!isSelected)
 	{
-		backColor.a = 1;
-	}
-	else
-	{
-		backColor.a = 0.4;
+		alpha = backColor.a;
 	}
 
 	//background
-	glColor4f(backColor.r, backColor.g, backColor.b, backColor.a);
+	glColor4f(backColor.r, backColor.g, backColor.b, alpha);
 	glBegin(GL_QUADS);
 	glVertex2f(_x - outlineThickness, _y - outlineThickness);
 	glVertex2f(_x + _w + outlineThickness, _y - outlineThickness);
@@ -51,5 +45,5 @@ void UI_Element_Button::drawUI_Element()
 	glVertex2f(_x - outlineThickness, _y + _h + outlineThickness);
 	glEnd();
 
-	UI::drawString(x, Game::getWindowHeight()-y, label, color);
+	UI::drawString(x + labelOffsetX, Game::getWindowHeight()-y-labelOffsetY, label, foreColor);
 }

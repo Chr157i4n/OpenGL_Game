@@ -1,20 +1,15 @@
 #include "UI_Element_Label.h"
 #include "UI.h"
 
-UI_Element_Label::UI_Element_Label(int x, int y, std::string label, uint64 lifespan, int fontSize, glm::vec4 color,  bool isDebugInfo) : UI_Element()
+UI_Element_Label::UI_Element_Label(int x, int y, std::string label, uint64 lifespan, int fontSize, glm::vec4 foreColor, glm::vec4 backColor, bool isDebugInfo) : UI_Element(x, y, w, h, lifespan, foreColor, backColor, isDebugInfo)
 {
     this->text = label;
-    this->x = x;
-    this->y = y;
-    this->isDebugInfo = isDebugInfo;
     this->fontSize = fontSize;
-    this->color = color;
-    this->lifespan = lifespan;
 }
 
 void UI_Element_Label::drawUI_Element()
 {
-    UI::drawString(x, y, text, color);
+    UI::drawString(x, y, text, foreColor);
 }
 
 

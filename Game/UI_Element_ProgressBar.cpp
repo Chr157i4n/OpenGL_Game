@@ -1,17 +1,10 @@
 #include "UI_Element_ProgressBar.h"
 #include "Game.h"
 
-UI_Element_ProgressBar::UI_Element_ProgressBar(int x, int y, int w, int h, float value, uint64 lifespan, bool isDebugInfo) : UI_Element()
+UI_Element_ProgressBar::UI_Element_ProgressBar(int x, int y, int w, int h, float value, uint64 lifespan, glm::vec4 foreColor, glm::vec4 backColor, bool isDebugInfo) : UI_Element(x, y, w, h, lifespan, foreColor, backColor, isDebugInfo)
 {
 	this->value = value;
-	this->x = x;
-	this->y = y;
-	this->w = w;
-	this->h = h;
-	this->isDebugInfo = isDebugInfo;
-	this->lifespan = lifespan;
-	this->outlineColor = glm::vec4(0.2, 0.2, 0.2, 1);
-	this->color = glm::vec4(0, 0, 1, 1);
+
 }
 
 void UI_Element_ProgressBar::drawUI_Element()
@@ -35,7 +28,7 @@ void UI_Element_ProgressBar::drawUI_Element()
 
 
 	//outline
-	glColor4f(outlineColor.r, outlineColor.g, outlineColor.b, outlineColor.a);
+	glColor4f(backColor.r, backColor.g, backColor.b, backColor.a);
 	glBegin(GL_QUADS);
 	glVertex2f(_x - outlineThickness, _y - outlineThickness);
 	glVertex2f(_x + _w + outlineThickness, _y - outlineThickness);
@@ -45,7 +38,7 @@ void UI_Element_ProgressBar::drawUI_Element()
 
 	//bar
 	glBegin(GL_QUADS);
-	glColor4f(color.r, color.g, color.b, color.a);
+	glColor4f(foreColor.r, foreColor.g, foreColor.b, foreColor.a);
 	glVertex2f(_x				, _y);
 	glVertex2f(_x + _value*_w 	, _y);
 	glVertex2f(_x + _value*_w	, _y + _h);
@@ -74,16 +67,5 @@ void UI_Element_ProgressBar::setValue(float value)
 	{
 		this->value = 0;
 	}
-}
-
-
-glm::vec4 UI_Element_ProgressBar::getOutlineColor() const
-{
-    return outlineColor;
-}
-
-void UI_Element_ProgressBar::setOutlineColor(glm::vec4 outlineColor)
-{
-    this->outlineColor = outlineColor;
 }
 

@@ -327,14 +327,6 @@ void Renderer::init()
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthbuffer);
 	}
 
-	/*for (std::shared_ptr<Object> object : Game::objects)
-	{
-		if (postProcessing) frameBuffer.unbind();
-		renderEnvironmentMap(object);
-		//std::thread renderEnvThread(renderEnvironmentMap, object);
-		if (postProcessing) frameBuffer.bind();
-		object->bindShader();
-	}*/
 }
 
 void Renderer::initFrameBuffer()
@@ -412,7 +404,7 @@ void Renderer::initLoadingScreen()
 {
 	screenVertexBuffer = new VertexBuffer(screenVertices, 6, VertexType::_VertexPosTex);
 
-	loadingProgressBar = new UI_Element_ProgressBar(Game::getWindowWidth() / 2 - 200, Game::getWindowHeight() / 2 - 10, 400, 20, 0, 0, false);
+	loadingProgressBar = new UI_Element_ProgressBar(Game::getWindowWidth() / 2 - 200, Game::getWindowHeight() / 2 - 10, 400, 20, 0, 0, glm::vec4(0, 0, 1, 1));
 	UI::addElement(loadingProgressBar);
 	loadingScreenTexture = ResourceManager::loadImage("images/loading_screen.png");
 }
