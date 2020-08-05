@@ -30,17 +30,17 @@ void UI::init()
 
 void UI::drawFPS()
 {
-	drawString(20, 20, std::to_string((int)std::round(Game::getFPS())), glm::vec4(1,1,0,1));
+	drawString(20, Game::getWindowHeight() - 20, std::to_string((int)std::round(Game::getFPS())), glm::vec4(1,1,0,1));
 }
 
 void UI::drawPos(std::shared_ptr<Object> object)
 {
-	drawVec3(object->getPosition(), 1, "Pos", Game::getWindowWidth() - 300, 20);
+	drawVec3(object->getPosition(), 1, "Pos", Game::getWindowWidth() - 300, Game::getWindowHeight() - 20);
 }
 
 void UI::drawRot(std::shared_ptr<Player> object)
 {
-	drawVec3(object->getLookDirection(), 1, "Rot", Game::getWindowWidth() - 300, 50);
+	drawVec3(object->getLookDirection(), 1, "Rot", Game::getWindowWidth() - 300, Game::getWindowHeight() - 50);
 }
 
 void UI::drawString(float x, float y, std::string text, glm::vec4 color)
@@ -160,4 +160,45 @@ void UI::clearUI_Elements()
 		}
 
 	}
+}
+
+float UI::to_x_gl(int x_px)
+{
+	return ((float)x_px) / Game::getWindowWidth() * 2 -1;
+}
+
+float UI::to_y_gl(int y_px)
+{
+	return ((float)y_px) / Game::getWindowHeight() * 2 -1;
+}
+
+int UI::to_x_px(float x_gl)
+{
+	return (x_gl+1) * Game::getWindowWidth() / 2;
+}
+
+int UI::to_y_px(float y_gl)
+{
+	return (y_gl+1) * Game::getWindowHeight() / 2;
+}
+
+
+float UI::to_w_gl(int w_px)
+{
+	return ((float)w_px) / Game::getWindowWidth() * 2;
+}
+
+float UI::to_h_gl(int h_px)
+{
+	return ((float)h_px) / Game::getWindowHeight() * 2;
+}
+
+int UI::to_w_px(float w_gl)
+{
+	return w_gl * Game::getWindowWidth() / 2;
+}
+
+int UI::to_h_px(float h_gl)
+{
+	return h_gl * Game::getWindowHeight() / 2;
 }

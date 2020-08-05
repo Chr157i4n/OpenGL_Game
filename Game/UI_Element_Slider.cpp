@@ -58,11 +58,11 @@ void UI_Element_Slider::drawUI_Element()
 
 
 
-	UI::drawString(x + labelOffsetX, Game::getWindowHeight() - y - labelOffsetY, label, foreColor);
+	UI::drawString(x + labelOffsetX, y+labelOffsetY, label, foreColor);
 
 }
 
-void UI_Element_Slider::action(float mouseX, float mouseY)
+void UI_Element_Slider::action(float mouseX, float mouseY, SDL_MouseButtonEvent* buttonEvent)
 {
 	this->setValue((mouseX - this->getX()) / this->getW() * 100);
 }

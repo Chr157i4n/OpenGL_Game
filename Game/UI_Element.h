@@ -4,6 +4,7 @@
 #include "libs/glm/glm.hpp"
 #include <functional>
 #include <chrono>
+#include <SDL.h>
 
 enum UI_Element_Type {
     label,
@@ -66,13 +67,9 @@ public:
         this->callback = callback;
     }
 
-    void callCallBack()
-    {
-        if(callback != nullptr)
-            callback();
-    }
+    void callCallBack(SDL_MouseButtonEvent* buttonEvent = nullptr);
 
-    virtual void action(float mouseX, float mouseY);
+    virtual void action(float mouseX, float mouseY, SDL_MouseButtonEvent* buttonEvent = nullptr);
 
     virtual void increase();
 
@@ -94,6 +91,7 @@ protected:
     int ID = -1;
     bool isSelected = false;
 
+    bool singleAction = false;
     std::function<void()> callback;
 
  

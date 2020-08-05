@@ -8,6 +8,8 @@ UI_Element_Button::UI_Element_Button(int x, int y, int w, int h, uint64 lifespan
 
 	labelOffsetX = w/2 - 6*label.size();		//todo: pixelsize of character are different. calculate the offset correctly
 	labelOffsetY = h/2 - 10;					//todo: make it an option, how the label should be alligned
+
+	singleAction = true;
 }
 
 void UI_Element_Button::drawUI_Element()
@@ -45,5 +47,5 @@ void UI_Element_Button::drawUI_Element()
 	glVertex2f(_x - outlineThickness, _y + _h + outlineThickness);
 	glEnd();
 
-	UI::drawString(x + labelOffsetX, Game::getWindowHeight()-y-labelOffsetY, label, foreColor);
+	UI::drawString(x + labelOffsetX, y+labelOffsetY, label, foreColor);
 }

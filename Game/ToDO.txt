@@ -1,8 +1,8 @@
-- 3D Raypicking
+﻿- 3D Raypicking
 
 - NPCS
-	- Teams
-	- shooting
+	- Teams	✓
+	- shooting	✓
 	- optimisation
 	- friendly, talkable npcs
 
@@ -21,22 +21,22 @@
 
 
 - UI elements
-	- button
-	- slider
+	- button	✓
+	- slider	✓
 
-- Menu mouse interaction
+- Menu mouse interaction	✓
 
 - Menu
 	- Main Menu
 		- level selection
 	- Options Menu
-		- Audio volume
+		- Audio volume	✓
 		- Graphics quality
 		- Keybindings
 
 - Graphic Effects
-	- Cube Map Reflection
-	- Environment Mapping (360� in the View of every (reflective) object as cube map for reflection of this object)
+	- Cube Map Reflection	✓
+	- Environment Mapping (360° in the View of every (reflective) object as cube map for reflection of this object)	✓
 	- Screen Space Reflection
 	- Scren Screen Ambient Occlusion
 	- PBR (Tesselation)
@@ -65,3 +65,5 @@
 
 - Postprocessing
 	- Camera Shake
+
+- Performance Measurement

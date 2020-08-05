@@ -3,6 +3,8 @@
 #define STB_TRUETYPE_IMPLEMENTATION
 #include "libs/stb_truetype.h"
 
+#include "Game.h"
+
 Font::~Font() {
     if (fontVertexBufferData) {
         delete[]fontVertexBufferData;
@@ -40,6 +42,9 @@ void Font::initFont(const char* filename)
 
 void Font::drawString(float x, float y, const char* text, Shader* fontShader) 
 {
+    x = x;
+    y = Game::getWindowHeight() - y;
+
     glBindVertexArray(fontVao);
     glBindBuffer(GL_ARRAY_BUFFER, fontVertexBufferId);
 

@@ -144,7 +144,7 @@ void Game::gameLoop()
 				//player->update();
 				if (player->getPosition().x > 95 && player->getPosition().z > 95)
 				{
-					UI_Element* eastereggLabel = new UI_Element_Label(getWindowWidth() / 2 - 200, getWindowHeight() / 2 - 100, "Nice, du hast das Easter-Egg gefunden", 1, 1, glm::vec4(1, 0, 0, 1), glm::vec4(0.2, 0.2, 0.2, 0.4), false);
+					UI_Element* eastereggLabel = new UI_Element_Label(getWindowWidth() / 2 - 200, getWindowHeight() / 2 - 100, 10, 10, "Nice, du hast das Easter-Egg gefunden", 1, 1, glm::vec4(1, 0, 0, 1), glm::vec4(0.2, 0.2, 0.2, 0.4), false);
 					UI::addElement(eastereggLabel);
 				}
 			}
@@ -158,7 +158,7 @@ void Game::gameLoop()
 
 			if (npcs.size() <= 0 && gameState == GameState::GAME_ACTIVE)
 			{
-				UI_Element* victoryLabel = new UI_Element_Label(getWindowWidth() / 2 - 100, getWindowHeight() / 2, "Du hast alle Bots besiegt", 1, 1, glm::vec4(0, 0, 1, 1), glm::vec4(0.2, 0.2, 0.2, 0.4), false);
+				UI_Element* victoryLabel = new UI_Element_Label(getWindowWidth() / 2 - 100, getWindowHeight() / 2, 10, 10, "Du hast alle Bots besiegt", 1, 1, glm::vec4(0, 0, 1, 1), glm::vec4(0.2, 0.2, 0.2, 0.4), false);
 				UI::addElement(victoryLabel);
 				gameState = GameState::GAME_GAME_OVER;
 			}

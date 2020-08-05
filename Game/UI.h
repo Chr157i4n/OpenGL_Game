@@ -13,6 +13,7 @@
 #include "Shader.h"
 #include "Player.h"
 #include "Menu.h"
+#include "Game.h"
 
 static class UI
 {
@@ -41,6 +42,23 @@ public:
 	static void clearUI_Elements();
 
 	static void clearMessages();
+
+	static float to_x_gl(int x_px);
+
+	static float to_y_gl(int y_px);
+
+	static int to_x_px(float x_gl);
+
+	static int to_y_px(float y_gl);
+
+
+	static float to_w_gl(int w_px);
+
+	static float to_h_gl(int h_px);
+
+	static int to_w_px(float w_gl);
+
+	static int to_h_px(float h_gl);
 
 
 private:

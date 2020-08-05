@@ -11,6 +11,8 @@
 #include "UI_Element_Label.h"
 #include "UI_Element_ProgressBar.h"
 #include "UI_Element_Slider.h"
+#include "UI_Element_Boxed_Label.h"
+#include "UI_Element_Dropdown.h"
 #include "Map.h"
 
 

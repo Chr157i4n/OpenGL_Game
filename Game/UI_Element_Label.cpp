@@ -1,7 +1,7 @@
 #include "UI_Element_Label.h"
 #include "UI.h"
 
-UI_Element_Label::UI_Element_Label(int x, int y, std::string label, uint64 lifespan, int fontSize, glm::vec4 foreColor, glm::vec4 backColor, bool isDebugInfo) : UI_Element(x, y, w, h, lifespan, foreColor, backColor, isDebugInfo)
+UI_Element_Label::UI_Element_Label(int x, int y, int w, int h, std::string label, uint64 lifespan, int fontSize, glm::vec4 foreColor, glm::vec4 backColor, bool isDebugInfo) : UI_Element(x, y, w, h, lifespan, foreColor, backColor, isDebugInfo)
 {
     this->text = label;
     this->fontSize = fontSize;

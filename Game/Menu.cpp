@@ -84,8 +84,8 @@ void Menu::onMouseDown(float x, float y, SDL_MouseButtonEvent buttonEvent)
 		{
 			if (element->isMouseOver(x, y))
 			{
-				element->action(x, y);
-				element->callCallBack();
+				element->action(x, y, &buttonEvent);
+				element->callCallBack(&buttonEvent);
 			}
 		}
 	}

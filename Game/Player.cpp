@@ -144,7 +144,7 @@ void Player::addToHealth(float32 addHealth)
 	if (health <= 0)
 	{
 		Logger::log(printObject() + " got destroyed");
-		UI_Element* victoryLabel = new UI_Element_Label(Game::getWindowWidth() / 2 - 80, Game::getWindowHeight() / 2, "Du bist gestorben", 5, 1, glm::vec4(1, 0, 0, 1), glm::vec4(0.2, 0.2, 0.2, 0.4), false);
+		UI_Element* victoryLabel = new UI_Element_Label(Game::getWindowWidth() / 2 - 80, Game::getWindowHeight() / 2, 10, 10, "Du bist gestorben", 5, 1, glm::vec4(1, 0, 0, 1), glm::vec4(0.2, 0.2, 0.2, 0.4), false);
 		UI::addElement(victoryLabel);
 		Game::setGameState(GameState::GAME_GAME_OVER);
 	}

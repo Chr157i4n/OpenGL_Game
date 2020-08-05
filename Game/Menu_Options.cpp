@@ -10,7 +10,8 @@ Menu_Options::Menu_Options()
 	addMenuElement(pB_resume);
 
 	sL_volume = new UI_Element_Slider(10, 190, 200, 50, 0, "Master-Volume");
-	sL_volume->setValue(100);
+	int musicvolume = std::stoi(ConfigManager::readConfig("musicvolume"));
+	sL_volume->setValue(musicvolume);
 	sL_volume->setCallback([&] { setVolume(); });
 	addMenuElement(sL_volume);
 
@@ -24,6 +25,9 @@ Menu_Options::Menu_Options()
 	pB_back= new UI_Element_Button(10, 10, 200, 50, 0, "Zurueck");
 	pB_back->setCallback([&] { Game::toggleMenuOptions(); });
 	addMenuElement(pB_back);
+
+	dD_Resolution = new UI_Element_Dropdown(600, 200, 200, 50, 0);
+	addMenuElement(dD_Resolution);
 }
 
 void Menu_Options::toggleVsync()

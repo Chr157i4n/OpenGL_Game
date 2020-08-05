@@ -15,5 +15,6 @@ public:
 private:
 	UI_Element_Button* pB_resume, * pB_vsync, * pB_options, * pB_back;
 	UI_Element_Slider* sL_volume;
+	UI_Element_Dropdown* dD_Resolution;
 };
 

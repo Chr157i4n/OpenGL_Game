@@ -178,6 +178,11 @@ public:
 		exit(0);
 	}
 
+	static void swapBuffer()
+	{
+		SDL_GL_SwapWindow(window);
+	}
+
 
 	static std::vector< std::shared_ptr<Object> > map;
 	static std::vector< std::shared_ptr<Object> > objects;

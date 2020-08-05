@@ -5,17 +5,17 @@ Models can be created with Blender and then exported as OBJ format for example. 
 The ModelConverter Tool import the Vertices, Indices and the Material from the file(s)(in case of OBJ an extra MTL file will be created and needed
 using the Open-Asset-Importer-Library. The tool then exports the data into a custom BMF file. where the data can be loaded by the game faster.
 
-The Game itself use the libary SDL to create a window and OpenGL-context. Also the libary GLEW is used to get the current OpenGL functions.
-For the mathematics (Matrices and Vectors) the libary OpenGL Mathematics is used.
+The Game itself use the Library SDL to create a window and OpenGL-context. Also the Library GLEW is used to get the current OpenGL functions.
+For the mathematics (Matrices and Vectors) the Library OpenGL Mathematics is used.
 
 On the Graphics Card side i use the shader programming language GLSL
 https://www.khronos.org/opengl/wiki/Core_Language_(GLSL)
 
-For importing Textures and Fonts i use the STB Libary.
+For importing Textures and Fonts i use the STB Library.
 
 As Mapfiles i use the XML format. To parse them i use the tinyxml2 Library.
 
-for playing audio the irrKlang-Libary is used.
+for playing audio the irrKlang-Library is used.
 
 The idea and the knowlegde for this project did i get from this german youtube OpenGL tutorial playlist:
 https://www.youtube.com/playlist?list=PLStQc0GqppuWBDuNWnkQ8rzmyx35AINyt
