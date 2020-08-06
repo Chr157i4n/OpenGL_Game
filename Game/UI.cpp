@@ -9,9 +9,14 @@ Font* UI::font;
 int UI::fontColorUniformIndex;
 std::vector<UI_Element*> UI::ui_elements;
 
+UI_Element_Label* UI::fpsLabel;
+UI_Element_Label* UI::posLabel[4];
+UI_Element_Label* UI::rotLabel[4];
+
+std::list<float> UI::fpsBuffer;
+
 void UI::init()
 {
-
 	font = new Font();
 	font->initFont("fonts/OpenSans-Regular.ttf");
 
@@ -26,36 +31,106 @@ void UI::init()
 	fontColorUniformIndex = GLCALL(glGetUniformLocation(fontShader->getShaderId(), "u_color"));
 
 	fontShader->unbind();
+
+	fpsLabel = new UI_Element_Label(20, Game::getWindowHeight() - 20, 10, 10, "", 0, 1, glm::vec4(1, 1, 0, 1), glm::vec4(0.2, 0.2, 0.2, 0.4), true);
+	UI::addElement(fpsLabel);
+
+
+	posLabel[0] = new UI_Element_Label(Game::getWindowWidth()-300, Game::getWindowHeight() - 20, 10, 10, "pos:", 0, 1, glm::vec4(1, 1, 1, 1), glm::vec4(0.2, 0.2, 0.2, 0.4), true);
+	UI::addElement(posLabel[0]);
+	posLabel[1] = new UI_Element_Label(Game::getWindowWidth()-300+60, Game::getWindowHeight() - 20, 10, 10, "", 0, 1, glm::vec4(1, 0, 0, 1), glm::vec4(0.2, 0.2, 0.2, 0.4), true);
+	UI::addElement(posLabel[1]);
+	posLabel[2] = new UI_Element_Label(Game::getWindowWidth()-300+140, Game::getWindowHeight() - 20, 10, 10, "", 0, 1, glm::vec4(0, 1, 0, 1), glm::vec4(0.2, 0.2, 0.2, 0.4), true);
+	UI::addElement(posLabel[2]);
+	posLabel[3] = new UI_Element_Label(Game::getWindowWidth() - 300 + 220, Game::getWindowHeight() - 20, 10, 10, "", 0, 1, glm::vec4(0, 0, 1, 1), glm::vec4(0.2, 0.2, 0.2, 0.4), true);
+	UI::addElement(posLabel[3]);
+
+	rotLabel[0] = new UI_Element_Label(Game::getWindowWidth() - 300, Game::getWindowHeight() - 50, 10, 10, "rot:", 0, 1, glm::vec4(1, 1, 1, 1), glm::vec4(0.2, 0.2, 0.2, 0.4), true);
+	UI::addElement(rotLabel[0]);
+	rotLabel[1] = new UI_Element_Label(Game::getWindowWidth() - 300 + 60, Game::getWindowHeight() - 50, 10, 10, "", 0, 1, glm::vec4(1, 0, 0, 1), glm::vec4(0.2, 0.2, 0.2, 0.4), true);
+	UI::addElement(rotLabel[1]);
+	rotLabel[2] = new UI_Element_Label(Game::getWindowWidth() - 300 + 140, Game::getWindowHeight() - 50, 10, 10, "", 0, 1, glm::vec4(0, 1, 0, 1), glm::vec4(0.2, 0.2, 0.2, 0.4), true);
+	UI::addElement(rotLabel[2]);
+	rotLabel[3] = new UI_Element_Label(Game::getWindowWidth() - 300 + 220, Game::getWindowHeight() - 50, 10, 10, "", 0, 1, glm::vec4(0, 0, 1, 1), glm::vec4(0.2, 0.2, 0.2, 0.4), true);
+	UI::addElement(rotLabel[3]);
 }
 
-void UI::drawFPS()
+void UI::updateFPS()
 {
-	drawString(20, Game::getWindowHeight() - 20, std::to_string((int)std::round(Game::getFPS())), glm::vec4(1,1,0,1));
+	fpsBuffer.push_back(Game::getFPS());
+	if (fpsBuffer.size() > 10)
+	{
+		fpsBuffer.pop_front();
+	}
+
+	float fpsAverage = 0;
+	for (float fps : fpsBuffer)
+	{
+		fpsAverage += fps;
+	}
+	fpsAverage /= 10.0;
+
+	fpsLabel->setText(std::to_string((int)std::round(fpsAverage)));
+
+	if (fpsAverage < 30)
+	{
+		fpsLabel->setForeColor(glm::vec4(1, 0, 0, 1));
+	}
+	else if(fpsAverage < 80)
+	{
+		fpsLabel->setForeColor(glm::vec4(1, 1, 0, 1));
+	}
+	else
+	{
+		fpsLabel->setForeColor(glm::vec4(0, 0, 1, 1));
+	}
 }
 
-void UI::drawPos(std::shared_ptr<Object> object)
+void UI::updatePos(std::shared_ptr<Object> object)
 {
-	drawVec3(object->getPosition(), 1, "Pos", Game::getWindowWidth() - 300, Game::getWindowHeight() - 20);
+	int precision = 2;
+	std::string text;
+	std::stringstream xss, yss, zss;
+
+	xss << std::fixed << std::setprecision(precision) << object->getPosition().x;
+	text = xss.str();
+	posLabel[1]->setText(text);
+
+	yss << std::fixed << std::setprecision(precision) << object->getPosition().y;
+	text = yss.str();
+	posLabel[2]->setText(text);
+
+	zss << std::fixed << std::setprecision(precision) << object->getPosition().z;
+	text = zss.str();
+	posLabel[3]->setText(text);
 }
 
-void UI::drawRot(std::shared_ptr<Player> object)
+void UI::updateRot(std::shared_ptr<Player> object)
 {
-	drawVec3(object->getLookDirection(), 1, "Rot", Game::getWindowWidth() - 300, Game::getWindowHeight() - 50);
+	int precision = 2;
+	std::string text;
+	std::stringstream xss, yss, zss;
+
+	xss << std::fixed << std::setprecision(precision) << object->getLookDirection().x;
+	text = xss.str();
+	rotLabel[1]->setText(text);
+
+	yss << std::fixed << std::setprecision(precision) << object->getLookDirection().y;
+	text = yss.str();
+	rotLabel[2]->setText(text);
+
+	zss << std::fixed << std::setprecision(precision) << object->getLookDirection().z;
+	text = zss.str();
+	rotLabel[3]->setText(text);
 }
 
 void UI::drawString(float x, float y, std::string text, glm::vec4 color)
 {
-	GLCALL(glDisable(GL_CULL_FACE));
-	GLCALL(glDisable(GL_DEPTH_TEST));
-
 	fontShader->bind();
 	GLCALL(glUniform4fv(fontColorUniformIndex, 1, (float*)&color));
 
 	font->drawString(x, y, text.c_str(), fontShader);
 	fontShader->unbind();
-
-	GLCALL(glEnable(GL_CULL_FACE));
-	GLCALL(glEnable(GL_DEPTH_TEST));
 }
 
 void UI::drawVec3(glm::vec3 vector, int precision, std::string text, float x, float y)
@@ -80,7 +155,6 @@ void UI::drawVec3(glm::vec3 vector, int precision, std::string text, float x, fl
 
 void UI::drawUI()
 {
-	GLCALL(glDepthMask(GL_FALSE));
 	GLCALL(glDisable(GL_CULL_FACE));
 	GLCALL(glDisable(GL_DEPTH_TEST));
 
@@ -93,7 +167,6 @@ void UI::drawUI()
 	}
 	checkLifeSpan();
 
-	GLCALL(glDepthMask(GL_TRUE));
 	GLCALL(glEnable(GL_CULL_FACE));
 	GLCALL(glEnable(GL_DEPTH_TEST));
 }
@@ -114,7 +187,11 @@ void UI::drawPause()
 	int x = Game::getWindowWidth() / 2 - 50;
 	int y = Game::getWindowHeight() / 2;
 
+	GLCALL(glDisable(GL_CULL_FACE));
+	GLCALL(glDisable(GL_DEPTH_TEST));
 	drawString(x, y, "Pause", glm::vec4(1, 1, 1, 1));
+	GLCALL(glEnable(GL_CULL_FACE));
+	GLCALL(glEnable(GL_DEPTH_TEST));
 }
 
 void UI::checkLifeSpan()

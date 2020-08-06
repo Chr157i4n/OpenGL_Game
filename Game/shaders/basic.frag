@@ -63,6 +63,7 @@ uniform vec3 u_camerapos;
 uniform int u_showNormalMode;
 uniform int u_isgettingdamaged;
 uniform int u_isusingfullenvmap;
+uniform int u_shadow_mode;           //0 is off, 1 is hard, 2 is soft
 
 
 
@@ -71,24 +72,42 @@ layout(location = 0) out vec4 f_color;
 
 
 
-float ShadowCalculation(vec3 position_light_space)
+float ShadowCalculation(vec3 position_light_space, vec3 normal)
 {
     float shadow = 0.0;
-    vec3 projCoords = position_light_space.xyz;
-    projCoords = projCoords * 0.5 + 0.5;    // transform to [0,1] range
-    vec2 texelSize = 1.0 / textureSize(u_shadow_map, 0);
-    float currentDepth = projCoords.z;
-
     float bias = 0.00001;
-    for(int x = -1; x <= 1; ++x)
+    //float bias = max(0.05 * (1.0 - dot(normal, u_directional_light.direction)), 0.005);  
+
+    if(u_shadow_mode == 0)
     {
-        for(int y = -1; y <= 1; ++y)
-        {
-            float pcfDepth = texture(u_shadow_map, projCoords.xy + vec2(x, y) * texelSize).r; 
-            shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;        
-        }    
+        shadow = 0.0;
     }
-    shadow /= 9.0;
+    else if(u_shadow_mode == 1)
+    {
+        vec3 projCoords = position_light_space.xyz;
+        projCoords = projCoords * 0.5 + 0.5;    // transform to [0,1] range
+        float closestDepth = texture(u_shadow_map, projCoords.xy).r; 
+        float currentDepth = projCoords.z;
+        shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;  
+    }
+    else if(u_shadow_mode == 2)
+    {
+        
+        vec3 projCoords = position_light_space.xyz;
+        projCoords = projCoords * 0.5 + 0.5;    // transform to [0,1] range
+        vec2 texelSize = 1.0 / textureSize(u_shadow_map, 0);
+        float currentDepth = projCoords.z;
+
+        for(int x = -1; x <= 1; ++x)
+        {
+            for(int y = -1; y <= 1; ++y)
+            {
+                float pcfDepth = texture(u_shadow_map, projCoords.xy + vec2(x, y) * texelSize).r; 
+                shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;        
+            }    
+        }
+        shadow /= 9.0;
+    }
     return shadow;
 }
 
@@ -145,7 +164,7 @@ void main()
         ambient += u_spot_light.ambient * diffuseColor.xyz;
     }
 
-    float shadow = ShadowCalculation(v_position_light_space); 
+    float shadow = ShadowCalculation(v_position_light_space, normal); 
 
     //sum phong elements
     f_color = vec4( ambient + (1.0 - shadow) * (diffuse + specular + u_material.emissive), alpha);

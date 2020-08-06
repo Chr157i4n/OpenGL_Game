@@ -7,6 +7,8 @@
 std::string Map::mapFileName = "";
 std::string Map::mapFileFolder = "levels/";
 
+glm::vec3 Map::gravity = glm::vec3(0, -80, 0);
+
 void Map::load(std::string mapFileName)
 {
 	Map::mapFileName = mapFileName;

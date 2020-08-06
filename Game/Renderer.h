@@ -13,6 +13,7 @@
 #include "Model.h"
 #include "UI_Element_ProgressBar.h"
 #include "Object.h"
+#include "ConfigManager.h"
 
 enum ShaderType {
 	basic,
@@ -25,6 +26,7 @@ enum PostProcessingEffect {
 	blood,
 	uncolored,
 };
+
 
 static class Renderer
 {
@@ -102,6 +104,20 @@ public:
 		}
 	}
 
+	static void toggleShadows(ShadowOption option);
+
+	static void changeResolution(int x, int y);
+
+	static int getResolutionX()
+	{
+		return renderResolutionX;
+	}
+
+	static int getResolutionY()
+	{
+		return renderResolutionY;
+	}
+
 	static FrameBuffer frameBuffer;
 	static FrameBuffer shadowMapBuffer;
 	static FrameBuffer envMapFacesBuffer[6];
@@ -146,6 +162,7 @@ private:
 	static int envmapEnvUniformIndex;
 	static int lightspacematrixUniformIndex;
 	static int shadowmapUniformIndex;
+	static int shadowmodeUniformIndex;
 		
 
 	static glm::mat4 modelViewProj;
@@ -163,6 +180,7 @@ private:
 
 	static int shadowMapResolution;
 	static int envMapResolution;
+	static int renderResolutionX, renderResolutionY;
 
 	static int frameCount;
 	

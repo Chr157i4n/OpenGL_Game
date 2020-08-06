@@ -1,6 +1,7 @@
 #include "ConfigManager.h"
 
 std::string ConfigManager::configFileName;
+ShadowOption ConfigManager::shadowOption;
 
 
 void ConfigManager::init(std::string nConfigFileName)

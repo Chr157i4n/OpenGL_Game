@@ -140,6 +140,7 @@ int Renderer::envmapBasicUniformIndex;
 int Renderer::envmapEnvUniformIndex;
 int Renderer::lightspacematrixUniformIndex;
 int Renderer::shadowmapUniformIndex;
+int Renderer::shadowmodeUniformIndex;
 
 
 glm::vec3 Renderer::sunDirection;
@@ -160,6 +161,7 @@ FrameBuffer Renderer::envMapBuffer;
 
 int Renderer::shadowMapResolution = 1024;
 int Renderer::envMapResolution = 1024;
+int Renderer::renderResolutionX, Renderer::renderResolutionY;
 
 std::vector<float32> Renderer::postprocessingEffectDuration = { 0,0,0 };
 
@@ -203,7 +205,6 @@ void Renderer::initOpenGL()
 		resolution_width = std::stoi(ConfigManager::readConfig("windowed_resolution_width"));
 		resolution_height = std::stoi(ConfigManager::readConfig("windowed_resolution_height"));
 	}
-
 
 
 	Game::window = SDL_CreateWindow("OpenGL-Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, resolution_width, resolution_height, flags);
@@ -258,7 +259,8 @@ void Renderer::init()
 	shadowMapResolution = std::stoi(ConfigManager::readConfig("shadow_map_resolution"));
 	envMapResolution = std::stoi(ConfigManager::readConfig("env_map_resolution"));
 
-	initFrameBuffer();
+	Renderer::changeResolution(Game::getWindowWidth(), Game::getWindowHeight());
+	//initFrameBuffer();
 
 	std::vector<std::string> faces
 	{
@@ -284,6 +286,8 @@ void Renderer::init()
 	lightspacematrixUniformIndex = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_light_space_matrix"));
 	shadowmapUniformIndex = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_shadow_map"));
 
+	shadowmodeUniformIndex = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_shadow_mode"));
+	toggleShadows(ShadowOption::soft);
 
 	shaderEnvMap->bind();
 	envmapEnvUniformIndex = GLCALL(glGetUniformLocation(shaderEnvMap->getShaderId(), "u_env_map"));
@@ -331,7 +335,7 @@ void Renderer::init()
 
 void Renderer::initFrameBuffer()
 {
-	frameBuffer.create(Game::getWindowWidth(), Game::getWindowHeight(), FrameBufferTextureType::colorMap | FrameBufferTextureType::stencilMap);
+	frameBuffer.create(Renderer::getResolutionX(), Renderer::getResolutionY(), FrameBufferTextureType::colorMap | FrameBufferTextureType::stencilMap);
 	shadowMapBuffer.create(shadowMapResolution, shadowMapResolution, FrameBufferTextureType::depthMap);
 
 	for (int i = 0; i < 6; i++)
@@ -381,6 +385,8 @@ void Renderer::initLight()
 	GLCALL(glUniform1f(glGetUniformLocation(shaderBasic->getShaderId(), "u_spot_light.outerCone"), 0.80f));
 
 	GLCALL(glUniform1i(glGetUniformLocation(shaderBasic->getShaderId(), "u_showNormalMode"), 0));
+
+	GLCALL(glUniform1i(shadowmodeUniformIndex, 2));
 
 #pragma endregion
 
@@ -501,6 +507,7 @@ void Renderer::renderShadowsMap()
 
 	for (std::shared_ptr<Object> object : Game::objects)
 	{
+		if (!object->getEnabled()) continue;
 		//if (object->getType() & ObjectType::Object_Player) continue;
 		//if (object->getType() & ObjectType::Object_Environment) continue;
 
@@ -664,7 +671,8 @@ void Renderer::renderEnvironmentMap(std::shared_ptr<Object> objectFromView)
 
 
 	shaderEnvMap->unbind();
-	glViewport(0, 0, Game::getWindowWidth(), Game::getWindowHeight()); //actual resolution
+	glViewport(0, 0, Renderer::getResolutionX(), Renderer::getResolutionY()); //actual resolution
+	//glViewport(0, 0, Game::getWindowWidth(), Game::getWindowHeight()); //window size
 }
 
 void Renderer::renderSkybox(glm::mat4 view, glm::mat4 proj)
@@ -701,7 +709,7 @@ void Renderer::renderImage(VertexBuffer* imageVertexBuffer, int imageIndex)
 	imageVertexBuffer->bind();
 
 
-	GLCALL(glDepthMask(GL_FALSE));
+
 	GLCALL(glDisable(GL_CULL_FACE));
 	GLCALL(glDisable(GL_DEPTH_TEST));
 
@@ -709,7 +717,6 @@ void Renderer::renderImage(VertexBuffer* imageVertexBuffer, int imageIndex)
 	GLCALL(glBindTexture(GL_TEXTURE_2D, imageIndex));
 	GLCALL(glDrawArrays(GL_TRIANGLES, 0, 6));
 
-	GLCALL(glDepthMask(GL_TRUE));
 	GLCALL(glEnable(GL_CULL_FACE));
 	GLCALL(glEnable(GL_DEPTH_TEST));
 
@@ -729,6 +736,7 @@ void Renderer::renderObjects(bool transparent)
 
 	for (std::shared_ptr<Object> object : Game::objects)
 	{
+		if (!object->getEnabled()) continue;
 		if (transparent && !object->getModel()->getHasTransparentTexture()) continue;
 		if (!transparent && object->getModel()->getHasTransparentTexture()) continue;
 
@@ -744,6 +752,8 @@ void Renderer::renderObjects(bool transparent)
 			if (postProcessing) frameBuffer.bind();
 			object->bindShader();
 		}
+
+		glViewport(0, 0, Renderer::getResolutionX(), Renderer::getResolutionY()); //window size
 
 		GLCALL(glActiveTexture(GL_TEXTURE3));
 		GLCALL(glBindTexture(GL_TEXTURE_CUBE_MAP, object->getEnvCubeMap()));
@@ -819,7 +829,6 @@ void Renderer::renderAxis(glm::vec3 vector, int x, int y)
 	shaderGeometry->bind();
 	axisVertexBuffer->bind();
 
-	GLCALL(glDepthMask(GL_FALSE));
 	GLCALL(glDisable(GL_CULL_FACE));
 	GLCALL(glDisable(GL_DEPTH_TEST));
 
@@ -851,7 +860,6 @@ void Renderer::renderAxis(glm::vec3 vector, int x, int y)
 
 	GLCALL(glDrawArrays(GL_LINES, 0, 6));
 
-	GLCALL(glDepthMask(GL_TRUE));
 	GLCALL(glEnable(GL_CULL_FACE));
 	GLCALL(glEnable(GL_DEPTH_TEST));
 
@@ -916,6 +924,7 @@ void Renderer::toggleShowNormals()
 void Renderer::postProcessing()
 {
 	shaderPostProcessing->bind();
+	glViewport(0, 0, Game::getWindowWidth(), Game::getWindowHeight()); //window size
 
 	for (int i = 0; i < postprocessingEffectDuration.size(); i++)
 	{
@@ -950,7 +959,14 @@ void Renderer::postProcessing()
 		GLCALL(glUniform1i(glGetUniformLocation(shaderPostProcessing->getShaderId(), "u_postprocessingeffect.uncolored"), 0));
 	}
 
-
+	if (Game::getGameState() == GameState::GAME_MENU || Game::getGameState() == GameState::GAME_PAUSED)
+	{
+		GLCALL(glUniform1i(glGetUniformLocation(shaderPostProcessing->getShaderId(), "u_postprocessingeffect.menu"), 1));
+	}
+	else
+	{
+		GLCALL(glUniform1i(glGetUniformLocation(shaderPostProcessing->getShaderId(), "u_postprocessingeffect.menu"), 0));
+	}
 
 
 	GLCALL(glActiveTexture(GL_TEXTURE0));
@@ -972,5 +988,34 @@ void Renderer::clearBuffer()
 void Renderer::applyPostprocessingEffect(PostProcessingEffect postprocessingeffect, float32 duration)
 {
 	postprocessingEffectDuration[postprocessingeffect] = duration;
+}
+
+void Renderer::toggleShadows(ShadowOption option)
+{
+	ConfigManager::shadowOption = option;
+	shaderBasic->bind();
+
+	switch (option)
+	{
+	case ShadowOption::off:
+		GLCALL(glUniform1i(shadowmodeUniformIndex, 0));
+		break;
+	case ShadowOption::hard:
+		GLCALL(glUniform1i(shadowmodeUniformIndex, 1));
+		break;
+	case ShadowOption::soft:
+		GLCALL(glUniform1i(shadowmodeUniformIndex, 2));
+		break;
+	}
+}
+
+void Renderer::changeResolution(int x, int y)
+{
+	if (x != 0)
+		renderResolutionX = x;
+	if (y != 0)
+		renderResolutionY = y;
+
+	initFrameBuffer();
 }
 

@@ -66,6 +66,7 @@ CollisionResult Object::checkCollision()
 
 	for (std::shared_ptr<Object> object : Game::objects)
 	{
+		if (!object->getEnabled()) continue;
 		if (object->getNumber() == this->getNumber()) continue;		//dont check collision with yourself
 		if (object->getType() == ObjectType::Object_Bullet) continue;	//bullets move faster than everything else, so only bullets need to check collision wiht other objects
 		if (object->getCollisionBoxType() == CollisionBoxType::none) continue;	//if the object has "none" collision box, no collision should be checked
@@ -501,7 +502,7 @@ bool Object::checkBoundaries()
 {
 	std::shared_ptr<Object> map = Game::map[0];
 	bool outOfBounds = false;
-	glm::vec3 newPosition = position + movement;
+	glm::vec3 newPosition = position + movement * Game::getDelta() * 0.001f;;
 
 	// X - Achse
 	if (newPosition.x - dimensions.x / 2 < map->getPosition().x - map->getDimensions().x / 2)
@@ -563,7 +564,7 @@ void Object::fall()
 #ifdef DEBUG_GRAVITY
 		Logger::log("Object: " + printObject() + " is falling");
 #endif
-		movement.y -= 9.81 * 0.0002 *Game::getDelta();
+		movement += Map::getGravity() * Game::getDelta() * 0.001f;
 	}
 
 
@@ -573,7 +574,7 @@ void Object::move()
 {
 	checkBoundaries();
 
-	position += movement;
+	position += movement * Game::getDelta() * 0.001f;
 
 	center = position;
 	center.y += dimensions.y / 2;

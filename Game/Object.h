@@ -143,7 +143,7 @@ public:
 
 	virtual void fall();
 
-	void move();
+	virtual void move();
 
 	void setPosition(glm::vec3 newPosition);
 
@@ -244,6 +244,31 @@ public:
 		return envCubeMapFrameBuffer;
 	}
 
+	void enable()
+	{
+		enabled = true;
+	}
+
+	void disable()
+	{
+		enabled = false;
+	}
+
+	bool getEnabled()
+	{
+		return enabled;
+	}
+
+	void toggleEnabled()
+	{
+		enabled = !enabled;
+	}
+
+	void setEnabled(bool enable)
+	{
+		enabled = enable;
+	}
+
 protected:
 
 	glm::vec3 position;						//x, y, z
@@ -268,6 +293,7 @@ protected:
 	float32 health = 100;
 	bool onOtherObject=false;
 	bool gravity = true;
+	bool enabled = true;
 
 	std::chrono::system_clock::time_point lastHitTimestamp = std::chrono::system_clock::now() - std::chrono::hours(1);
 

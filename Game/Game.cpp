@@ -18,7 +18,7 @@ std::vector< std::shared_ptr<Bullet> > Game::bullets;
 
 
 bool Game::pressedKeys[20];
-bool Game::pressedMouseButtons[3];
+bool Game::pressedMouseButtons[6];
 
 float32  Game::FPS = 0;
 float32  Game::fps_limit = 0;
@@ -43,6 +43,9 @@ Menu* Game::menu_Current = nullptr;
 
 irrklang::ISoundEngine* Game::SoundEngine = irrklang::createIrrKlangDevice();
 
+/// <summary>
+/// this methods starts the game
+/// </summary>
 void Game::startGame()
 {
 	perfCounterFrequency = SDL_GetPerformanceFrequency();
@@ -63,6 +66,9 @@ void Game::startGame()
 }
 
 
+/// <summary>
+/// this function inits everything before the game can be started
+/// </summary>
 void Game::init()
 {
 	Renderer::initOpenGL();
@@ -85,6 +91,9 @@ void Game::init()
 	Renderer::init();
 }
 
+/// <summary>
+/// main game loop
+/// </summary>
 void Game::gameLoop()
 {
 	std::chrono::system_clock::time_point a = std::chrono::system_clock::now();
@@ -110,6 +119,7 @@ void Game::gameLoop()
 
 			for (std::shared_ptr<Object> object : objects)
 			{
+				if (!object->getEnabled()) continue;
 				object->calculationBeforeFrame();
 			}
 
@@ -117,12 +127,14 @@ void Game::gameLoop()
 
 			for (std::shared_ptr<NPC> npc : npcs)
 			{
+				if (!npc->getEnabled()) continue;
 				npc->doCurrentTask();
 			}
 
 			//Move every Object
 			for (std::shared_ptr<Object> object : objects)
 			{
+				if (!object->getEnabled()) continue;
 				if (object->getType() == ObjectType::Object_Environment) continue; //Environment doesnt move
 
 				object->fall();
@@ -132,6 +144,7 @@ void Game::gameLoop()
 
 			for (std::shared_ptr<Bullet> bullet : bullets)
 			{
+				if (!bullet->getEnabled()) continue;
 				bullet->checkHit();
 			}
 
@@ -140,17 +153,19 @@ void Game::gameLoop()
 
 			for (std::shared_ptr<Player> player : players)
 			{
+				if (!player->getEnabled()) continue;
 				player->updateCameraPosition();
 				//player->update();
 				if (player->getPosition().x > 95 && player->getPosition().z > 95)
 				{
-					UI_Element* eastereggLabel = new UI_Element_Label(getWindowWidth() / 2 - 200, getWindowHeight() / 2 - 100, 10, 10, "Nice, du hast das Easter-Egg gefunden", 1, 1, glm::vec4(1, 0, 0, 1), glm::vec4(0.2, 0.2, 0.2, 0.4), false);
+					UI_Element* eastereggLabel = new UI_Element_Label(getWindowWidth() / 2 - 200, getWindowHeight() / 2 - 100, 10, 10, "Nice, du hast das Easter-Egg gefunden", 1000, 1, glm::vec4(1, 0, 0, 1), glm::vec4(0.2, 0.2, 0.2, 0.4), false);
 					UI::addElement(eastereggLabel);
 				}
 			}
 
 			for (std::shared_ptr<Character> character : characters)
 			{
+				if (!character->getEnabled()) continue;
 				character->resetVerticalMovement();
 			}
 
@@ -158,31 +173,28 @@ void Game::gameLoop()
 
 			if (npcs.size() <= 0 && gameState == GameState::GAME_ACTIVE)
 			{
-				UI_Element* victoryLabel = new UI_Element_Label(getWindowWidth() / 2 - 100, getWindowHeight() / 2, 10, 10, "Du hast alle Bots besiegt", 1, 1, glm::vec4(0, 0, 1, 1), glm::vec4(0.2, 0.2, 0.2, 0.4), false);
+				UI_Element* victoryLabel = new UI_Element_Label(getWindowWidth() / 2 - 100, getWindowHeight() / 2, 10, 10, "Du hast alle Bots besiegt", 1000, 1, glm::vec4(0, 0, 1, 1), glm::vec4(0.2, 0.2, 0.2, 0.4), false);
 				UI::addElement(victoryLabel);
 				gameState = GameState::GAME_GAME_OVER;
 			}
 
-			render();
+			
 
-			for (std::shared_ptr<Object> object : objects)
-			{
-				object->calculationAfterFrame();
-			}
+			
 
 		}
-
-		if (gameState == GameState::GAME_MENU)
+		
+		if (gameState != GameState::GAME_PAUSED)
 		{
-			if (menu_Current != nullptr)
+			render();
+		}
+
+		if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
+		{
+			for (std::shared_ptr<Object> object : objects)
 			{
-
-				GLCALL(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
-				GLCALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-
-				menu_Current->drawMenu();
-
-				SDL_GL_SwapWindow(window);
+				if (!object->getEnabled()) continue;
+				object->calculationAfterFrame();
 			}
 		}
 
@@ -210,12 +222,16 @@ void Game::gameLoop()
 	}
 }
 
+/// <summary>
+/// process the Collision for every object
+/// </summary>
 void Game::processCollision()
 {
 	for (std::shared_ptr<Object> object : objects)
 	{
 		CollisionResult collisionResult = object->checkCollision();
 		if (!collisionResult.collided) continue;
+		if (!object->getEnabled()) continue;
 
 		for (CollidedObject* collidedObject : collisionResult.collidedObjectList)
 		{
@@ -243,42 +259,71 @@ void Game::processCollision()
 /// </summary>
 void Game::render()
 {
-
-	Renderer::calcLight();
-
-	Renderer::calcShadows();
-
-
-	if (postprocess) Renderer::frameBuffer.bind();
-	Renderer::clearBuffer();
-	Renderer::renderOpaqueObjects();
-
-	Renderer::renderSkybox(glm::mat4(glm::mat3(players[0]->getView())),players[0]->getProj());
-	Renderer::renderTransparentObjects();
-	if (postprocess) Renderer::frameBuffer.unbind();
-
-	//Postprocessing
-	if (postprocess) Renderer::postProcessing();
-
-	//show the Shadow map
-	if (showShadowMap) Renderer::showShadowMap();
-
-
-	if (showInfo)
+	switch (gameState)
 	{
-		Renderer::renderAxis(players[0]->getLookDirection(), 8, 5);
-		Renderer::renderAxis(Renderer::transformedSunDirection3, 8, 3);
+	case GameState::GAME_ACTIVE:
+	case GameState::GAME_GAME_OVER:
+		{
+			Renderer::calcLight();
 
-		UI::drawFPS();
-		UI::drawPos(players[0]);
-		UI::drawRot(players[0]);
+			if (ConfigManager::shadowOption != ShadowOption::off)
+				Renderer::calcShadows();
+
+
+			if (postprocess) Renderer::frameBuffer.bind();
+			Renderer::clearBuffer();
+			Renderer::renderOpaqueObjects();
+
+			Renderer::renderSkybox(glm::mat4(glm::mat3(players[0]->getView())), players[0]->getProj());
+			Renderer::renderTransparentObjects();
+			if (postprocess) Renderer::frameBuffer.unbind();
+
+			//Postprocessing
+			if (postprocess) Renderer::postProcessing();
+
+			//show the Shadow map
+			if (showShadowMap) Renderer::showShadowMap();
+
+
+			if (showInfo)
+		{
+			Renderer::renderAxis(players[0]->getLookDirection(), 8, 5);
+			Renderer::renderAxis(Renderer::transformedSunDirection3, 8, 3);
+
+			UI::updateFPS();
+			UI::updatePos(players[0]);
+			UI::updateRot(players[0]);
+		}
+
+			UI::drawUI();
+		}
+		break;
+	case GameState::GAME_MENU:
+		{
+			if (menu_Current != nullptr)
+			{
+				GLCALL(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
+				GLCALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+
+				if (postprocess) Renderer::postProcessing();
+				GLCALL(glDisable(GL_DEPTH_TEST));
+				GLCALL(glDisable(GL_CULL_FACE));
+				menu_Current->drawMenu();
+				GLCALL(glEnable(GL_DEPTH_TEST));
+				GLCALL(glEnable(GL_CULL_FACE));
+
+				//swapBuffer();
+			}
+		}
+		break;
 	}
 
-	UI::drawUI();
-
-	SDL_GL_SwapWindow(window);
+	Game::swapBuffer();
 }
 
+/// <summary>
+/// process the Input from Mouse and Keyboard
+/// </summary>
 void Game::processInput()
 {
 	SDL_Event event;
@@ -297,7 +342,7 @@ void Game::processInput()
 			keyReleased(event.key.keysym.sym);
 		}
 		else if (event.type == SDL_MOUSEMOTION) {
-			if (gameState == GameState::GAME_ACTIVE)
+			if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
 			{
 				if (SDL_GetRelativeMouseMode()) {
 					players[0]->onMouseMove(event.motion.xrel, event.motion.yrel);
@@ -310,7 +355,7 @@ void Game::processInput()
 			}
 		}
 		else if (event.type == SDL_MOUSEBUTTONDOWN) {
-			if (gameState == GameState::GAME_ACTIVE)
+			if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
 			{
 				if (!SDL_GetRelativeMouseMode())
 				{
@@ -318,7 +363,10 @@ void Game::processInput()
 					continue;
 				}
 			}
-
+			else if (gameState == GameState::GAME_MENU)
+			{
+				menu_Current->onMouseClick(event.motion.x, event.motion.y, event.button);
+			}
 			pressedMouseButtons[event.button.button] = true;
 
 		}
@@ -352,7 +400,7 @@ void Game::processInput()
 	}
 	if (pressedKeys[PlayerAction::moveLeft])
 	{
-		if (gameState == GameState::GAME_ACTIVE)
+		if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
 		{
 			players[0]->moveLeft();
 			updateAudioListener();
@@ -364,7 +412,7 @@ void Game::processInput()
 	}
 	if (pressedKeys[PlayerAction::moveRight])
 	{
-		if (gameState == GameState::GAME_ACTIVE)
+		if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
 		{
 			players[0]->moveRight();
 			updateAudioListener();
@@ -396,6 +444,10 @@ void Game::processInput()
 	}
 }
 
+/// <summary>
+/// function for when a key is pressed
+/// </summary>
+/// <param name="key">the pressed key</param>
 void Game::keyPressed(SDL_Keycode key)
 {
 	PlayerAction action = PlayerAction::None;
@@ -489,6 +541,10 @@ void Game::keyPressed(SDL_Keycode key)
 	pressedKeys[action] = true;
 }
 
+/// <summary>
+/// function for when a key is released
+/// </summary>
+/// <param name="key">the released key</param>
 void Game::keyReleased(SDL_Keycode key)
 {
 	PlayerAction action = PlayerAction::None;
@@ -503,15 +559,20 @@ void Game::keyReleased(SDL_Keycode key)
 	pressedKeys[action] = false;
 }
 
+/// <summary>
+/// deletes or disable object, that are destroyed
+/// </summary>
 void Game::deleteObjects()
 {
 	for (int i = objects.size() - 1; i >= 0; i--)
 	{
 		if (objects[i]->getHealth() <= 0)
 		{
+			objects[i]->disable();
+			
 			//objects.erase(objects.begin() + i);
 			//i++;
-			std::shared_ptr<Object> objectToDelete = objects[i];
+			/*std::shared_ptr<Object> objectToDelete = objects[i];
 
 			int index = objectToDelete->getNumber();
 
@@ -535,7 +596,7 @@ void Game::deleteObjects()
 
 			auto it1 = std::find(objects.begin(), objects.end(), objectToDelete);
 			if (it1 != objects.end()) { objects.erase(it1); }
-
+			*/
 		}
 	}
 
@@ -561,7 +622,7 @@ void Game::togglePause()
 	{
 		gameState = GameState::GAME_PAUSED;
 		UI::drawPause();
-		SDL_GL_SwapWindow(window);
+		Game::swapBuffer();
 	}
 }
 
@@ -576,7 +637,10 @@ bool Game::toggleMenu()
 	}
 	else if (gameState == GameState::GAME_MENU)
 	{
-		gameState = GameState::GAME_ACTIVE;
+		if(players[0]->getEnabled())
+			gameState = GameState::GAME_ACTIVE;
+		else
+			gameState = GameState::GAME_GAME_OVER;
 		SDL_SetRelativeMouseMode(SDL_TRUE);
 		return true;
 	}
@@ -611,15 +675,15 @@ void Game::toggleFullscreen()
 		int resolutionW = std::stoi(ConfigManager::readConfig("windowed_resolution_width"));
 		int resolutionH = std::stoi(ConfigManager::readConfig("windowed_resolution_height"));
 
-		SDL_SetWindowSize(window, resolutionW, resolutionH);
-		Renderer::initFrameBuffer();
+		Game::changeSize(resolutionW, resolutionH);
+		Renderer::changeResolution(resolutionW, resolutionH);
 	}
 	else {
 		int resolutionW = std::stoi(ConfigManager::readConfig("fullscreen_resolution_width"));
 		int resolutionH = std::stoi(ConfigManager::readConfig("fullscreen_resolution_height"));
 
-		SDL_SetWindowSize(window, resolutionW, resolutionH);
-		Renderer::initFrameBuffer();
+		Game::changeSize(resolutionW, resolutionH);
+		Renderer::changeResolution(resolutionW, resolutionH);
 	}
 }
 
@@ -664,4 +728,10 @@ void Game::openConsole()
 	{
 		players[0]->setPosition(glm::vec3(players[0]->getPosition().x, players[0]->getPosition().y, std::stof(enteredText.substr(1))));
 	}
+}
+
+void Game::changeSize(int w, int h)
+{
+	SDL_SetWindowSize(window, w, h);
+	Renderer::initFrameBuffer();
 }

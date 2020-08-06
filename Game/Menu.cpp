@@ -19,10 +19,10 @@ void Menu::drawMenu()
 	//int x = Game::getWindowWidth() / 2 - 50;
 	//int y = Game::getWindowHeight() / 2 - menuElementList.size() * 40 / 2;
 
-
-	for (UI_Element* element : menuElementList)
+	for (int i = 0; i < menuElementList.size(); i++)
+	//for (int i = menuElementList.size() - 1; i >= 0; i--)
 	{
-		element->drawUI_Element();
+		menuElementList[i]->drawUI_Element();
 	}
 }
 
@@ -60,18 +60,19 @@ void Menu::enterSelectedMenuElement()
 void Menu::onMouseMove(float x, float y)
 {
 	//Logger::log("Mouse Position: " + std::to_string(x) + " " + std::to_string(y));
-	for (UI_Element* element : menuElementList)
+	for (int i = menuElementList.size() - 1; i >= 0; i--)
 	{
 
-		if (element->isMouseOver(x, y))
+		if (menuElementList[i]->isMouseOver(x, y))
 		{
 			for (UI_Element* element : menuElementList)
 			{
 				element->setIsSelected(false);
 			}
 
-			element->setIsSelected(true);
-			selectedItemIndex = element->getID();
+			menuElementList[i]->setIsSelected(true);
+			selectedItemIndex = menuElementList[i]->getID();
+			return;
 		}
 	}
 }
@@ -80,12 +81,29 @@ void Menu::onMouseDown(float x, float y, SDL_MouseButtonEvent buttonEvent)
 {
 	if (buttonEvent.button == SDL_BUTTON_LEFT)
 	{
-		for (UI_Element* element : menuElementList)
+		for (int i = menuElementList.size() - 1; i >= 0; i--)
 		{
-			if (element->isMouseOver(x, y))
+			if (menuElementList[i]->isMouseOver(x, y))
 			{
-				element->action(x, y, &buttonEvent);
-				element->callCallBack(&buttonEvent);
+				menuElementList[i]->onMouseDrag(x, y, &buttonEvent);
+				//menuElementList[i]->callCallBack(&buttonEvent);
+				return;
+			}
+		}
+	}
+}
+
+void Menu::onMouseClick(float x, float y, SDL_MouseButtonEvent buttonEvent)
+{
+	if (buttonEvent.button == SDL_BUTTON_LEFT)
+	{
+		for (int i = menuElementList.size() - 1; i >= 0; i--)
+		{
+			if (menuElementList[i]->isMouseOver(x, y))
+			{
+				menuElementList[i]->onMouseClick(x, y, &buttonEvent);
+				//menuElementList[i]->callCallBack(&buttonEvent);
+				return;
 			}
 		}
 	}

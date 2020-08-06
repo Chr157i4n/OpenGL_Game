@@ -12,6 +12,7 @@ struct UI_Element_Dropdown_Item
 	int ID=-1;
 	int labelOffsetX, labelOffsetY;
 	bool isSelected = false;
+	std::function<void()> callback;
 };
 
 class UI_Element_Dropdown : public UI_Element
@@ -23,10 +24,36 @@ public:
 
 	void addItem(UI_Element_Dropdown_Item* item);
 
+	void close()
+	{
+		dropdown_open = false;
+	}
+
+	void open()
+	{
+		dropdown_open = true;
+	}
+
+	void toggleOpen()
+	{
+		dropdown_open = !dropdown_open;
+	}
+
+	bool isMouseOver(float mouseX, float mouseY);
+
+	virtual void onMouseClick(float mouseX, float mouseY, SDL_MouseButtonEvent* buttonEvent = nullptr);
+
+	void setName(std::string newName)
+	{
+		this->name = newName;
+	}
+
 private:
 	int fontSize = 1;
 	std::vector<UI_Element_Dropdown_Item*> items;
 	UI_Element_Dropdown_Item* selectedItem;
+	bool dropdown_open = false;
+	std::string name = "";
 
 };
 

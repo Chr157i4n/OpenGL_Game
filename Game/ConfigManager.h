@@ -9,6 +9,12 @@
 #include "Logger.h"
 
 
+enum ShadowOption {
+	off,
+	hard,
+	soft,
+};
+
 static class ConfigManager
 {
 
@@ -17,6 +23,8 @@ public:
 	static void init(std::string nConfigFileName);
 
 	static std::string readConfig(std::string key);
+
+	static ShadowOption shadowOption;
 
 private:
 

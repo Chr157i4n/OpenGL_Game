@@ -4,6 +4,7 @@ struct PostProcessingEffect {
     int blood;
     int negative;
     int uncolored;
+    int menu;
 };
 
 
@@ -30,6 +31,10 @@ void main()
     {
         float average = (color.r + color.g + color.b) /3;
         color = vec4(average, average, average, 1);
+    }
+    if(u_postprocessingeffect.menu==1)
+    {
+        color.rgb = color.rgb*0.2;
     }
 
     f_color = vec4(color.r , color.g , color.b, color.a);

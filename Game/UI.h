@@ -21,11 +21,11 @@ public:
 
 	static void init();
 
-	static void drawFPS();
+	static void updateFPS();
 
-	static void drawPos(std::shared_ptr<Object> object);
+	static void updatePos(std::shared_ptr<Object> object);
 
-	static void drawRot(std::shared_ptr<Player> object);
+	static void updateRot(std::shared_ptr<Player> object);
 
 	static void drawString(float x, float y, std::string text, glm::vec4 color);
 
@@ -69,5 +69,10 @@ private:
 
 	static std::vector<UI_Element*> ui_elements;
 
+	static UI_Element_Label* fpsLabel;
+	static UI_Element_Label* posLabel[4];
+	static UI_Element_Label* rotLabel[4];
+
+	static std::list<float> fpsBuffer;
 };
 

@@ -153,6 +153,7 @@ void NPC::calculateNextTarget()
 
 	for (std::shared_ptr<Character> character : Game::characters)
 	{
+		if (!character->getEnabled()) continue;
 		if (character->getType() & ObjectType::Object_Player) continue;
 		if (character->getNumber() == this->getNumber()) continue;
 		if (character->getTeam() == this->getTeam()) continue;
@@ -173,7 +174,7 @@ void NPC::attackCurrentTarget()
 {
 	if (currentTarget != nullptr)
 	{
-		if (currentTarget->isAlive())
+		if (currentTarget->isAlive() && currentTarget->getEnabled())
 		{
 			followCharacter(currentTarget);
 			return;

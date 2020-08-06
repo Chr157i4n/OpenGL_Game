@@ -44,6 +44,8 @@ public:
 
 	void onMouseDown(float x, float y, SDL_MouseButtonEvent buttonEvent);
 
+	void onMouseClick(float x, float y, SDL_MouseButtonEvent buttonEvent);
+
 
 protected:
 

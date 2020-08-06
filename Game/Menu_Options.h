@@ -12,9 +12,11 @@ public:
 
 	void setVolume();
 
+	void toggleShadows();
+
 private:
-	UI_Element_Button* pB_resume, * pB_vsync, * pB_options, * pB_back;
-	UI_Element_Slider* sL_volume;
-	UI_Element_Dropdown* dD_Resolution;
+	UI_Element_Button *pB_resume, *pB_vsync, *pB_shadow, *pB_back, *pB_test;
+	UI_Element_Slider *sL_volume;
+	UI_Element_Dropdown *dD_Resolution;
 };
 

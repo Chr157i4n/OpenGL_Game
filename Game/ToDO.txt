@@ -1,4 +1,7 @@
-﻿- 3D Raypicking
+﻿- jump-climb walls should not be possible
+
+
+- 3D Raypicking
 
 - NPCS
 	- Teams	✓

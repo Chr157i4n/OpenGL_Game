@@ -6,7 +6,7 @@ Bullet::Bullet(Shader* shader, glm::vec3 position, glm::vec3 rotation, glm::vec3
 	this->setType(ObjectType::Object_Bullet);
 	this->position = position;
 	this->rotation = rotation;
-	this->movement = glm::normalize(direction) * speed * Game::getDelta(); //todo : apply Game::getDelta() per frame
+	this->movement = glm::normalize(direction) * speed;// *Game::getDelta(); //todo : apply Game::getDelta() per frame
 	this->name = "Bullet";
 	this->setCollisionBoxType(CollisionBoxType::cube);
 }

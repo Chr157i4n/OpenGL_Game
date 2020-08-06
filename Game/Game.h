@@ -141,7 +141,14 @@ public:
 
 	static float32 getDelta()
 	{
-		return delta;
+		if (delta < 100)
+		{
+			return delta;
+		}
+		else
+		{
+			return 100;
+		}
 	}
 
 	static float32 getFPS()
@@ -183,6 +190,8 @@ public:
 		SDL_GL_SwapWindow(window);
 	}
 
+	static void changeSize(int w, int h);
+
 
 	static std::vector< std::shared_ptr<Object> > map;
 	static std::vector< std::shared_ptr<Object> > objects;
@@ -196,7 +205,7 @@ public:
 	static irrklang::ISoundEngine* SoundEngine;
 
 	static bool pressedKeys[20];
-	static bool pressedMouseButtons[3];
+	static bool pressedMouseButtons[6];
 
 	static float32 FPS;
 	static float32 fps_limit;
@@ -238,5 +247,6 @@ private:
 	static void updateAudioListener();
 
 	static void openConsole();
+
 
 };

@@ -33,6 +33,8 @@ public:
         return fontSize;
     }
 
+    virtual void onMouseClick(float mouseX, float mouseY, SDL_MouseButtonEvent* buttonEvent = nullptr);
+
 
 
 private:

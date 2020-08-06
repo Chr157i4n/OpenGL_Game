@@ -149,7 +149,12 @@ void UI_Element::callCallBack(SDL_MouseButtonEvent* buttonEvent)
     callback();
 }
 
-void UI_Element::action(float mouseX, float mouseY, SDL_MouseButtonEvent* buttonEvent)
+void UI_Element::onMouseClick(float mouseX, float mouseY, SDL_MouseButtonEvent* buttonEvent)
+{
+
+}
+
+void UI_Element::onMouseDrag(float mouseX, float mouseY, SDL_MouseButtonEvent* buttonEvent)
 {
 
 }

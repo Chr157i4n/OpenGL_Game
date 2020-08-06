@@ -38,15 +38,6 @@ void UI_Element_Slider::drawUI_Element()
 		backColor.a = 0.4;
 	}
 
-	//Slider
-	glColor4f(foreColor.r, foreColor.g, foreColor.b, 1);
-	glBegin(GL_QUADS);
-	glVertex2f(_x + value/100*_w - SliderThickness/2,			_y + 0.25*_h - SliderThickness/2);		//left bottom
-	glVertex2f(_x + value/100*_w + SliderThickness/2,			_y + 0.25*_h - SliderThickness/2);		//right bottom	
-	glVertex2f(_x + value/100*_w + SliderThickness/2,			_y + 0.25*_h + SliderThickness/2);		//right top
-	glVertex2f(_x + value/100*_w - SliderThickness/2,			_y + 0.25*_h + SliderThickness/2);		//left top
-	glEnd();
-
 	//background
 	glColor4f(backColor.r, backColor.g, backColor.b, backColor.a);
 	glBegin(GL_QUADS);
@@ -56,15 +47,26 @@ void UI_Element_Slider::drawUI_Element()
 	glVertex2f(_x,			_y + 0.25*_h);
 	glEnd();
 
-
+	//Slider
+	glColor4f(foreColor.r, foreColor.g, foreColor.b, 1);
+	glBegin(GL_QUADS);
+	glVertex2f(_x + value / 100 * _w - SliderThickness / 2, _y + 0.25 * _h - SliderThickness / 2);		//left bottom
+	glVertex2f(_x + value / 100 * _w + SliderThickness / 2, _y + 0.25 * _h - SliderThickness / 2);		//right bottom	
+	glVertex2f(_x + value / 100 * _w + SliderThickness / 2, _y + 0.25 * _h + SliderThickness / 2);		//right top
+	glVertex2f(_x + value / 100 * _w - SliderThickness / 2, _y + 0.25 * _h + SliderThickness / 2);		//left top
+	glEnd();
 
 	UI::drawString(x + labelOffsetX, y+labelOffsetY, label, foreColor);
 
 }
 
-void UI_Element_Slider::action(float mouseX, float mouseY, SDL_MouseButtonEvent* buttonEvent)
+void UI_Element_Slider::onMouseDrag(float mouseX, float mouseY, SDL_MouseButtonEvent* buttonEvent)
 {
-	this->setValue((mouseX - this->getX()) / this->getW() * 100);
+	float newValue = (mouseX - this->getX()) / this->getW() * 100;
+	if (newValue < 5)	newValue = 0;
+	if (newValue > 95)	newValue = 100;
+	this->setValue(newValue);
+	this->callCallBack();
 }
 
 void UI_Element_Slider::increase()

@@ -44,7 +44,7 @@ public:
         return value;
     }
 
-    virtual void action(float mouseX, float mouseY, SDL_MouseButtonEvent* buttonEvent = nullptr);
+    virtual void onMouseDrag(float mouseX, float mouseY, SDL_MouseButtonEvent* buttonEvent = nullptr);
 
     virtual void increase();
 

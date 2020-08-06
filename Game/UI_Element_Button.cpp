@@ -49,3 +49,8 @@ void UI_Element_Button::drawUI_Element()
 
 	UI::drawString(x + labelOffsetX, y+labelOffsetY, label, foreColor);
 }
+
+void UI_Element_Button::onMouseClick(float mouseX, float mouseY, SDL_MouseButtonEvent* buttonEvent)
+{
+	callCallBack();
+}
