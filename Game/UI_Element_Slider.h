@@ -33,9 +33,9 @@ public:
         return fontSize;
     }
 
-    void setValue(int value)
+    void setValue(float value)
     {
-        if(value>=0 && value<=100)
+        if(value>=minValue && value<=maxValue)
             this->value = value;
     }
 
@@ -50,10 +50,29 @@ public:
 
     virtual void decrease();
 
+    void setMinValue(float minValue)
+    {
+        this->minValue = minValue;
+    }
+    float getMinValue()
+    {
+        return minValue;
+    }
+
+    void setMaxValue(float maxValue)
+    {
+        this->maxValue = maxValue;
+    }
+    float getMaxVValue()
+    {
+        return maxValue;
+    }
+
 private:
     std::string label;
     int fontSize = 1;
     int labelOffsetX, labelOffsetY;
     float value=0;
+    float minValue = 0, maxValue = 100;
 };
 

@@ -14,7 +14,7 @@ Menu_Pause::Menu_Pause()
 	addMenuElement(pB_restart);
 
 	UI_Element_Button* pB_options = new UI_Element_Button(10, 70, 200, 50, 0, "Optionen");
-	pB_options->setCallback([&] { Game::toggleMenuOptions(); });
+	pB_options->setCallback([&] { Game::toggleSubMenu(MenuType::MENU_OPTIONS); });
 	addMenuElement(pB_options);
 
 	UI_Element_Button* pB_exit = new UI_Element_Button(10, 10, 200, 50, 0, "Beenden");

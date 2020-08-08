@@ -178,8 +178,6 @@ private:
 	
 	static void initLight();
 
-	static int shadowMapResolution;
-	static int envMapResolution;
 	static int renderResolutionX, renderResolutionY;
 
 	static int frameCount;

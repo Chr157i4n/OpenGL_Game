@@ -159,8 +159,7 @@ FrameBuffer Renderer::shadowMapBuffer;
 FrameBuffer Renderer::envMapFacesBuffer[6];
 FrameBuffer Renderer::envMapBuffer;
 
-int Renderer::shadowMapResolution = 1024;
-int Renderer::envMapResolution = 1024;
+
 int Renderer::renderResolutionX, Renderer::renderResolutionY;
 
 std::vector<float32> Renderer::postprocessingEffectDuration = { 0,0,0 };
@@ -256,9 +255,6 @@ void Renderer::init()
 	skyboxVertexBuffer = new VertexBuffer(skyboxVertices, 36, VertexType::_VertexPos);
 	axisVertexBuffer = new VertexBuffer(axisVertices, 6, VertexType::_VertexPosCol);
 
-	shadowMapResolution = std::stoi(ConfigManager::readConfig("shadow_map_resolution"));
-	envMapResolution = std::stoi(ConfigManager::readConfig("env_map_resolution"));
-
 	Renderer::changeResolution(Game::getWindowWidth(), Game::getWindowHeight());
 	//initFrameBuffer();
 
@@ -295,9 +291,9 @@ void Renderer::init()
 
 	initLight();
 
-
 	for (std::shared_ptr<Object> object : Game::objects)
 	{
+
 		unsigned int  framebuffer, depthbuffer;
 
 		// create the cubemap
@@ -306,15 +302,15 @@ void Renderer::init()
 		object->setEnvCubeMap(cubemap);
 
 		glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
 		// set textures
 		for (int i = 0; i < 6; ++i)
-			glTexImage2D(cube_map_axis1[i], 0, GL_RGB, envMapResolution, envMapResolution, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+			glTexImage2D(cube_map_axis1[i], 0, GL_RGB, ConfigManager::envMapResolution, ConfigManager::envMapResolution, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
 
 		// create the fbo
 		glGenFramebuffers(1, &framebuffer);
@@ -325,25 +321,35 @@ void Renderer::init()
 		// create the uniform depth buffer
 		glGenRenderbuffers(1, &depthbuffer);
 		glBindRenderbuffer(GL_RENDERBUFFER, depthbuffer);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, envMapResolution, envMapResolution);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, ConfigManager::envMapResolution, ConfigManager::envMapResolution);
 		glBindRenderbuffer(GL_RENDERBUFFER, 0);
 		// attach it
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthbuffer);
 	}
 
+	Renderer::initFrameBuffer();
+
 }
 
 void Renderer::initFrameBuffer()
 {
+	frameBuffer.destroy();
+	shadowMapBuffer.destroy();
+	for (int i = 0; i < 6; i++)
+	{
+		envMapFacesBuffer[i].destroy();
+	}
+	envMapBuffer.destroy();
+
 	frameBuffer.create(Renderer::getResolutionX(), Renderer::getResolutionY(), FrameBufferTextureType::colorMap | FrameBufferTextureType::stencilMap);
-	shadowMapBuffer.create(shadowMapResolution, shadowMapResolution, FrameBufferTextureType::depthMap);
+	shadowMapBuffer.create(ConfigManager::shadowMapResolution, ConfigManager::shadowMapResolution, FrameBufferTextureType::depthMap);
 
 	for (int i = 0; i < 6; i++)
 	{
-		envMapFacesBuffer[i].create(envMapResolution, envMapResolution, FrameBufferTextureType::envMapFace);
+		envMapFacesBuffer[i].create(ConfigManager::envMapResolution, ConfigManager::envMapResolution, FrameBufferTextureType::envMapFace);
 	}
 
-	envMapBuffer.create(envMapResolution, envMapResolution, FrameBufferTextureType::envMap);
+	envMapBuffer.create(ConfigManager::envMapResolution, ConfigManager::envMapResolution, FrameBufferTextureType::envMap);
 }
 
 void Renderer::initLight()
@@ -456,7 +462,7 @@ void Renderer::calcShadows()
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
 
-	glViewport(0, 0, shadowMapResolution, shadowMapResolution);
+	glViewport(0, 0, ConfigManager::shadowMapResolution, ConfigManager::shadowMapResolution);
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glCullFace(GL_BACK);
 
@@ -550,20 +556,22 @@ void Renderer::showShadowMap()
 	//loadingScreenTexture = ResourceManager::loadImage("images/loading_screen.png");
 
 	//renderImage(screenVertexBuffer, shadowMapBuffer.getTextureId()[2]);
-	renderImage(screenVertexBuffer, envMapFacesBuffer[2].getTextureId()[3]);
+	renderImage(screenVertexBuffer, shadowMapBuffer.getTextureId()[3]);
 
 	//SDL_GL_SwapWindow(*window);
 }
 
 void Renderer::renderEnvironmentMap(std::shared_ptr<Object> objectFromView)
 {
+	if (objectFromView->getType() == ObjectType::Object_Bullet) return;
+	
 	std::vector<glm::mat4> views;
 	glm::mat4 view, proj;
 
 	Logger::log("Rendering new EnvMap for object: " + objectFromView->printObject());
 
 
-	glViewport(0, 0, envMapResolution, envMapResolution);
+	glViewport(0, 0, ConfigManager::envMapResolution, ConfigManager::envMapResolution);
 	glBindFramebuffer(GL_FRAMEBUFFER, objectFromView->getEnvCubeMapFrameBuffer());
 	GLCALL(glActiveTexture(GL_TEXTURE3));
 	glBindTexture(GL_TEXTURE_CUBE_MAP, objectFromView->getEnvCubeMap());
@@ -979,7 +987,7 @@ void Renderer::postProcessing()
 void Renderer::clearBuffer()
 {
 	shaderBasic->bind();
-	GLCALL(glClearColor(0, 0, 0, 0.5));
+	GLCALL(glClearColor(0, 0, 0, 0));
 	GLCALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
 	frameCount++;

@@ -2,11 +2,16 @@
 
 std::string ConfigManager::configFileName;
 ShadowOption ConfigManager::shadowOption;
+int ConfigManager::shadowMapResolution = 1024;
+int ConfigManager::envMapResolution = 1024;
+float ConfigManager::musicVolume=0.4;
 
 
 void ConfigManager::init(std::string nConfigFileName)
 {
 	configFileName = nConfigFileName;
+
+	ConfigManager::readAllConfigs();
 }
 
 std::string ConfigManager::readConfig(std::string key)
@@ -44,6 +49,67 @@ std::string ConfigManager::readConfig(std::string key)
 		}
 
 	}
+}
+
+void ConfigManager::readAllConfigs()
+{
+	ConfigManager::shadowMapResolution = std::stoi(ConfigManager::readConfig("shadow_map_resolution"));
+	ConfigManager::envMapResolution = std::stoi(ConfigManager::readConfig("env_map_resolution"));
+	ConfigManager::musicVolume = std::stof(ConfigManager::readConfig("music_volume"));
+}
+
+void ConfigManager::writeConfig(std::string key, std::string value)
+{
+	std::ifstream filein(configFileName); //File to read from
+	std::ofstream fileout("_"+ configFileName); //Temporary file
+	if (!filein || !fileout)
+	{
+		Logger::log("Error opening configfiles for saving!");
+		return;
+	}
+
+	char linein[255];
+	std::string lineout;
+
+	while (!filein.eof())
+	{
+		std::vector<std::string> param;
+		filein.getline(linein, 255);
+
+		if (linein[0] == '\0' || linein[0] == '#')	continue;
+
+		split(linein, param, '=');
+
+		for (int i = 0; i < param.size(); i++)
+		{
+			param[i] = trim(param[i]);
+		}
+
+		if (param[0] == key)
+		{
+			lineout = key + " = " + value;
+		}
+		else 
+		{
+			lineout = linein;
+		}
+
+		fileout << lineout << '\n';
+
+	}
+
+	filein.close();
+	fileout.close();
+
+	std::remove(configFileName.c_str());
+	std::rename(("_" + configFileName).c_str(), configFileName.c_str());
+}
+
+void ConfigManager::writeAllConfigs()
+{
+	ConfigManager::writeConfig("shadow_map_resolution",		std::to_string(ConfigManager::shadowMapResolution));
+	ConfigManager::writeConfig("env_map_resolution",		std::to_string(ConfigManager::envMapResolution));
+	ConfigManager::writeConfig("music_volume",				std::to_string(ConfigManager::musicVolume));
 }
 
 size_t ConfigManager::split(const std::string& txt, std::vector<std::string>& strs, char ch)

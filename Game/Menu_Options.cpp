@@ -7,8 +7,9 @@ Menu_Options::Menu_Options()
 {
 
 	sL_volume = new UI_Element_Slider(10, 190, 200, 50, 0, "Master-Volume");
-	int musicvolume = std::stoi(ConfigManager::readConfig("musicvolume"));
-	sL_volume->setValue(musicvolume);
+	sL_volume->setMinValue(0);
+	sL_volume->setMaxValue(1);
+	sL_volume->setValue(ConfigManager::musicVolume);
 	sL_volume->setCallback([&] { setVolume(); });
 	addMenuElement(sL_volume);
 
@@ -21,8 +22,22 @@ Menu_Options::Menu_Options()
 	addMenuElement(pB_shadow);
 
 	pB_back= new UI_Element_Button(10, 10, 200, 50, 0, "Zurueck");
-	pB_back->setCallback([&] { Game::toggleMenuOptions(); });
+	pB_back->setCallback([&] { Game::toggleSubMenu(MenuType::MENU_OPTIONS); });
 	addMenuElement(pB_back);
+
+	sL_shadowres = new UI_Element_Slider(500, Game::getWindowHeight() - 180, 200, 50, 0, "Schatten-Aufloesung");
+	sL_shadowres->setMinValue(100);
+	sL_shadowres->setMaxValue(10000);
+	sL_shadowres->setValue(ConfigManager::shadowMapResolution);
+	sL_shadowres->setCallback([&] { changeShadowMapResolution(); });
+	addMenuElement(sL_shadowres);
+
+	sL_envres = new UI_Element_Slider(500, Game::getWindowHeight() - 120, 200, 50, 0, "Reflektions-Aufloesung");
+	sL_envres->setMinValue(100);
+	sL_envres->setMaxValue(4000);
+	sL_envres->setValue(ConfigManager::envMapResolution);
+	sL_envres->setCallback([&] { changeEnvMapResolution(); });
+	addMenuElement(sL_envres);
 
 	dD_Resolution = new UI_Element_Dropdown(500, Game::getWindowHeight() - 60, 200, 50, 0);
 	dD_Resolution->setName("Aufloesung");
@@ -57,6 +72,10 @@ Menu_Options::Menu_Options()
 	resolution = new UI_Element_Dropdown_Item();
 	resolution->label = "3840x2160";
 	resolution->callback = [&] { Game::changeSize(3840, 2160); Renderer::changeResolution(3840, 2160);  };
+	dD_Resolution->addItem(resolution);
+	resolution = new UI_Element_Dropdown_Item();
+	resolution->label = "7680x4320";
+	resolution->callback = [&] { Game::changeSize(7680, 4320); Renderer::changeResolution(7680, 4320);  };
 	dD_Resolution->addItem(resolution);
 	addMenuElement(dD_Resolution);
 }
@@ -100,6 +119,25 @@ void Menu_Options::toggleShadows()
 
 void Menu_Options::setVolume()
 {
-	Game::SoundEngine->setSoundVolume(sL_volume->getValue()/100.0);
-	Logger::log("changed Volume to: " + std::to_string(sL_volume->getValue()) + " %");
+	float newVolume = sL_volume->getValue();
+	Game::SoundEngine->setSoundVolume(newVolume);
+	ConfigManager::musicVolume = newVolume;
+	Logger::log("changed Volume to: " + std::to_string(sL_volume->getValue()));
+}
+
+void Menu_Options::changeShadowMapResolution()
+{
+	float newResolution = sL_shadowres->getValue();
+	Logger::log("changed Shadow Map Resolution to: " + std::to_string(newResolution) + " px");
+	ConfigManager::shadowMapResolution = newResolution;
+	Renderer::initFrameBuffer();
+}
+
+void Menu_Options::changeEnvMapResolution()
+{
+	float newResolution = sL_envres->getValue();
+	Logger::log("changed Environment Map Resolution to: " + std::to_string(newResolution) + " px");
+	ConfigManager::envMapResolution = newResolution;
+	Renderer::initFrameBuffer();
+	Renderer::resetFrameCount();
 }

@@ -17,19 +17,21 @@ std::vector< std::shared_ptr<NPC> > Game::npcs;
 std::vector< std::shared_ptr<Bullet> > Game::bullets;
 
 
-bool Game::pressedKeys[20];
+bool Game::pressedKeys[40];
 bool Game::pressedMouseButtons[6];
 
 float32  Game::FPS = 0;
-float32  Game::fps_limit = 0;
+float32  Game::fps_limit_ingame = 0;
+float32 Game::fps_limit_menu = 60;
 bool  Game::close = false;
 
-uint64 Game::perfCounterFrequency;
-uint64 Game::lastCounter;
-float32 Game::delta;
+
+
+float32 Game::delta = 0;
 
 bool Game::showInfo = false;
-GameState Game::gameState;
+GameState Game::gameState = GameState::GAME_MENU;
+GameState Game::newGameState;
 int Game::maxBulletCount = 20;
 
 bool Game::showShadowMap = false;
@@ -39,7 +41,8 @@ Menu* Game::menu_Main = nullptr;
 Menu* Game::menu_Pause = nullptr;
 Menu* Game::menu_Options = nullptr;
 
-Menu* Game::menu_Current = nullptr;
+Menu* Game::menu_current = menu_Main;
+Menu* Game::menu_last = menu_Main;
 
 irrklang::ISoundEngine* Game::SoundEngine = irrklang::createIrrKlangDevice();
 
@@ -48,21 +51,10 @@ irrklang::ISoundEngine* Game::SoundEngine = irrklang::createIrrKlangDevice();
 /// </summary>
 void Game::startGame()
 {
-	perfCounterFrequency = SDL_GetPerformanceFrequency();
-	lastCounter = SDL_GetPerformanceCounter();
 	delta = 0.0f;
 	gameState = GameState::GAME_ACTIVE;
 
 	SDL_SetRelativeMouseMode(SDL_TRUE);
-
-	float musicvolume = std::stof(ConfigManager::readConfig("musicvolume"));
-	SoundEngine->setSoundVolume(musicvolume / 100);
-
-	irrklang::ISound* music = SoundEngine->play2D("audio/breakout.mp3", true);
-
-
-
-	gameLoop();
 }
 
 
@@ -71,6 +63,7 @@ void Game::startGame()
 /// </summary>
 void Game::init()
 {
+
 	Renderer::initOpenGL();
 	Renderer::loadShader();
 
@@ -80,7 +73,7 @@ void Game::init()
 
 
 	maxBulletCount = stoi(ConfigManager::readConfig("max_bullets"));
-	fps_limit = stof(ConfigManager::readConfig("fps_limit"));
+	fps_limit_ingame = stof(ConfigManager::readConfig("fps_limit_ingame"));
 	std::string levelname = ConfigManager::readConfig("level");
 	Map::load(levelname);
 
@@ -88,7 +81,17 @@ void Game::init()
 	menu_Pause = new Menu_Pause();
 	menu_Options = new Menu_Options();
 
+	menu_current = menu_Main;
+	gameState = GameState::GAME_MENU;
+
 	Renderer::init();
+
+	SoundEngine->setSoundVolume(ConfigManager::musicVolume);
+
+	irrklang::ISound* music = SoundEngine->play2D("audio/breakout.mp3", true);
+
+
+	gameLoop();
 }
 
 /// <summary>
@@ -204,9 +207,13 @@ void Game::gameLoop()
 
 		std::chrono::duration<double, std::milli> work_time = b - a;
 
-		if (work_time.count() < 1000/fps_limit && fps_limit!=0)
+		float32 fps_limit_current=0;
+		if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER) fps_limit_current = fps_limit_ingame;
+		if (gameState == GameState::GAME_MENU || gameState == GameState::GAME_PAUSED) fps_limit_current = fps_limit_menu;
+
+		if (work_time.count() < 1000/ fps_limit_current && fps_limit_current !=0)
 		{
-			std::chrono::duration<double, std::milli> delta_ms(1000 / fps_limit - work_time.count());
+			std::chrono::duration<double, std::milli> delta_ms(1000 / fps_limit_current - work_time.count());
 			auto delta_ms_duration = std::chrono::duration_cast<std::chrono::milliseconds>(delta_ms);
 			std::this_thread::sleep_for(std::chrono::milliseconds(delta_ms_duration.count()));
 		}
@@ -220,6 +227,8 @@ void Game::gameLoop()
 		fpsGraph->setValue(FPS);
 
 	}
+
+	ConfigManager::writeAllConfigs();
 }
 
 /// <summary>
@@ -273,7 +282,6 @@ void Game::render()
 			if (postprocess) Renderer::frameBuffer.bind();
 			Renderer::clearBuffer();
 			Renderer::renderOpaqueObjects();
-
 			Renderer::renderSkybox(glm::mat4(glm::mat3(players[0]->getView())), players[0]->getProj());
 			Renderer::renderTransparentObjects();
 			if (postprocess) Renderer::frameBuffer.unbind();
@@ -300,19 +308,17 @@ void Game::render()
 		break;
 	case GameState::GAME_MENU:
 		{
-			if (menu_Current != nullptr)
+			if (menu_current != nullptr)
 			{
-				GLCALL(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
+				GLCALL(glClearColor(0, 0, 0, 0));
 				GLCALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
 				if (postprocess) Renderer::postProcessing();
 				GLCALL(glDisable(GL_DEPTH_TEST));
 				GLCALL(glDisable(GL_CULL_FACE));
-				menu_Current->drawMenu();
+				menu_current->drawMenu();
 				GLCALL(glEnable(GL_DEPTH_TEST));
 				GLCALL(glEnable(GL_CULL_FACE));
-
-				//swapBuffer();
 			}
 		}
 		break;
@@ -351,7 +357,7 @@ void Game::processInput()
 			}
 			else if (gameState == GameState::GAME_MENU)
 			{
-				menu_Current->onMouseMove(event.motion.x, event.motion.y);
+				menu_current->onMouseMove(event.motion.x, event.motion.y);
 			}
 		}
 		else if (event.type == SDL_MOUSEBUTTONDOWN) {
@@ -365,7 +371,7 @@ void Game::processInput()
 			}
 			else if (gameState == GameState::GAME_MENU)
 			{
-				menu_Current->onMouseClick(event.motion.x, event.motion.y, event.button);
+				menu_current->onMouseClick(event.motion.x, event.motion.y, event.button);
 			}
 			pressedMouseButtons[event.button.button] = true;
 
@@ -383,7 +389,7 @@ void Game::processInput()
 		}
 		else if (gameState == GameState::GAME_MENU)
 		{
-			menu_Current->onMouseDown(event.motion.x, event.motion.y, event.button);
+			menu_current->onMouseDown(event.motion.x, event.motion.y, event.button);
 		}
 
 	}
@@ -407,7 +413,7 @@ void Game::processInput()
 		}
 		else if (gameState == GameState::GAME_MENU)
 		{
-			menu_Current->leftOnSelectedMenuElement();
+			menu_current->leftOnSelectedMenuElement();
 		}
 	}
 	if (pressedKeys[PlayerAction::moveRight])
@@ -419,7 +425,7 @@ void Game::processInput()
 		}
 		else if (gameState == GameState::GAME_MENU)
 		{
-			menu_Current->rightOnSelectedMenuElement();
+			menu_current->rightOnSelectedMenuElement();
 		}
 	}
 	if (pressedKeys[PlayerAction::jump])
@@ -483,19 +489,19 @@ void Game::keyPressed(SDL_Keycode key)
 				switch (action)
 				{
 					case PlayerAction::moveForward:
-						menu_Current->selectPreviousElement();
+						menu_current->selectPreviousElement();
 						SoundEngine->play2D("audio/select.wav", false);
 						break;
 					case PlayerAction::moveBackward:
-						menu_Current->selectNextElement();
+						menu_current->selectNextElement();
 						SoundEngine->play2D("audio/select.wav", false);
 						break;
 					case PlayerAction::enter:
-						menu_Current->enterSelectedMenuElement();
+						menu_current->enterSelectedMenuElement();
 						SoundEngine->play2D("audio/select.wav", false);
 						break;
 					case PlayerAction::jump:
-						menu_Current->enterSelectedMenuElement();
+						menu_current->enterSelectedMenuElement();
 						SoundEngine->play2D("audio/select.wav", false);
 						break;
 				}
@@ -526,7 +532,7 @@ void Game::keyPressed(SDL_Keycode key)
 			break;
 		case PlayerAction::menu:
 			if (toggleMenu()) break;
-			if (toggleMenuOptions()) break;
+			if (toggleSubMenu(MenuType::MENU_OPTIONS)) break;
 			break;
 		case PlayerAction::toggleFullscreen:
 			toggleFullscreen();
@@ -628,10 +634,20 @@ void Game::togglePause()
 
 bool Game::toggleMenu()
 {
+	for (int i = 0; i < 40; i++)
+	{
+		pressedKeys[i] = false;
+	}
+	for (int i = 0; i < 6; i++)
+	{
+		pressedMouseButtons[i] = false;
+	}
+
+
 	if (gameState == GameState::GAME_PAUSED || gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
 	{
 		gameState = GameState::GAME_MENU;
-		menu_Current = menu_Pause;
+		menu_current = menu_Pause;
 		SDL_SetRelativeMouseMode(SDL_FALSE);
 		return true;
 	}
@@ -647,21 +663,54 @@ bool Game::toggleMenu()
 	return false;
 }
 
-bool Game::toggleMenuOptions()
+bool Game::toggleSubMenu(MenuType submenu)
 {
-	if (gameState == GameState::GAME_MENU && menu_Current == menu_Pause)
+	if (gameState != GameState::GAME_MENU) return false;
+
+	for(int i=0; i<40; i++)
 	{
-		gameState = GameState::GAME_MENU;
-		menu_Current = menu_Options;
+		pressedKeys[i] = false;
+	}
+	for (int i = 0; i < 6; i++)
+	{
+		pressedMouseButtons[i] = false;
+	}
+
+	Menu* newMenu = menu_last;
+
+
+	switch (submenu)
+	{
+	case MenuType::MENU_MAIN:
+		newMenu = menu_Main;
+		break;
+	case MenuType::MENU_OPTIONS:
+		newMenu = menu_Options;
+		break;
+	case MenuType::MENU_PAUSE:
+		newMenu = menu_Pause;
+		break;
+	}
+
+	if (menu_current == menu_Options)
+	{
+		ConfigManager::writeAllConfigs();
+	}
+	
+	if (newMenu != menu_current)
+	{
+		menu_last = menu_current;
+		menu_current = newMenu;
+		return true;
+	} 
+	else
+	{
+		menu_current = menu_last;
 		return true;
 	}
-	else if (gameState == GameState::GAME_MENU && menu_Current == menu_Options)
-	{
-		gameState = GameState::GAME_MENU;
-		menu_Current = menu_Pause;
-		return true;
-	}
+
 	return false;
+
 }
 
 void Game::toggleFullscreen()

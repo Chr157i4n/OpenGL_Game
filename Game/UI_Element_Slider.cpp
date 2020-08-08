@@ -18,6 +18,7 @@ void UI_Element_Slider::drawUI_Element()
 	float _h = h;
 	float barThickness = 0.01;
 	float SliderThickness = 0.04;
+	float _value = (value - minValue) / (maxValue - minValue);
 
 	_x /= Game::getWindowWidth();
 	_y /= Game::getWindowHeight();
@@ -50,10 +51,10 @@ void UI_Element_Slider::drawUI_Element()
 	//Slider
 	glColor4f(foreColor.r, foreColor.g, foreColor.b, 1);
 	glBegin(GL_QUADS);
-	glVertex2f(_x + value / 100 * _w - SliderThickness / 2, _y + 0.25 * _h - SliderThickness / 2);		//left bottom
-	glVertex2f(_x + value / 100 * _w + SliderThickness / 2, _y + 0.25 * _h - SliderThickness / 2);		//right bottom	
-	glVertex2f(_x + value / 100 * _w + SliderThickness / 2, _y + 0.25 * _h + SliderThickness / 2);		//right top
-	glVertex2f(_x + value / 100 * _w - SliderThickness / 2, _y + 0.25 * _h + SliderThickness / 2);		//left top
+	glVertex2f(_x + _value * _w - SliderThickness / 2, _y + 0.25 * _h - SliderThickness / 2);		//left bottom
+	glVertex2f(_x + _value * _w + SliderThickness / 2, _y + 0.25 * _h - SliderThickness / 2);		//right bottom	
+	glVertex2f(_x + _value * _w + SliderThickness / 2, _y + 0.25 * _h + SliderThickness / 2);		//right top
+	glVertex2f(_x + _value * _w - SliderThickness / 2, _y + 0.25 * _h + SliderThickness / 2);		//left top
 	glEnd();
 
 	UI::drawString(x + labelOffsetX, y+labelOffsetY, label, foreColor);
@@ -62,21 +63,24 @@ void UI_Element_Slider::drawUI_Element()
 
 void UI_Element_Slider::onMouseDrag(float mouseX, float mouseY, SDL_MouseButtonEvent* buttonEvent)
 {
-	float newValue = (mouseX - this->getX()) / this->getW() * 100;
-	if (newValue < 5)	newValue = 0;
-	if (newValue > 95)	newValue = 100;
+	float newValue = (mouseX - this->getX()) / this->getW();
+	if (newValue < 0.05)	newValue = 0;
+	if (newValue > 0.95)	newValue = 1;
+	
+	newValue = newValue * (maxValue - minValue) + minValue;
+
 	this->setValue(newValue);
 	this->callCallBack();
 }
 
 void UI_Element_Slider::increase()
 {
-	this->setValue(this->getValue() + 1);
+	this->setValue(this->getValue() + 1 * (maxValue - minValue) * 0.5 * Game::getDelta()/1000);
 	this->callCallBack();
 }
 
 void UI_Element_Slider::decrease()
 {
-	this->setValue(this->getValue() - 1);
+	this->setValue(this->getValue() - 1 * (maxValue - minValue) * 0.5 * Game::getDelta()/1000);
 	this->callCallBack();
 }

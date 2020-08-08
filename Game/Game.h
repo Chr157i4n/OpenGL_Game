@@ -64,6 +64,12 @@ enum GameState {
 	GAME_MENU,
 };
 
+enum MenuType {
+	MENU_MAIN,
+	MENU_OPTIONS,
+	MENU_PAUSE,
+};
+
 enum PlayerAction {
 	None,
 	moveForward,
@@ -175,12 +181,13 @@ public:
 
 	static bool toggleMenu();
 
-	static bool toggleMenuOptions();
+	static bool toggleSubMenu(MenuType submenu);
 
 	static void toggleFullscreen();
 
 	static void quit()
 	{
+		ConfigManager::writeAllConfigs();
 		SDL_DestroyWindow(Game::window);
 		exit(0);
 	}
@@ -204,15 +211,15 @@ public:
 
 	static irrklang::ISoundEngine* SoundEngine;
 
-	static bool pressedKeys[20];
+	static bool pressedKeys[40];
 	static bool pressedMouseButtons[6];
 
 	static float32 FPS;
-	static float32 fps_limit;
+	static float32 fps_limit_ingame;
+	static float32 fps_limit_menu;
 	static bool close;
 
-	static uint64 perfCounterFrequency;
-	static uint64 lastCounter;
+
 	static float32 delta;
 
 	static bool showInfo;
@@ -220,13 +227,15 @@ public:
 	static bool postprocess;
 
 	static GameState gameState;
+	static GameState newGameState;
 	static int maxBulletCount;
 
 	static Menu* menu_Main;
 	static Menu* menu_Pause;
 	static Menu* menu_Options;
 
-	static Menu* menu_Current;
+	static Menu* menu_current;
+	static Menu* menu_last;
 
 private:
 

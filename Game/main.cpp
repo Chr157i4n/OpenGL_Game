@@ -25,7 +25,7 @@ int main(int argc, char* argv[])
 
 	Game::init();
 
-	Game::startGame();
+	//Game::startGame();
 
 
 	return 0;

@@ -24,7 +24,16 @@ public:
 
 	static std::string readConfig(std::string key);
 
+	static void readAllConfigs();
+
+	static void writeConfig(std::string key, std::string value);
+
+	static void writeAllConfigs();
+
 	static ShadowOption shadowOption;
+	static int shadowMapResolution;
+	static int envMapResolution;
+	static float musicVolume;
 
 private:
 
@@ -33,6 +42,7 @@ private:
 	static std::string trim(std::string& str);
 
 	static std::string configFileName;
+
 
 };
 
