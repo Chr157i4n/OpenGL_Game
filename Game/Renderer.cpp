@@ -121,6 +121,7 @@ UI_Element_ProgressBar* Renderer::loadingProgressBar;
 
 unsigned int Renderer::loadingScreenTexture;
 unsigned int Renderer::skyboxTexture;
+unsigned int Renderer::main_menu_backgroundTexture;
 
 VertexBuffer* Renderer::skyboxVertexBuffer;
 VertexBuffer* Renderer::axisVertexBuffer;
@@ -159,9 +160,6 @@ FrameBuffer Renderer::shadowMapBuffer;
 FrameBuffer Renderer::envMapFacesBuffer[6];
 FrameBuffer Renderer::envMapBuffer;
 
-
-int Renderer::renderResolutionX, Renderer::renderResolutionY;
-
 std::vector<float32> Renderer::postprocessingEffectDuration = { 0,0,0 };
 
 int Renderer::frameCount = 0;
@@ -190,23 +188,13 @@ void Renderer::initOpenGL()
 
 	uint32 flags = SDL_WINDOW_OPENGL;
 
-	int resolution_width = 0, resolution_height = 0;
-
-	int fullscreen = std::stoi(ConfigManager::readConfig("fullscreen"));
-	if (fullscreen == 1)
+	if (ConfigManager::fullscreenOption == FullscreenOption::fullscreen)
 	{
 		flags += SDL_WINDOW_FULLSCREEN_DESKTOP;
-		resolution_width = std::stoi(ConfigManager::readConfig("fullscreen_resolution_width"));
-		resolution_height = std::stoi(ConfigManager::readConfig("fullscreen_resolution_height"));
-	}
-	else
-	{
-		resolution_width = std::stoi(ConfigManager::readConfig("windowed_resolution_width"));
-		resolution_height = std::stoi(ConfigManager::readConfig("windowed_resolution_height"));
 	}
 
 
-	Game::window = SDL_CreateWindow("OpenGL-Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, resolution_width, resolution_height, flags);
+	Game::window = SDL_CreateWindow("OpenGL-Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, ConfigManager::renderResolutionX, ConfigManager::renderResolutionY, flags);
 	SDL_GLContext glContext = SDL_GL_CreateContext(Game::window);
 
 	int vsync = std::stoi(ConfigManager::readConfig("v_sync"));
@@ -255,6 +243,7 @@ void Renderer::init()
 	skyboxVertexBuffer = new VertexBuffer(skyboxVertices, 36, VertexType::_VertexPos);
 	axisVertexBuffer = new VertexBuffer(axisVertices, 6, VertexType::_VertexPosCol);
 
+
 	Renderer::changeResolution(Game::getWindowWidth(), Game::getWindowHeight());
 	//initFrameBuffer();
 
@@ -268,6 +257,8 @@ void Renderer::init()
 			"textures/skybox/skybox1_back.jpg"
 	};
 	skyboxTexture = ResourceManager::loadCubemap(faces);
+
+	main_menu_backgroundTexture = ResourceManager::loadImage("images/main_menu_background.png");
 
 	//get Uniform location indices for passing data to the GPU
 	shaderBasic->bind();
@@ -283,7 +274,7 @@ void Renderer::init()
 	shadowmapUniformIndex = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_shadow_map"));
 
 	shadowmodeUniformIndex = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_shadow_mode"));
-	toggleShadows(ShadowOption::soft);
+	Renderer::toggleShadows(ConfigManager::shadowOption);
 
 	shaderEnvMap->bind();
 	envmapEnvUniformIndex = GLCALL(glGetUniformLocation(shaderEnvMap->getShaderId(), "u_env_map"));
@@ -392,8 +383,6 @@ void Renderer::initLight()
 
 	GLCALL(glUniform1i(glGetUniformLocation(shaderBasic->getShaderId(), "u_showNormalMode"), 0));
 
-	GLCALL(glUniform1i(shadowmodeUniformIndex, 2));
-
 #pragma endregion
 
 #pragma region shaderEnvMap
@@ -431,6 +420,11 @@ void Renderer::drawLoadingScreen() {
 	UI::drawUI();
 
 	SDL_GL_SwapWindow(Game::window);
+}
+
+void Renderer::drawMainMenuBackground()
+{
+	renderImage(screenVertexBuffer, main_menu_backgroundTexture);
 }
 
 
@@ -761,7 +755,7 @@ void Renderer::renderObjects(bool transparent)
 			object->bindShader();
 		}
 
-		glViewport(0, 0, Renderer::getResolutionX(), Renderer::getResolutionY()); //window size
+		glViewport(0, 0, Renderer::getResolutionX(), Renderer::getResolutionY()); //render in the desired resolution
 
 		GLCALL(glActiveTexture(GL_TEXTURE3));
 		GLCALL(glBindTexture(GL_TEXTURE_CUBE_MAP, object->getEnvCubeMap()));
@@ -1020,9 +1014,9 @@ void Renderer::toggleShadows(ShadowOption option)
 void Renderer::changeResolution(int x, int y)
 {
 	if (x != 0)
-		renderResolutionX = x;
+		ConfigManager::renderResolutionX = x;
 	if (y != 0)
-		renderResolutionY = y;
+		ConfigManager::renderResolutionY = y;
 
 	initFrameBuffer();
 }

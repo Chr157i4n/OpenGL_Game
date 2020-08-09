@@ -9,6 +9,8 @@ public:
 
 	Menu_Main();
 
+	virtual void drawMenu();
+
 private:
 	UI_Element_Button *pB_exit, *pB_start, *pB_options;
 };

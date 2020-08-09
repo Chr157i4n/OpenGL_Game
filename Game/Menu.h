@@ -26,7 +26,7 @@ public:
 		return menuElementList;
 	}
 
-	void drawMenu();
+	virtual void drawMenu();
 
 	void addMenuElement(UI_Element* menuElement);
 

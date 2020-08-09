@@ -46,6 +46,9 @@ Menu* Game::menu_last = menu_Main;
 
 irrklang::ISoundEngine* Game::SoundEngine = irrklang::createIrrKlangDevice();
 
+UI_Element_Label* Game::lbl_stopwatch1, * Game::lbl_stopwatch2, * Game::lbl_stopwatch3, * Game::lbl_stopwatch4;
+StopWatch Game::stopwatch1, Game::stopwatch2, Game::stopwatch3, Game::stopwatch4;
+
 /// <summary>
 /// this methods starts the game
 /// </summary>
@@ -66,6 +69,7 @@ void Game::init()
 
 	Renderer::initOpenGL();
 	Renderer::loadShader();
+	
 
 	UI::init();
 
@@ -105,6 +109,17 @@ void Game::gameLoop()
 	UI_Element_Graph* fpsGraph = new UI_Element_Graph(10, getWindowHeight() * 3 / 4, 100, 100, 0, glm::vec4(0, 0, 1, 1), glm::vec4(0.2, 0.2, 0.2, 0.4), true);
 	UI::addElement(fpsGraph);
 
+	lbl_stopwatch1 = new UI_Element_Label(10, 50, 100, 50, "", 0, 1, glm::vec4(1, 1, 1, 1), glm::vec4(0, 0, 0, 0.2), true);
+	UI::addElement(lbl_stopwatch1);
+
+	lbl_stopwatch2 = new UI_Element_Label(10, 70, 100, 50, "", 0, 1, glm::vec4(1, 1, 1, 1), glm::vec4(0, 0, 0, 0.2), true);
+	UI::addElement(lbl_stopwatch2);
+
+	lbl_stopwatch3 = new UI_Element_Label(10, 90, 100, 50, "", 0, 1, glm::vec4(1, 1, 1, 1), glm::vec4(0, 0, 0, 0.2), true);
+	UI::addElement(lbl_stopwatch3);
+
+	lbl_stopwatch4 = new UI_Element_Label(10, 110, 100, 50, "", 0, 1, glm::vec4(1, 1, 1, 1), glm::vec4(0, 0, 0, 0.2), true);
+	UI::addElement(lbl_stopwatch4);
 
 	while (!close)
 	{
@@ -113,7 +128,10 @@ void Game::gameLoop()
 
 		#pragma region gameloop
 
+		stopwatch1.start();
 		processInput();
+		double stopwatch1duration = stopwatch1.stop();
+		lbl_stopwatch1->setText("Input: " + std::to_string(stopwatch1duration));
 
 		if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
 		{
@@ -127,12 +145,14 @@ void Game::gameLoop()
 			}
 
 
-
+			stopwatch2.start();
 			for (std::shared_ptr<NPC> npc : npcs)
 			{
 				if (!npc->getEnabled()) continue;
 				npc->doCurrentTask();
 			}
+			double stopwatch2duration = stopwatch2.stop();
+			lbl_stopwatch2->setText("NPCs: " + std::to_string(stopwatch2duration));
 
 			//Move every Object
 			for (std::shared_ptr<Object> object : objects)
@@ -145,6 +165,7 @@ void Game::gameLoop()
 
 			}
 
+			stopwatch3.start();
 			for (std::shared_ptr<Bullet> bullet : bullets)
 			{
 				if (!bullet->getEnabled()) continue;
@@ -153,6 +174,8 @@ void Game::gameLoop()
 
 			//Check every Object for collision
 			processCollision();
+			double stopwatch3duration = stopwatch3.stop();
+			lbl_stopwatch3->setText("Col: " + std::to_string(stopwatch3duration));
 
 			for (std::shared_ptr<Player> player : players)
 			{
@@ -187,10 +210,13 @@ void Game::gameLoop()
 
 		}
 		
+		stopwatch4.start();
 		if (gameState != GameState::GAME_PAUSED)
 		{
 			render();
 		}
+		double stopwatch4duration = stopwatch4.stop();
+		lbl_stopwatch4->setText("Render: " + std::to_string(stopwatch4duration));
 
 		if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
 		{
@@ -721,6 +747,8 @@ void Game::toggleFullscreen()
 
 	if (IsFullscreen) //now windowed
 	{
+		ConfigManager::fullscreenOption = FullscreenOption::windowed;
+
 		int resolutionW = std::stoi(ConfigManager::readConfig("windowed_resolution_width"));
 		int resolutionH = std::stoi(ConfigManager::readConfig("windowed_resolution_height"));
 
@@ -728,12 +756,39 @@ void Game::toggleFullscreen()
 		Renderer::changeResolution(resolutionW, resolutionH);
 	}
 	else {
+		ConfigManager::fullscreenOption = FullscreenOption::fullscreen;
+
 		int resolutionW = std::stoi(ConfigManager::readConfig("fullscreen_resolution_width"));
 		int resolutionH = std::stoi(ConfigManager::readConfig("fullscreen_resolution_height"));
 
 		Game::changeSize(resolutionW, resolutionH);
 		Renderer::changeResolution(resolutionW, resolutionH);
 	}
+}
+
+void Game::toggleFullscreen(FullscreenOption option)
+{
+	int resolutionW, resolutionH;
+
+	switch (option)
+	{
+	case FullscreenOption::fullscreen:
+		SDL_SetWindowFullscreen(window, true);
+
+		resolutionW = std::stoi(ConfigManager::readConfig("windowed_resolution_width"));
+		resolutionH = std::stoi(ConfigManager::readConfig("windowed_resolution_height"));
+		break;
+
+	case FullscreenOption::windowed:
+	case FullscreenOption::windowed_borderless:
+		SDL_SetWindowFullscreen(window, false);
+
+		resolutionW = std::stoi(ConfigManager::readConfig("fullscreen_resolution_width"));
+		resolutionH = std::stoi(ConfigManager::readConfig("fullscreen_resolution_height"));
+		break;
+	}
+
+	Game::changeSize(resolutionW, resolutionH);
 }
 
 void Game::updateAudioListener()

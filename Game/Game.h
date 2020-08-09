@@ -51,6 +51,10 @@
 #include "Map.h"
 
 
+//Utilitiy
+#include "StopWatch.h"
+
+
 //#define DEBUG_COLLISION
 //#define DEBUG_OUTOFBOUNDS
 //#define DEBUG_GRAVITY
@@ -185,6 +189,8 @@ public:
 
 	static void toggleFullscreen();
 
+	static void toggleFullscreen(FullscreenOption option);
+
 	static void quit()
 	{
 		ConfigManager::writeAllConfigs();
@@ -257,5 +263,6 @@ private:
 
 	static void openConsole();
 
-
+	static UI_Element_Label * lbl_stopwatch1, * lbl_stopwatch2, * lbl_stopwatch3, * lbl_stopwatch4;
+	static StopWatch stopwatch1, stopwatch2, stopwatch3, stopwatch4;
 };

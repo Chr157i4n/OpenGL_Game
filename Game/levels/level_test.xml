@@ -605,7 +605,7 @@
     <bot>
       <name>Bot0</name>
       <type>Bot</type>
-      <team>0</team>
+      <team>3</team>
       <modelfile>character.bmf</modelfile>
       <position>15;0;40</position>
       <rotation>0;0;0</rotation>

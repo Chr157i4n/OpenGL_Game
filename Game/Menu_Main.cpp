@@ -17,3 +17,10 @@ Menu_Main::Menu_Main()
 	pB_exit->setCallback([&] { Game::quit(); });
 	addMenuElement(pB_exit);
 }
+
+void Menu_Main::drawMenu()
+{
+	Renderer::drawMainMenuBackground();
+
+	this->Menu::drawMenu();
+}

@@ -1,10 +1,14 @@
 #include "ConfigManager.h"
 
+#include "Game.h"
+
 std::string ConfigManager::configFileName;
 ShadowOption ConfigManager::shadowOption;
+FullscreenOption ConfigManager::fullscreenOption;
 int ConfigManager::shadowMapResolution = 1024;
 int ConfigManager::envMapResolution = 1024;
 float ConfigManager::musicVolume=0.4;
+int ConfigManager::renderResolutionX=1920, ConfigManager::renderResolutionY=1080;
 
 
 void ConfigManager::init(std::string nConfigFileName)
@@ -56,6 +60,20 @@ void ConfigManager::readAllConfigs()
 	ConfigManager::shadowMapResolution = std::stoi(ConfigManager::readConfig("shadow_map_resolution"));
 	ConfigManager::envMapResolution = std::stoi(ConfigManager::readConfig("env_map_resolution"));
 	ConfigManager::musicVolume = std::stof(ConfigManager::readConfig("music_volume"));
+
+	ConfigManager::fullscreenOption = static_cast<FullscreenOption>(std::stoi(ConfigManager::readConfig("fullscreen_option")));
+	ConfigManager::shadowOption = static_cast<ShadowOption>(std::stoi(ConfigManager::readConfig("shadow_option")));
+
+	if (ConfigManager::fullscreenOption == FullscreenOption::fullscreen)
+	{
+		renderResolutionX = std::stoi(ConfigManager::readConfig("fullscreen_resolution_width"));
+		renderResolutionY = std::stoi(ConfigManager::readConfig("fullscreen_resolution_height"));
+	}
+	else
+	{
+		renderResolutionX = std::stoi(ConfigManager::readConfig("windowed_resolution_width"));
+		renderResolutionY = std::stoi(ConfigManager::readConfig("windowed_resolution_height"));
+	}
 }
 
 void ConfigManager::writeConfig(std::string key, std::string value)
@@ -110,6 +128,9 @@ void ConfigManager::writeAllConfigs()
 	ConfigManager::writeConfig("shadow_map_resolution",		std::to_string(ConfigManager::shadowMapResolution));
 	ConfigManager::writeConfig("env_map_resolution",		std::to_string(ConfigManager::envMapResolution));
 	ConfigManager::writeConfig("music_volume",				std::to_string(ConfigManager::musicVolume));
+
+	ConfigManager::writeConfig("fullscreen_option",			std::to_string(ConfigManager::fullscreenOption));
+	ConfigManager::writeConfig("shadow_option",				std::to_string(ConfigManager::shadowOption));
 }
 
 size_t ConfigManager::split(const std::string& txt, std::vector<std::string>& strs, char ch)

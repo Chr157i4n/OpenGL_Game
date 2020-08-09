@@ -16,6 +16,8 @@ void Menu::addMenuElement(UI_Element* menuElement)
 
 void Menu::drawMenu()
 {
+	GLCALL(glDisable(GL_CULL_FACE));
+	GLCALL(glDisable(GL_DEPTH_TEST));
 	//int x = Game::getWindowWidth() / 2 - 50;
 	//int y = Game::getWindowHeight() / 2 - menuElementList.size() * 40 / 2;
 
@@ -24,6 +26,9 @@ void Menu::drawMenu()
 	{
 		menuElementList[i]->drawUI_Element();
 	}
+
+	GLCALL(glEnable(GL_CULL_FACE));
+	GLCALL(glEnable(GL_DEPTH_TEST));
 }
 
 void Menu::selectNextElement()

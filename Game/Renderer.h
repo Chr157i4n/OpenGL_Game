@@ -43,6 +43,8 @@ public:
 
 	static void drawLoadingScreen();
 
+	static void drawMainMenuBackground();
+
 
 	static void calcLight();
 
@@ -110,12 +112,12 @@ public:
 
 	static int getResolutionX()
 	{
-		return renderResolutionX;
+		return ConfigManager::renderResolutionX;
 	}
 
 	static int getResolutionY()
 	{
-		return renderResolutionY;
+		return ConfigManager::renderResolutionY;
 	}
 
 	static FrameBuffer frameBuffer;
@@ -140,8 +142,9 @@ private:
 	static Shader* shaderShadowMap;
 	static Shader* shaderEnvMap;
 
-	static unsigned int loadingScreenTexture;		//textureslot
-	static unsigned int skyboxTexture;				//textureslot
+	static unsigned int loadingScreenTexture;
+	static unsigned int skyboxTexture;
+	static unsigned int main_menu_backgroundTexture;
 	static VertexBuffer* skyboxVertexBuffer;
 	static VertexBuffer* axisVertexBuffer;
 	static VertexBuffer* screenVertexBuffer;
@@ -177,8 +180,6 @@ private:
 
 	
 	static void initLight();
-
-	static int renderResolutionX, renderResolutionY;
 
 	static int frameCount;
 	

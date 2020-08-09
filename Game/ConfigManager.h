@@ -15,6 +15,12 @@ enum ShadowOption {
 	soft,
 };
 
+enum FullscreenOption {
+	windowed,
+	windowed_borderless,
+	fullscreen,
+};
+
 static class ConfigManager
 {
 
@@ -31,9 +37,11 @@ public:
 	static void writeAllConfigs();
 
 	static ShadowOption shadowOption;
+	static FullscreenOption fullscreenOption;
 	static int shadowMapResolution;
 	static int envMapResolution;
 	static float musicVolume;
+	static int renderResolutionX, renderResolutionY;
 
 private:
 

@@ -78,11 +78,11 @@ float ShadowCalculation(vec3 position_light_space, vec3 normal)
     float bias = 0.00001;
     //float bias = max(0.05 * (1.0 - dot(normal, u_directional_light.direction)), 0.005);  
 
-    if(u_shadow_mode == 0)
+    if(u_shadow_mode == 0)  //off
     {
         shadow = 0.0;
     }
-    else if(u_shadow_mode == 1)
+    else if(u_shadow_mode == 1) //hard shadow
     {
         vec3 projCoords = position_light_space.xyz;
         projCoords = projCoords * 0.5 + 0.5;    // transform to [0,1] range
@@ -90,7 +90,7 @@ float ShadowCalculation(vec3 position_light_space, vec3 normal)
         float currentDepth = projCoords.z;
         shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;  
     }
-    else if(u_shadow_mode == 2)
+    else if(u_shadow_mode == 2) //soft shadow
     {
         
         vec3 projCoords = position_light_space.xyz;

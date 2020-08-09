@@ -1,4 +1,7 @@
-﻿- jump-climb walls should not be possible
+﻿- save all config variables
+- choose level from main menu
+- main menu background in options menu?
+- jump-climb walls should not be possible
 
 - 3D Raypicking
 
@@ -20,7 +23,6 @@
 	- Bullet Collision and Hit Dectetion is doubled
 
 - Console input to manipulate objects in the world
-
 
 - UI elements
 	- button	✓

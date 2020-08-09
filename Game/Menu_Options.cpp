@@ -5,6 +5,21 @@
 
 Menu_Options::Menu_Options()
 {
+	pB_fullscreen = new UI_Element_Button(10, 250, 200, 50, 0, "Vollbild");
+	switch (ConfigManager::fullscreenOption)
+	{
+	case FullscreenOption::fullscreen:
+		pB_fullscreen->setLabel("Vollbild");
+		break;
+	case FullscreenOption::windowed:
+		pB_fullscreen->setLabel("Fenster");
+		break;
+	case FullscreenOption::windowed_borderless:
+		pB_fullscreen->setLabel("Randloses Fenster");
+		break;
+	}
+	pB_fullscreen->setCallback([&] { toggleFullscreen(); });
+	addMenuElement(pB_fullscreen);
 
 	sL_volume = new UI_Element_Slider(10, 190, 200, 50, 0, "Master-Volume");
 	sL_volume->setMinValue(0);
@@ -18,6 +33,18 @@ Menu_Options::Menu_Options()
 	addMenuElement(pB_vsync);
 
 	pB_shadow = new UI_Element_Button(10, 70, 200, 50, 0, "Schatten: Weich");
+	switch (ConfigManager::shadowOption)
+	{
+	case ShadowOption::off:
+		pB_shadow->setLabel("Schatten: Aus");
+		break;
+	case ShadowOption::hard:
+		pB_shadow->setLabel("Schatten: Hart");
+		break;
+	case ShadowOption::soft:
+		pB_shadow->setLabel("Schatten: Weich");
+		break;
+	}
 	pB_shadow->setCallback([&] { toggleShadows(); });
 	addMenuElement(pB_shadow);
 
@@ -94,6 +121,27 @@ void Menu_Options::toggleVsync()
 	}
 }
 
+void Menu_Options::toggleFullscreen()
+{
+	if (pB_fullscreen->getLabel() == "Fenster")
+	{
+		pB_fullscreen->setLabel("Randloses Fenster");
+		ConfigManager::fullscreenOption = FullscreenOption::windowed;
+	}
+	else if (pB_fullscreen->getLabel() == "Randloses Fenster")
+	{
+		pB_fullscreen->setLabel("Vollbild");
+		ConfigManager::fullscreenOption = FullscreenOption::fullscreen;
+	}
+	else if (pB_fullscreen->getLabel() == "Vollbild")
+	{
+		pB_fullscreen->setLabel("Fenster");
+		ConfigManager::fullscreenOption = FullscreenOption::windowed;
+	}
+
+	Game::toggleFullscreen(ConfigManager::fullscreenOption);
+}
+
 void Menu_Options::toggleShadows()
 {
 	if (pB_shadow->getLabel() == "Schatten: Aus")
@@ -111,10 +159,6 @@ void Menu_Options::toggleShadows()
 		pB_shadow->setLabel("Schatten: Aus");
 		Renderer::toggleShadows(ShadowOption::off);
 	}
-
-
-
-
 }
 
 void Menu_Options::setVolume()
