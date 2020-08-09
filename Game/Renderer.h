@@ -112,12 +112,18 @@ public:
 
 	static int getResolutionX()
 	{
-		return ConfigManager::renderResolutionX;
+		if (ConfigManager::fullscreen_option)
+			return ConfigManager::fullscreen_resolution_width;
+		else
+			return ConfigManager::windowed_resolution_width;
 	}
 
 	static int getResolutionY()
 	{
-		return ConfigManager::renderResolutionY;
+		if (ConfigManager::fullscreen_option)
+			return ConfigManager::fullscreen_resolution_height;
+		else
+			return ConfigManager::windowed_resolution_height;
 	}
 
 	static FrameBuffer frameBuffer;

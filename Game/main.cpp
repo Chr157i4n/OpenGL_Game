@@ -14,7 +14,7 @@ int main(int argc, char* argv[])
 	AllocConsole();
 	console = FindWindowA("ConsoleWindowClass", NULL);
 
-	if (ConfigManager::readConfig("showdebug_console") == "1")
+	if (ConfigManager::show_debug_console)
 	{
 		ShowWindow(console, 1);
 	}

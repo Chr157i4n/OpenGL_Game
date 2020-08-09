@@ -252,9 +252,9 @@ bool Object::checkCollision_SAT(std::shared_ptr < Object> object, CollisionResul
 void Object::reactToCollision(CollisionResult collisionResult)
 {
 	float collisionSpeed = glm::length(collisionResult.movementBeforeCollision)* Game::getDelta()/1000.0f;
-	if (collisionSpeed > 1)
+	if (collisionSpeed > 5)
 	{
-		addToHealth(-10 * collisionSpeed);
+		addToHealth(-2 * collisionSpeed);
 	}
 }
 

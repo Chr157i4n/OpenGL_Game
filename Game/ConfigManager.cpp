@@ -2,13 +2,37 @@
 
 #include "Game.h"
 
-std::string ConfigManager::configFileName;
-ShadowOption ConfigManager::shadowOption;
-FullscreenOption ConfigManager::fullscreenOption;
-int ConfigManager::shadowMapResolution = 1024;
-int ConfigManager::envMapResolution = 1024;
-float ConfigManager::musicVolume=0.4;
-int ConfigManager::renderResolutionX=1920, ConfigManager::renderResolutionY=1080;
+
+std::string			ConfigManager::configFileName="config.ini";
+
+//SETTINGS
+//[General]
+std::string			ConfigManager::level="level_test.xml";
+int					ConfigManager::bots=0;
+int					ConfigManager::bot_speed_mult=0.5;
+bool				ConfigManager::show_debug_console=0;
+float				ConfigManager::mouse_sensitivity=0.2;
+float				ConfigManager::music_volume=0.2;
+int					ConfigManager::max_bullets=20;
+
+//[Renderer]
+int					ConfigManager::fullscreen_resolution_width=1920;
+int					ConfigManager::fullscreen_resolution_height=1080;
+int					ConfigManager::windowed_resolution_width=960;
+int					ConfigManager::windowed_resolution_height=540;
+//[Renderer - Reflection]
+int					ConfigManager::env_map_resolution = 512;
+int					ConfigManager::env_map_render_interval=0;
+bool				ConfigManager::env_map_render_characters;
+//[Renderer - Shadows]
+ShadowOption		ConfigManager::shadow_option = ShadowOption::soft;
+int					ConfigManager::shadow_map_resolution = 4096;
+
+int					ConfigManager::fov=100;
+FullscreenOption	ConfigManager::fullscreen_option=FullscreenOption::fullscreen;
+int					ConfigManager::fps_limit_ingame=0;
+int					ConfigManager::fps_limit_menu=60;
+bool				ConfigManager::v_sync=1;
 
 
 void ConfigManager::init(std::string nConfigFileName)
@@ -35,7 +59,11 @@ std::string ConfigManager::readConfig(std::string key)
 		std::vector<std::string> param;
 		configFile.getline(line, 255);
 
-		if (line[0] == '\0' || line[0] == '#')
+			
+		if (line[0] == '\0' ||	//	line is empty
+			line[0] == '#' ||	//	line is comment
+			line[0] == ';' ||	//	line is comment
+			line[0] == '[')		//	line is section
 		{
 			continue;
 		}
@@ -53,27 +81,80 @@ std::string ConfigManager::readConfig(std::string key)
 		}
 
 	}
+
+	Logger::log("While reading config did not find this key: " + key);
+	return "";
 }
 
 void ConfigManager::readAllConfigs()
 {
-	ConfigManager::shadowMapResolution = std::stoi(ConfigManager::readConfig("shadow_map_resolution"));
-	ConfigManager::envMapResolution = std::stoi(ConfigManager::readConfig("env_map_resolution"));
-	ConfigManager::musicVolume = std::stof(ConfigManager::readConfig("music_volume"));
+	std::string config = "";
+	
+	//[General]
+	config = ConfigManager::readConfig("level");
+	if (config != "") ConfigManager::level = config;
 
-	ConfigManager::fullscreenOption = static_cast<FullscreenOption>(std::stoi(ConfigManager::readConfig("fullscreen_option")));
-	ConfigManager::shadowOption = static_cast<ShadowOption>(std::stoi(ConfigManager::readConfig("shadow_option")));
+	config = ConfigManager::readConfig("bots");
+	if (config != "") ConfigManager::bots = std::stoi(config);
 
-	if (ConfigManager::fullscreenOption == FullscreenOption::fullscreen)
-	{
-		renderResolutionX = std::stoi(ConfigManager::readConfig("fullscreen_resolution_width"));
-		renderResolutionY = std::stoi(ConfigManager::readConfig("fullscreen_resolution_height"));
-	}
-	else
-	{
-		renderResolutionX = std::stoi(ConfigManager::readConfig("windowed_resolution_width"));
-		renderResolutionY = std::stoi(ConfigManager::readConfig("windowed_resolution_height"));
-	}
+	config = ConfigManager::readConfig("bot_speed_mult");
+	if (config != "") ConfigManager::bot_speed_mult = std::stof(config);
+
+	config = ConfigManager::readConfig("show_debug_console");
+	if (config != "") ConfigManager::show_debug_console = std::stoi(config);
+
+	config = ConfigManager::readConfig("mouse_sensitivity");
+	if (config != "") ConfigManager::mouse_sensitivity = std::stof(config);
+
+	config = ConfigManager::readConfig("music_volume");
+	if (config != "") ConfigManager::music_volume = std::stof(config);
+
+	config = ConfigManager::readConfig("max_bullets");
+	if (config != "") ConfigManager::max_bullets = std::stoi(config);
+
+	//[Renderer]
+	config = ConfigManager::readConfig("fullscreen_resolution_width");
+	if (config != "") ConfigManager::fullscreen_resolution_width = std::stoi(config);
+	config = ConfigManager::readConfig("fullscreen_resolution_height");
+	if (config != "") ConfigManager::fullscreen_resolution_height = std::stoi(config);
+
+	config = ConfigManager::readConfig("windowed_resolution_width");
+	if (config != "") ConfigManager::windowed_resolution_width = std::stoi(config);
+	config = ConfigManager::readConfig("windowed_resolution_height");
+	if (config != "") ConfigManager::windowed_resolution_height = std::stoi(config);
+
+	//[Renderer - Reflection]
+	config = ConfigManager::readConfig("env_map_render_interval");
+	if (config != "") ConfigManager::env_map_render_interval = std::stoi(config);
+
+	config = ConfigManager::readConfig("env_map_render_characters");
+	if (config != "") ConfigManager::env_map_render_characters = std::stoi(config);
+
+	config = ConfigManager::readConfig("env_map_resolution");
+	if (config != "") ConfigManager::env_map_resolution = std::stoi(config);
+
+	//[Renderer - Shadows]
+	config = ConfigManager::readConfig("shadow_option");
+	if (config != "") ConfigManager::shadow_option = static_cast<ShadowOption>(std::stoi(config));
+
+	config = ConfigManager::readConfig("shadow_map_resolution");
+	if (config != "") ConfigManager::shadow_map_resolution = std::stoi(config);
+
+
+	config = ConfigManager::readConfig("fov");
+	if (config != "") ConfigManager::fov = std::stoi(config);
+
+	config = ConfigManager::readConfig("fullscreen_option");
+	if (config != "") ConfigManager::fullscreen_option = static_cast<FullscreenOption>(std::stoi(config));
+
+	config = ConfigManager::readConfig("fps_limit_ingame");
+	if (config != "") ConfigManager::fps_limit_ingame = std::stoi(config);
+
+	config = ConfigManager::readConfig("fps_limit_menu");
+	if (config != "") ConfigManager::fps_limit_menu = std::stoi(config);
+
+	config = ConfigManager::readConfig("v_sync");
+	if (config != "") ConfigManager::v_sync = std::stoi(config);
 }
 
 void ConfigManager::writeConfig(std::string key, std::string value)
@@ -88,13 +169,22 @@ void ConfigManager::writeConfig(std::string key, std::string value)
 
 	char linein[255];
 	std::string lineout;
+	bool foundKey = false;
 
 	while (!filein.eof())
 	{
 		std::vector<std::string> param;
 		filein.getline(linein, 255);
 
-		if (linein[0] == '\0' || linein[0] == '#')	continue;
+		if (linein[0] == '\0' ||	//	line is empty
+			linein[0] == '#' ||		//	line is comment
+			linein[0] == ';' ||		//	line is comment
+			linein[0] == '[')		//	line is section
+		{
+			lineout = linein;
+			fileout << lineout << '\n';
+			continue;
+		}
 
 		split(linein, param, '=');
 
@@ -106,6 +196,7 @@ void ConfigManager::writeConfig(std::string key, std::string value)
 		if (param[0] == key)
 		{
 			lineout = key + " = " + value;
+			foundKey = true;
 		}
 		else 
 		{
@@ -114,6 +205,13 @@ void ConfigManager::writeConfig(std::string key, std::string value)
 
 		fileout << lineout << '\n';
 
+	}
+
+	if (!foundKey)
+	{
+		lineout = key + " = " + value;
+		fileout << lineout << '\n';
+		Logger::log("While writing did not find this key: " + key + ". Added it at the end");
 	}
 
 	filein.close();
@@ -125,12 +223,37 @@ void ConfigManager::writeConfig(std::string key, std::string value)
 
 void ConfigManager::writeAllConfigs()
 {
-	ConfigManager::writeConfig("shadow_map_resolution",		std::to_string(ConfigManager::shadowMapResolution));
-	ConfigManager::writeConfig("env_map_resolution",		std::to_string(ConfigManager::envMapResolution));
-	ConfigManager::writeConfig("music_volume",				std::to_string(ConfigManager::musicVolume));
+	//[General]
+	ConfigManager::writeConfig("level", ConfigManager::level);
+	ConfigManager::writeConfig("bots", std::to_string(ConfigManager::bots));
+	ConfigManager::writeConfig("bot_speed_mult", std::to_string(ConfigManager::bot_speed_mult));
+	ConfigManager::writeConfig("show_debug_console", std::to_string(ConfigManager::show_debug_console));
+	ConfigManager::writeConfig("mouse_sensitivity", std::to_string(ConfigManager::mouse_sensitivity));
+	ConfigManager::writeConfig("music_volume", std::to_string(ConfigManager::music_volume));
+	ConfigManager::writeConfig("max_bullets", std::to_string(ConfigManager::max_bullets));
+	
+	//[Renderer]
+	ConfigManager::writeConfig("fullscreen_resolution_width", std::to_string(ConfigManager::fullscreen_resolution_width));
+	ConfigManager::writeConfig("fullscreen_resolution_height", std::to_string(ConfigManager::fullscreen_resolution_height));
 
-	ConfigManager::writeConfig("fullscreen_option",			std::to_string(ConfigManager::fullscreenOption));
-	ConfigManager::writeConfig("shadow_option",				std::to_string(ConfigManager::shadowOption));
+	ConfigManager::writeConfig("windowed_resolution_width", std::to_string(ConfigManager::windowed_resolution_width));
+	ConfigManager::writeConfig("windowed_resolution_height", std::to_string(ConfigManager::windowed_resolution_height));
+	
+	//[Renderer - Reflection]
+	ConfigManager::writeConfig("env_map_resolution", std::to_string(ConfigManager::env_map_resolution));
+	ConfigManager::writeConfig("env_map_render_interval", std::to_string(ConfigManager::env_map_render_interval));
+	ConfigManager::writeConfig("env_map_render_characters", std::to_string(ConfigManager::env_map_render_characters));
+	
+	//[Renderer - Shadows]
+	ConfigManager::writeConfig("shadow_option", std::to_string(ConfigManager::shadow_option));
+	ConfigManager::writeConfig("shadow_map_resolution",		std::to_string(ConfigManager::shadow_map_resolution));
+	
+	
+	ConfigManager::writeConfig("fov",			std::to_string(ConfigManager::fov));
+	ConfigManager::writeConfig("fullscreen_option", std::to_string(ConfigManager::fullscreen_option));
+	ConfigManager::writeConfig("fps_limit_ingame", std::to_string(ConfigManager::fps_limit_ingame));
+	ConfigManager::writeConfig("fps_limit_menu", std::to_string(ConfigManager::fps_limit_menu));
+	ConfigManager::writeConfig("v_sync", std::to_string(ConfigManager::v_sync));
 }
 
 size_t ConfigManager::split(const std::string& txt, std::vector<std::string>& strs, char ch)

@@ -6,6 +6,8 @@
 #include <vector>
 #include <cmath>
 #include <algorithm>
+#include <string>
+
 #include "Logger.h"
 
 
@@ -36,12 +38,35 @@ public:
 
 	static void writeAllConfigs();
 
-	static ShadowOption shadowOption;
-	static FullscreenOption fullscreenOption;
-	static int shadowMapResolution;
-	static int envMapResolution;
-	static float musicVolume;
-	static int renderResolutionX, renderResolutionY;
+	//SETTINGS
+	//[General]
+	static std::string level;
+	static int bots;
+	static int bot_speed_mult;
+	static bool show_debug_console;
+	static float mouse_sensitivity;
+	static float music_volume;
+	static int max_bullets;
+
+	//[Renderer]
+	static int fullscreen_resolution_width;
+	static int fullscreen_resolution_height;
+	static int windowed_resolution_width;
+	static int windowed_resolution_height;
+	//[Renderer - Reflection]
+	static int env_map_resolution;
+	static int env_map_render_interval;
+	static bool env_map_render_characters;
+	//[Renderer - Shadows]
+	static ShadowOption shadow_option;
+	static int shadow_map_resolution;
+	static int fov;
+	static FullscreenOption fullscreen_option;
+	static int fps_limit_ingame;
+	static int fps_limit_menu;
+	static bool v_sync;
+	
+	
 
 private:
 

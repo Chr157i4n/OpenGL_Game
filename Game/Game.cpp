@@ -21,8 +21,6 @@ bool Game::pressedKeys[40];
 bool Game::pressedMouseButtons[6];
 
 float32  Game::FPS = 0;
-float32  Game::fps_limit_ingame = 0;
-float32 Game::fps_limit_menu = 60;
 bool  Game::close = false;
 
 
@@ -32,7 +30,6 @@ float32 Game::delta = 0;
 bool Game::showInfo = false;
 GameState Game::gameState = GameState::GAME_MENU;
 GameState Game::newGameState;
-int Game::maxBulletCount = 20;
 
 bool Game::showShadowMap = false;
 bool Game::postprocess = true;
@@ -47,7 +44,7 @@ Menu* Game::menu_last = menu_Main;
 irrklang::ISoundEngine* Game::SoundEngine = irrklang::createIrrKlangDevice();
 
 UI_Element_Label* Game::lbl_stopwatch1, * Game::lbl_stopwatch2, * Game::lbl_stopwatch3, * Game::lbl_stopwatch4;
-StopWatch Game::stopwatch1, Game::stopwatch2, Game::stopwatch3, Game::stopwatch4;
+StopWatch Game::stopwatch1;
 
 /// <summary>
 /// this methods starts the game
@@ -76,9 +73,7 @@ void Game::init()
 	Renderer::drawLoadingScreen();
 
 
-	maxBulletCount = stoi(ConfigManager::readConfig("max_bullets"));
-	fps_limit_ingame = stof(ConfigManager::readConfig("fps_limit_ingame"));
-	std::string levelname = ConfigManager::readConfig("level");
+	std::string levelname = ConfigManager::level;
 	Map::load(levelname);
 
 	menu_Main = new Menu_Main();
@@ -90,7 +85,7 @@ void Game::init()
 
 	Renderer::init();
 
-	SoundEngine->setSoundVolume(ConfigManager::musicVolume);
+	SoundEngine->setSoundVolume(ConfigManager::music_volume);
 
 	irrklang::ISound* music = SoundEngine->play2D("audio/breakout.mp3", true);
 
@@ -145,13 +140,13 @@ void Game::gameLoop()
 			}
 
 
-			stopwatch2.start();
+			stopwatch1.start();
 			for (std::shared_ptr<NPC> npc : npcs)
 			{
 				if (!npc->getEnabled()) continue;
 				npc->doCurrentTask();
 			}
-			double stopwatch2duration = stopwatch2.stop();
+			double stopwatch2duration = stopwatch1.stop();
 			lbl_stopwatch2->setText("NPCs: " + std::to_string(stopwatch2duration));
 
 			//Move every Object
@@ -165,7 +160,7 @@ void Game::gameLoop()
 
 			}
 
-			stopwatch3.start();
+			stopwatch1.start();
 			for (std::shared_ptr<Bullet> bullet : bullets)
 			{
 				if (!bullet->getEnabled()) continue;
@@ -174,7 +169,7 @@ void Game::gameLoop()
 
 			//Check every Object for collision
 			processCollision();
-			double stopwatch3duration = stopwatch3.stop();
+			double stopwatch3duration = stopwatch1.stop();
 			lbl_stopwatch3->setText("Col: " + std::to_string(stopwatch3duration));
 
 			for (std::shared_ptr<Player> player : players)
@@ -210,12 +205,12 @@ void Game::gameLoop()
 
 		}
 		
-		stopwatch4.start();
+		stopwatch1.start();
 		if (gameState != GameState::GAME_PAUSED)
 		{
 			render();
 		}
-		double stopwatch4duration = stopwatch4.stop();
+		double stopwatch4duration = stopwatch1.stop();
 		lbl_stopwatch4->setText("Render: " + std::to_string(stopwatch4duration));
 
 		if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
@@ -234,8 +229,8 @@ void Game::gameLoop()
 		std::chrono::duration<double, std::milli> work_time = b - a;
 
 		float32 fps_limit_current=0;
-		if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER) fps_limit_current = fps_limit_ingame;
-		if (gameState == GameState::GAME_MENU || gameState == GameState::GAME_PAUSED) fps_limit_current = fps_limit_menu;
+		if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER) fps_limit_current = ConfigManager::fps_limit_ingame;
+		if (gameState == GameState::GAME_MENU || gameState == GameState::GAME_PAUSED) fps_limit_current = ConfigManager::fps_limit_menu;
 
 		if (work_time.count() < 1000/ fps_limit_current && fps_limit_current !=0)
 		{
@@ -301,7 +296,7 @@ void Game::render()
 		{
 			Renderer::calcLight();
 
-			if (ConfigManager::shadowOption != ShadowOption::off)
+			if (ConfigManager::shadow_option != ShadowOption::off)
 				Renderer::calcShadows();
 
 
@@ -632,7 +627,7 @@ void Game::deleteObjects()
 		}
 	}
 
-	if (bullets.size() > maxBulletCount)
+	if (bullets.size() > ConfigManager::max_bullets)
 	{
 		std::shared_ptr<Object> objectToDelete = bullets[0];
 
@@ -747,7 +742,7 @@ void Game::toggleFullscreen()
 
 	if (IsFullscreen) //now windowed
 	{
-		ConfigManager::fullscreenOption = FullscreenOption::windowed;
+		ConfigManager::fullscreen_option = FullscreenOption::windowed;
 
 		int resolutionW = std::stoi(ConfigManager::readConfig("windowed_resolution_width"));
 		int resolutionH = std::stoi(ConfigManager::readConfig("windowed_resolution_height"));
@@ -756,7 +751,7 @@ void Game::toggleFullscreen()
 		Renderer::changeResolution(resolutionW, resolutionH);
 	}
 	else {
-		ConfigManager::fullscreenOption = FullscreenOption::fullscreen;
+		ConfigManager::fullscreen_option = FullscreenOption::fullscreen;
 
 		int resolutionW = std::stoi(ConfigManager::readConfig("fullscreen_resolution_width"));
 		int resolutionH = std::stoi(ConfigManager::readConfig("fullscreen_resolution_height"));

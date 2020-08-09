@@ -188,13 +188,13 @@ void Renderer::initOpenGL()
 
 	uint32 flags = SDL_WINDOW_OPENGL;
 
-	if (ConfigManager::fullscreenOption == FullscreenOption::fullscreen)
+	if (ConfigManager::fullscreen_option == FullscreenOption::fullscreen)
 	{
 		flags += SDL_WINDOW_FULLSCREEN_DESKTOP;
 	}
 
 
-	Game::window = SDL_CreateWindow("OpenGL-Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, ConfigManager::renderResolutionX, ConfigManager::renderResolutionY, flags);
+	Game::window = SDL_CreateWindow("OpenGL-Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, getResolutionX(), getResolutionY(), flags);
 	SDL_GLContext glContext = SDL_GL_CreateContext(Game::window);
 
 	int vsync = std::stoi(ConfigManager::readConfig("v_sync"));
@@ -274,7 +274,7 @@ void Renderer::init()
 	shadowmapUniformIndex = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_shadow_map"));
 
 	shadowmodeUniformIndex = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_shadow_mode"));
-	Renderer::toggleShadows(ConfigManager::shadowOption);
+	Renderer::toggleShadows(ConfigManager::shadow_option);
 
 	shaderEnvMap->bind();
 	envmapEnvUniformIndex = GLCALL(glGetUniformLocation(shaderEnvMap->getShaderId(), "u_env_map"));
@@ -301,7 +301,7 @@ void Renderer::init()
 
 		// set textures
 		for (int i = 0; i < 6; ++i)
-			glTexImage2D(cube_map_axis1[i], 0, GL_RGB, ConfigManager::envMapResolution, ConfigManager::envMapResolution, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+			glTexImage2D(cube_map_axis1[i], 0, GL_RGB, ConfigManager::env_map_resolution, ConfigManager::env_map_resolution, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
 
 		// create the fbo
 		glGenFramebuffers(1, &framebuffer);
@@ -312,7 +312,7 @@ void Renderer::init()
 		// create the uniform depth buffer
 		glGenRenderbuffers(1, &depthbuffer);
 		glBindRenderbuffer(GL_RENDERBUFFER, depthbuffer);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, ConfigManager::envMapResolution, ConfigManager::envMapResolution);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, ConfigManager::env_map_resolution, ConfigManager::env_map_resolution);
 		glBindRenderbuffer(GL_RENDERBUFFER, 0);
 		// attach it
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthbuffer);
@@ -326,21 +326,22 @@ void Renderer::initFrameBuffer()
 {
 	frameBuffer.destroy();
 	shadowMapBuffer.destroy();
-	for (int i = 0; i < 6; i++)
+	
+	/*for (int i = 0; i < 6; i++)
 	{
 		envMapFacesBuffer[i].destroy();
 	}
-	envMapBuffer.destroy();
+	envMapBuffer.destroy();*/
 
 	frameBuffer.create(Renderer::getResolutionX(), Renderer::getResolutionY(), FrameBufferTextureType::colorMap | FrameBufferTextureType::stencilMap);
-	shadowMapBuffer.create(ConfigManager::shadowMapResolution, ConfigManager::shadowMapResolution, FrameBufferTextureType::depthMap);
+	shadowMapBuffer.create(ConfigManager::env_map_resolution, ConfigManager::env_map_resolution, FrameBufferTextureType::depthMap);
 
-	for (int i = 0; i < 6; i++)
+	/*for (int i = 0; i < 6; i++)
 	{
-		envMapFacesBuffer[i].create(ConfigManager::envMapResolution, ConfigManager::envMapResolution, FrameBufferTextureType::envMapFace);
-	}
+		envMapFacesBuffer[i].create(ConfigManager::env_map_resolution, ConfigManager::env_map_resolution, FrameBufferTextureType::envMapFace);
+	}*/
 
-	envMapBuffer.create(ConfigManager::envMapResolution, ConfigManager::envMapResolution, FrameBufferTextureType::envMap);
+	//envMapBuffer.create(ConfigManager::env_map_resolution, ConfigManager::env_map_resolution, FrameBufferTextureType::envMap);
 }
 
 void Renderer::initLight()
@@ -456,7 +457,7 @@ void Renderer::calcShadows()
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
 
-	glViewport(0, 0, ConfigManager::shadowMapResolution, ConfigManager::shadowMapResolution);
+	glViewport(0, 0, ConfigManager::shadow_map_resolution, ConfigManager::shadow_map_resolution);
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glCullFace(GL_BACK);
 
@@ -562,17 +563,19 @@ void Renderer::renderEnvironmentMap(std::shared_ptr<Object> objectFromView)
 	std::vector<glm::mat4> views;
 	glm::mat4 view, proj;
 
+	#ifdef DEBUG_ENV_MAP
 	Logger::log("Rendering new EnvMap for object: " + objectFromView->printObject());
+	#endif
 
 
-	glViewport(0, 0, ConfigManager::envMapResolution, ConfigManager::envMapResolution);
+	glViewport(0, 0, ConfigManager::env_map_resolution, ConfigManager::env_map_resolution);
 	glBindFramebuffer(GL_FRAMEBUFFER, objectFromView->getEnvCubeMapFrameBuffer());
 	GLCALL(glActiveTexture(GL_TEXTURE3));
 	glBindTexture(GL_TEXTURE_CUBE_MAP, objectFromView->getEnvCubeMap());
 	shaderEnvMap->bind();
 
 
-#pragma region ViewProjection from Object x6
+	#pragma region ViewProjection from Object x6
 
 	float angle = 90.0f;
 	proj = glm::perspective(glm::radians(angle), 1.0f, 0.1f, 40.0f);
@@ -586,7 +589,7 @@ void Renderer::renderEnvironmentMap(std::shared_ptr<Object> objectFromView)
 	view = glm::lookAt(objectFromView->getCenter(), objectFromView->getCenter() + glm::vec3(0, 1, 0), glm::vec3(0, 0, 1));
 	views.push_back(view);
 
-	view = glm::lookAt(objectFromView->getCenter(), objectFromView->getCenter() + glm::vec3(0, -1, 0), glm::vec3(0, 0, 1));// too dark
+	view = glm::lookAt(objectFromView->getCenter(), objectFromView->getCenter() + glm::vec3(0, -1, 0), glm::vec3(0, 0, -1));
 	views.push_back(view);
 
 	view = glm::lookAt(objectFromView->getCenter(), objectFromView->getCenter() + glm::vec3(0, 0, 1), glm::vec3(0, -1, 0));
@@ -596,15 +599,20 @@ void Renderer::renderEnvironmentMap(std::shared_ptr<Object> objectFromView)
 	views.push_back(view);
 
 
-#pragma endregion
+	#pragma endregion
 
-
+	
 
 	GLCALL(glCullFace(GL_BACK));
 	GLCALL(glClearColor(1, 0, 0, 0.5));
 
 	for (int i = 0; i < 6; i++)
 	{
+		//Directionallight
+		//glm::vec4 transformedSunDirection = glm::vec4(sunDirection, 1.0f);
+		glm::vec4 transformedSunDirection = -glm::transpose(glm::inverse(views[i])) * glm::vec4(sunDirection, 1.0f);
+		transformedSunDirection3 = glm::vec3(transformedSunDirection.x, transformedSunDirection.y, transformedSunDirection.z);
+		glUniform3fv(glGetUniformLocation(shaderEnvMap->getShaderId(), "u_directional_light.direction"), 1, (float*)&transformedSunDirection);
 
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, cube_map_axis1[i], objectFromView->getEnvCubeMap(), 0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -612,7 +620,7 @@ void Renderer::renderEnvironmentMap(std::shared_ptr<Object> objectFromView)
 		for (std::shared_ptr<Object> object : Game::objects)
 		{
 			if (object->getNumber() == objectFromView->getNumber()) continue;
-			if (object->getType() & ObjectType::Object_Character) continue;
+			if (object->getType() & ObjectType::Object_Character && !ConfigManager::env_map_render_characters) continue;
 			if (object->getType() & ObjectType::Object_Bullet) continue;
 
 			glm::mat4 model = glm::mat4(1.0f);
@@ -742,18 +750,23 @@ void Renderer::renderObjects(bool transparent)
 		if (transparent && !object->getModel()->getHasTransparentTexture()) continue;
 		if (!transparent && object->getModel()->getHasTransparentTexture()) continue;
 
-		object->bindShader();
 
-
-		if (frameCount % 100000 == 0 || frameCount == 1)
-			//if(false)
+		if (ConfigManager::env_map_render_interval != 0)
 		{
-			if (postProcessing) frameBuffer.unbind();
-			renderEnvironmentMap(object);
-			//std::thread renderEnvThread(renderEnvironmentMap, object);
-			if (postProcessing) frameBuffer.bind();
-			object->bindShader();
+			if (frameCount % ConfigManager::env_map_render_interval == 0)		//render the env map every couple frame again
+			{
+				renderEnvironmentMap(object);
+			}
 		}
+		else {
+			if (frameCount == 1)		//render the env map just once at startup
+			{
+				renderEnvironmentMap(object);
+			}
+		}
+
+		frameBuffer.bind();
+		object->bindShader();
 
 		glViewport(0, 0, Renderer::getResolutionX(), Renderer::getResolutionY()); //render in the desired resolution
 
@@ -994,7 +1007,7 @@ void Renderer::applyPostprocessingEffect(PostProcessingEffect postprocessingeffe
 
 void Renderer::toggleShadows(ShadowOption option)
 {
-	ConfigManager::shadowOption = option;
+	ConfigManager::shadow_option = option;
 	shaderBasic->bind();
 
 	switch (option)
@@ -1013,10 +1026,22 @@ void Renderer::toggleShadows(ShadowOption option)
 
 void Renderer::changeResolution(int x, int y)
 {
-	if (x != 0)
-		ConfigManager::renderResolutionX = x;
-	if (y != 0)
-		ConfigManager::renderResolutionY = y;
+	if (ConfigManager::fullscreen_option)
+	{
+		if (x != 0)
+			ConfigManager::fullscreen_resolution_width = x;
+		if (y != 0)
+			ConfigManager::fullscreen_resolution_height = y;
+	}
+	else
+	{
+		if (x != 0)
+			ConfigManager::windowed_resolution_width = x;
+		if (y != 0)
+			ConfigManager::windowed_resolution_height = y;
+	}
+	
+
 
 	initFrameBuffer();
 }

@@ -1,4 +1,6 @@
-﻿- save all config variables
+﻿- damage too high speed - different framerates
+- dynamic environment mapping game settings
+
 - choose level from main menu
 - main menu background in options menu?
 - jump-climb walls should not be possible

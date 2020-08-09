@@ -6,7 +6,7 @@
 Menu_Options::Menu_Options()
 {
 	pB_fullscreen = new UI_Element_Button(10, 250, 200, 50, 0, "Vollbild");
-	switch (ConfigManager::fullscreenOption)
+	switch (ConfigManager::fullscreen_option)
 	{
 	case FullscreenOption::fullscreen:
 		pB_fullscreen->setLabel("Vollbild");
@@ -24,7 +24,7 @@ Menu_Options::Menu_Options()
 	sL_volume = new UI_Element_Slider(10, 190, 200, 50, 0, "Master-Volume");
 	sL_volume->setMinValue(0);
 	sL_volume->setMaxValue(1);
-	sL_volume->setValue(ConfigManager::musicVolume);
+	sL_volume->setValue(ConfigManager::music_volume);
 	sL_volume->setCallback([&] { setVolume(); });
 	addMenuElement(sL_volume);
 
@@ -33,7 +33,7 @@ Menu_Options::Menu_Options()
 	addMenuElement(pB_vsync);
 
 	pB_shadow = new UI_Element_Button(10, 70, 200, 50, 0, "Schatten: Weich");
-	switch (ConfigManager::shadowOption)
+	switch (ConfigManager::shadow_option)
 	{
 	case ShadowOption::off:
 		pB_shadow->setLabel("Schatten: Aus");
@@ -55,14 +55,14 @@ Menu_Options::Menu_Options()
 	sL_shadowres = new UI_Element_Slider(500, Game::getWindowHeight() - 180, 200, 50, 0, "Schatten-Aufloesung");
 	sL_shadowres->setMinValue(100);
 	sL_shadowres->setMaxValue(10000);
-	sL_shadowres->setValue(ConfigManager::shadowMapResolution);
+	sL_shadowres->setValue(ConfigManager::shadow_map_resolution);
 	sL_shadowres->setCallback([&] { changeShadowMapResolution(); });
 	addMenuElement(sL_shadowres);
 
 	sL_envres = new UI_Element_Slider(500, Game::getWindowHeight() - 120, 200, 50, 0, "Reflektions-Aufloesung");
 	sL_envres->setMinValue(100);
 	sL_envres->setMaxValue(4000);
-	sL_envres->setValue(ConfigManager::envMapResolution);
+	sL_envres->setValue(ConfigManager::env_map_resolution);
 	sL_envres->setCallback([&] { changeEnvMapResolution(); });
 	addMenuElement(sL_envres);
 
@@ -126,20 +126,20 @@ void Menu_Options::toggleFullscreen()
 	if (pB_fullscreen->getLabel() == "Fenster")
 	{
 		pB_fullscreen->setLabel("Randloses Fenster");
-		ConfigManager::fullscreenOption = FullscreenOption::windowed;
+		ConfigManager::fullscreen_option = FullscreenOption::windowed;
 	}
 	else if (pB_fullscreen->getLabel() == "Randloses Fenster")
 	{
 		pB_fullscreen->setLabel("Vollbild");
-		ConfigManager::fullscreenOption = FullscreenOption::fullscreen;
+		ConfigManager::fullscreen_option = FullscreenOption::fullscreen;
 	}
 	else if (pB_fullscreen->getLabel() == "Vollbild")
 	{
 		pB_fullscreen->setLabel("Fenster");
-		ConfigManager::fullscreenOption = FullscreenOption::windowed;
+		ConfigManager::fullscreen_option = FullscreenOption::windowed;
 	}
 
-	Game::toggleFullscreen(ConfigManager::fullscreenOption);
+	Game::toggleFullscreen(ConfigManager::fullscreen_option);
 }
 
 void Menu_Options::toggleShadows()
@@ -165,7 +165,7 @@ void Menu_Options::setVolume()
 {
 	float newVolume = sL_volume->getValue();
 	Game::SoundEngine->setSoundVolume(newVolume);
-	ConfigManager::musicVolume = newVolume;
+	ConfigManager::music_volume = newVolume;
 	Logger::log("changed Volume to: " + std::to_string(sL_volume->getValue()));
 }
 
@@ -173,7 +173,7 @@ void Menu_Options::changeShadowMapResolution()
 {
 	float newResolution = sL_shadowres->getValue();
 	Logger::log("changed Shadow Map Resolution to: " + std::to_string(newResolution) + " px");
-	ConfigManager::shadowMapResolution = newResolution;
+	ConfigManager::shadow_map_resolution = newResolution;
 	Renderer::initFrameBuffer();
 }
 
@@ -181,7 +181,7 @@ void Menu_Options::changeEnvMapResolution()
 {
 	float newResolution = sL_envres->getValue();
 	Logger::log("changed Environment Map Resolution to: " + std::to_string(newResolution) + " px");
-	ConfigManager::envMapResolution = newResolution;
+	ConfigManager::env_map_resolution = newResolution;
 	Renderer::initFrameBuffer();
 	Renderer::resetFrameCount();
 }

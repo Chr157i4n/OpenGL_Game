@@ -59,6 +59,7 @@
 //#define DEBUG_OUTOFBOUNDS
 //#define DEBUG_GRAVITY
 //#define DEBUG_NPC
+//#define DEBUG_ENV_MAP
 
 enum GameState {
 	GAME_LOADING,
@@ -221,8 +222,6 @@ public:
 	static bool pressedMouseButtons[6];
 
 	static float32 FPS;
-	static float32 fps_limit_ingame;
-	static float32 fps_limit_menu;
 	static bool close;
 
 
@@ -234,7 +233,6 @@ public:
 
 	static GameState gameState;
 	static GameState newGameState;
-	static int maxBulletCount;
 
 	static Menu* menu_Main;
 	static Menu* menu_Pause;
@@ -264,5 +262,5 @@ private:
 	static void openConsole();
 
 	static UI_Element_Label * lbl_stopwatch1, * lbl_stopwatch2, * lbl_stopwatch3, * lbl_stopwatch4;
-	static StopWatch stopwatch1, stopwatch2, stopwatch3, stopwatch4;
+	static StopWatch stopwatch1;
 };
