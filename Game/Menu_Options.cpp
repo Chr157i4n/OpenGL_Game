@@ -6,18 +6,9 @@
 Menu_Options::Menu_Options()
 {
 	pB_fullscreen = new UI_Element_Button(10, 250, 200, 50, 0, "Vollbild");
-	switch (ConfigManager::fullscreen_option)
-	{
-	case FullscreenOption::fullscreen:
-		pB_fullscreen->setLabel("Vollbild");
-		break;
-	case FullscreenOption::windowed:
-		pB_fullscreen->setLabel("Fenster");
-		break;
-	case FullscreenOption::windowed_borderless:
-		pB_fullscreen->setLabel("Randloses Fenster");
-		break;
-	}
+	pB_fullscreen->addState("Vollbild");
+	pB_fullscreen->addState("Fenster");
+	pB_fullscreen->addState("Randloses Fenster");
 	pB_fullscreen->setCallback([&] { toggleFullscreen(); });
 	addMenuElement(pB_fullscreen);
 
@@ -29,22 +20,15 @@ Menu_Options::Menu_Options()
 	addMenuElement(sL_volume);
 
 	pB_vsync = new UI_Element_Button(10, 130, 200, 50, 0, "V_Sync: An");
+	pB_vsync->addState("V_Sync: Aus");
+	pB_vsync->addState("V_Sync: An");
 	pB_vsync->setCallback([&] { toggleVsync(); });
 	addMenuElement(pB_vsync);
 
 	pB_shadow = new UI_Element_Button(10, 70, 200, 50, 0, "Schatten: Weich");
-	switch (ConfigManager::shadow_option)
-	{
-	case ShadowOption::off:
-		pB_shadow->setLabel("Schatten: Aus");
-		break;
-	case ShadowOption::hard:
-		pB_shadow->setLabel("Schatten: Hart");
-		break;
-	case ShadowOption::soft:
-		pB_shadow->setLabel("Schatten: Weich");
-		break;
-	}
+	pB_shadow->addState("Schatten: Aus");
+	pB_shadow->addState("Schatten: Hart");
+	pB_shadow->addState("Schatten: Weich");
 	pB_shadow->setCallback([&] { toggleShadows(); });
 	addMenuElement(pB_shadow);
 
@@ -109,56 +93,20 @@ Menu_Options::Menu_Options()
 
 void Menu_Options::toggleVsync()
 {
-	if (pB_vsync->getLabel() == "V_Sync: An")
-	{
-		pB_vsync->setLabel("V_Sync: Aus");
-		Renderer::enableVSync(false);
-	}
-	else
-	{
-		pB_vsync->setLabel("V_Sync: An");
-		Renderer::enableVSync(true);
-	}
+	int state = pB_vsync->nextState();
+	Renderer::toggleVSync(state);
 }
 
 void Menu_Options::toggleFullscreen()
 {
-	if (pB_fullscreen->getLabel() == "Fenster")
-	{
-		pB_fullscreen->setLabel("Randloses Fenster");
-		ConfigManager::fullscreen_option = FullscreenOption::windowed;
-	}
-	else if (pB_fullscreen->getLabel() == "Randloses Fenster")
-	{
-		pB_fullscreen->setLabel("Vollbild");
-		ConfigManager::fullscreen_option = FullscreenOption::fullscreen;
-	}
-	else if (pB_fullscreen->getLabel() == "Vollbild")
-	{
-		pB_fullscreen->setLabel("Fenster");
-		ConfigManager::fullscreen_option = FullscreenOption::windowed;
-	}
-
-	Game::toggleFullscreen(ConfigManager::fullscreen_option);
+	int state = pB_fullscreen->nextState();
+	Game::toggleFullscreen(static_cast<FullscreenOption>(state));
 }
 
 void Menu_Options::toggleShadows()
 {
-	if (pB_shadow->getLabel() == "Schatten: Aus")
-	{
-		pB_shadow->setLabel("Schatten: Hart");
-		Renderer::toggleShadows(ShadowOption::hard);
-	}
-	else if (pB_shadow->getLabel() == "Schatten: Hart")
-	{
-		pB_shadow->setLabel("Schatten: Weich");
-		Renderer::toggleShadows(ShadowOption::soft);
-	}
-	else if (pB_shadow->getLabel() == "Schatten: Weich")
-	{
-		pB_shadow->setLabel("Schatten: Aus");
-		Renderer::toggleShadows(ShadowOption::off);
-	}
+	int state = pB_shadow->nextState();
+	Renderer::toggleShadows(static_cast<ShadowOption>(state));
 }
 
 void Menu_Options::setVolume()

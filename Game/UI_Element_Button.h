@@ -2,6 +2,7 @@
 #include "defines.h"
 
 #include <string>
+#include <vector>
 
 #include "UI_Element.h"
 
@@ -35,10 +36,26 @@ public:
 
     virtual void onMouseClick(float mouseX, float mouseY, SDL_MouseButtonEvent* buttonEvent = nullptr);
 
+    void addState(std::string stateLabel)
+    {
+        states.push_back(stateLabel);
+    }
+
+    int nextState()
+    {
+        state = (state + 1) % states.size();
+        this->setLabel(states[state]);
+
+        return state;
+    }
+
 
 
 private:
     std::string label;
+
+    int state=0;
+    std::vector<std::string> states;
     int fontSize = 1;
     int labelOffsetX, labelOffsetY;
 };

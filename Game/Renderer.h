@@ -106,6 +106,11 @@ public:
 		}
 	}
 
+	static void toggleVSync(int enable)
+	{
+		SDL_GL_SetSwapInterval(enable);
+	}
+
 	static void toggleShadows(ShadowOption option);
 
 	static void changeResolution(int x, int y);

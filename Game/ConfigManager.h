@@ -42,7 +42,7 @@ public:
 	//[General]
 	static std::string level;
 	static int bots;
-	static int bot_speed_mult;
+	static float bot_speed_mult;
 	static bool show_debug_console;
 	static float mouse_sensitivity;
 	static float music_volume;

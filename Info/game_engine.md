@@ -5,9 +5,14 @@
 
 
 **Configuration (loading and saving)**
-
+For saving the configuration the engine uses a .ini file. It ignores comments, empty lines and sections.
+When loading values the engine looks trough each line, split the line at the = and compares the first part with the value which should be loaded.
+When writing it does the same and when the value is not found it will be added at the end of the file.
+When a value is not found while loading the game uses it standard value for it and save that value in the config file when the user quit the game.
 
 **Map file**
+In the map file all used modelfiles, each object with its properties and all bots with navpoints are saved.
+Because this file needs a more complex data structure (each object has a position), the engine uses XML files for the levels.
 
 
 **Menu**

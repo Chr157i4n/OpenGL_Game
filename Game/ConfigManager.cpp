@@ -9,7 +9,7 @@ std::string			ConfigManager::configFileName="config.ini";
 //[General]
 std::string			ConfigManager::level="level_test.xml";
 int					ConfigManager::bots=0;
-int					ConfigManager::bot_speed_mult=0.5;
+float				ConfigManager::bot_speed_mult=0.5;
 bool				ConfigManager::show_debug_console=0;
 float				ConfigManager::mouse_sensitivity=0.2;
 float				ConfigManager::music_volume=0.2;

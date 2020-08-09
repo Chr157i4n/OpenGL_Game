@@ -8,7 +8,7 @@ NPC::NPC(Shader* shader) : Character(shader)
 	currentTask = CurrentTask::Idle;
 	setType(ObjectType::Object_NPC | ObjectType::Object_Character);
 	lookDirection = glm::vec3(1, 0, 1);
-	float npc_speed_mult = std::stof(ConfigManager::readConfig("bot_speed_mult"));
+	float npc_speed_mult = ConfigManager::bot_speed_mult;
 	forwardSpeed = forwardSpeed * npc_speed_mult;
 	backwardSidewaySpeed = backwardSidewaySpeed * npc_speed_mult;
 }

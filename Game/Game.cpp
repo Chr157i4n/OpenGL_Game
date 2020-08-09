@@ -329,18 +329,17 @@ void Game::render()
 		break;
 	case GameState::GAME_MENU:
 		{
-			if (menu_current != nullptr)
-			{
-				GLCALL(glClearColor(0, 0, 0, 0));
-				GLCALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+			if (menu_current == nullptr) break;
 
-				if (postprocess) Renderer::postProcessing();
-				GLCALL(glDisable(GL_DEPTH_TEST));
-				GLCALL(glDisable(GL_CULL_FACE));
-				menu_current->drawMenu();
-				GLCALL(glEnable(GL_DEPTH_TEST));
-				GLCALL(glEnable(GL_CULL_FACE));
-			}
+			GLCALL(glClearColor(0, 1, 0, 0.5));
+			GLCALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+
+			if (postprocess) Renderer::postProcessing();
+			GLCALL(glDisable(GL_DEPTH_TEST));
+			GLCALL(glDisable(GL_CULL_FACE));
+			menu_current->drawMenu();
+			GLCALL(glEnable(GL_DEPTH_TEST));
+			GLCALL(glEnable(GL_CULL_FACE));
 		}
 		break;
 	}
@@ -763,6 +762,7 @@ void Game::toggleFullscreen()
 
 void Game::toggleFullscreen(FullscreenOption option)
 {
+	ConfigManager::fullscreen_option = option;
 	int resolutionW, resolutionH;
 
 	switch (option)

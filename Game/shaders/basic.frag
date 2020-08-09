@@ -181,7 +181,8 @@ void main()
     vec3 R = reflect(I, v_normal_world_space);
     //float ratio = 1.00 / 1.52;
     //vec3 R = refract(I, v_normal_world_space, ratio);
-
+    vec3 normaltex = texture(u_normal_map, v_tex_coord).rgb;
+    R = R*normaltex;
 
     vec4 envmapcolor = vec4(texture(u_env_map, R).rgb, 1.0);
     f_color = mix(f_color, envmapcolor, u_material.specular.x/2);
