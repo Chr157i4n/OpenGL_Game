@@ -112,6 +112,11 @@ public:
 
 	void unbindShader();
 
+	bool  intersectWithRay(glm::vec3 rayOrigin, glm::vec3 rayDirection);
+
+	float getDistance(std::shared_ptr<Object> object);
+
+	void markObject();
 
 	CollisionResult checkCollision();
 

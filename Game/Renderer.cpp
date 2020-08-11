@@ -197,8 +197,7 @@ void Renderer::initOpenGL()
 	Game::window = SDL_CreateWindow("OpenGL-Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, getResolutionX(), getResolutionY(), flags);
 	SDL_GLContext glContext = SDL_GL_CreateContext(Game::window);
 
-	int vsync = std::stoi(ConfigManager::readConfig("v_sync"));
-	SDL_GL_SetSwapInterval(vsync);
+	SDL_GL_SetSwapInterval(ConfigManager::v_sync);
 
 	GLenum err = glewInit();
 	if (err != GLEW_OK)

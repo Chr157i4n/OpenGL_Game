@@ -209,8 +209,15 @@ void Game::gameLoop()
 			}
 
 			
-
-			
+			//testing - Raypicking
+			std::shared_ptr<Object> objectPlayerLookingAt = players[0]->getObjectLookingAt();
+			if (objectPlayerLookingAt != nullptr)
+			{
+				if (players[0]->getDistance(objectPlayerLookingAt) < 10)
+				{
+					objectPlayerLookingAt->markObject();
+				}
+			}
 
 		}
 		

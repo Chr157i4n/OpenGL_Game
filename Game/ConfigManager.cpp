@@ -44,6 +44,7 @@ void ConfigManager::init(std::string nConfigFileName)
 
 std::string ConfigManager::readConfig(std::string key)
 {
+	Logger::log("reading Configuration key: " + key);
 	std::ifstream configFile;
 	configFile.open(configFileName);
 
@@ -88,6 +89,7 @@ std::string ConfigManager::readConfig(std::string key)
 
 void ConfigManager::readAllConfigs()
 {
+	Logger::log("Reading Configuration");
 	std::string config = "";
 	
 	//[General]
@@ -106,61 +108,62 @@ void ConfigManager::readAllConfigs()
 	config = ConfigManager::readConfig("mouse_sensitivity");
 	if (config != "") ConfigManager::mouse_sensitivity = std::stof(config);
 
-	config = ConfigManager::readConfig("music_volume");
-	if (config != "") ConfigManager::music_volume = std::stof(config);
+config = ConfigManager::readConfig("music_volume");
+if (config != "") ConfigManager::music_volume = std::stof(config);
 
-	config = ConfigManager::readConfig("max_bullets");
-	if (config != "") ConfigManager::max_bullets = std::stoi(config);
+config = ConfigManager::readConfig("max_bullets");
+if (config != "") ConfigManager::max_bullets = std::stoi(config);
 
-	//[Renderer]
-	config = ConfigManager::readConfig("fullscreen_resolution_width");
-	if (config != "") ConfigManager::fullscreen_resolution_width = std::stoi(config);
-	config = ConfigManager::readConfig("fullscreen_resolution_height");
-	if (config != "") ConfigManager::fullscreen_resolution_height = std::stoi(config);
+//[Renderer]
+config = ConfigManager::readConfig("fullscreen_resolution_width");
+if (config != "") ConfigManager::fullscreen_resolution_width = std::stoi(config);
+config = ConfigManager::readConfig("fullscreen_resolution_height");
+if (config != "") ConfigManager::fullscreen_resolution_height = std::stoi(config);
 
-	config = ConfigManager::readConfig("windowed_resolution_width");
-	if (config != "") ConfigManager::windowed_resolution_width = std::stoi(config);
-	config = ConfigManager::readConfig("windowed_resolution_height");
-	if (config != "") ConfigManager::windowed_resolution_height = std::stoi(config);
+config = ConfigManager::readConfig("windowed_resolution_width");
+if (config != "") ConfigManager::windowed_resolution_width = std::stoi(config);
+config = ConfigManager::readConfig("windowed_resolution_height");
+if (config != "") ConfigManager::windowed_resolution_height = std::stoi(config);
 
-	//[Renderer - Reflection]
-	config = ConfigManager::readConfig("env_map_render_interval");
-	if (config != "") ConfigManager::env_map_render_interval = std::stoi(config);
+//[Renderer - Reflection]
+config = ConfigManager::readConfig("env_map_render_interval");
+if (config != "") ConfigManager::env_map_render_interval = std::stoi(config);
 
-	config = ConfigManager::readConfig("env_map_render_characters");
-	if (config != "") ConfigManager::env_map_render_characters = std::stoi(config);
+config = ConfigManager::readConfig("env_map_render_characters");
+if (config != "") ConfigManager::env_map_render_characters = std::stoi(config);
 
-	config = ConfigManager::readConfig("env_map_resolution");
-	if (config != "") ConfigManager::env_map_resolution = std::stoi(config);
+config = ConfigManager::readConfig("env_map_resolution");
+if (config != "") ConfigManager::env_map_resolution = std::stoi(config);
 
-	//[Renderer - Shadows]
-	config = ConfigManager::readConfig("shadow_option");
-	if (config != "") ConfigManager::shadow_option = static_cast<ShadowOption>(std::stoi(config));
+//[Renderer - Shadows]
+config = ConfigManager::readConfig("shadow_option");
+if (config != "") ConfigManager::shadow_option = static_cast<ShadowOption>(std::stoi(config));
 
-	config = ConfigManager::readConfig("shadow_map_resolution");
-	if (config != "") ConfigManager::shadow_map_resolution = std::stoi(config);
+config = ConfigManager::readConfig("shadow_map_resolution");
+if (config != "") ConfigManager::shadow_map_resolution = std::stoi(config);
 
 
-	config = ConfigManager::readConfig("fov");
-	if (config != "") ConfigManager::fov = std::stoi(config);
+config = ConfigManager::readConfig("fov");
+if (config != "") ConfigManager::fov = std::stoi(config);
 
-	config = ConfigManager::readConfig("fullscreen_option");
-	if (config != "") ConfigManager::fullscreen_option = static_cast<FullscreenOption>(std::stoi(config));
+config = ConfigManager::readConfig("fullscreen_option");
+if (config != "") ConfigManager::fullscreen_option = static_cast<FullscreenOption>(std::stoi(config));
 
-	config = ConfigManager::readConfig("fps_limit_ingame");
-	if (config != "") ConfigManager::fps_limit_ingame = std::stoi(config);
+config = ConfigManager::readConfig("fps_limit_ingame");
+if (config != "") ConfigManager::fps_limit_ingame = std::stoi(config);
 
-	config = ConfigManager::readConfig("fps_limit_menu");
-	if (config != "") ConfigManager::fps_limit_menu = std::stoi(config);
+config = ConfigManager::readConfig("fps_limit_menu");
+if (config != "") ConfigManager::fps_limit_menu = std::stoi(config);
 
-	config = ConfigManager::readConfig("v_sync");
-	if (config != "") ConfigManager::v_sync = std::stoi(config);
+config = ConfigManager::readConfig("v_sync");
+if (config != "") ConfigManager::v_sync = std::stoi(config);
 }
 
 void ConfigManager::writeConfig(std::string key, std::string value)
 {
+	Logger::log("Writing Configuration key: " + key + " value: " +value);
 	std::ifstream filein(configFileName); //File to read from
-	std::ofstream fileout("_"+ configFileName); //Temporary file
+	std::ofstream fileout("_" + configFileName); //Temporary file
 	if (!filein || !fileout)
 	{
 		Logger::log("Error opening configfiles for saving!");
@@ -182,7 +185,11 @@ void ConfigManager::writeConfig(std::string key, std::string value)
 			linein[0] == '[')		//	line is section
 		{
 			lineout = linein;
-			fileout << lineout << '\n';
+			fileout << lineout;
+			if (!filein.eof())
+			{
+				fileout << '\n';
+			}
 			continue;
 		}
 
@@ -198,19 +205,24 @@ void ConfigManager::writeConfig(std::string key, std::string value)
 			lineout = key + " = " + value;
 			foundKey = true;
 		}
-		else 
+		else
 		{
 			lineout = linein;
 		}
 
-		fileout << lineout << '\n';
+		fileout << lineout;
+
+		if(!filein.eof())
+		{
+			fileout << '\n';
+		}
 
 	}
 
 	if (!foundKey)
 	{
 		lineout = key + " = " + value;
-		fileout << lineout << '\n';
+		fileout << '\n' << lineout;
 		Logger::log("While writing did not find this key: " + key + ". Added it at the end");
 	}
 
@@ -223,6 +235,7 @@ void ConfigManager::writeConfig(std::string key, std::string value)
 
 void ConfigManager::writeAllConfigs()
 {
+	Logger::log("Writing Configuration");
 	//[General]
 	ConfigManager::writeConfig("level", ConfigManager::level);
 	ConfigManager::writeConfig("bots", std::to_string(ConfigManager::bots));

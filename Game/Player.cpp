@@ -27,6 +27,11 @@ glm::vec3 Player::getLookDirection()
 	return lookAt;
 }
 
+glm::vec3 Player::getLookOrigin()
+{
+	return this->getCameraPosition();
+}
+
 void Player::onMouseMove(float xRel, float yRel)
 {
 	onMouseMoved(xRel, yRel);

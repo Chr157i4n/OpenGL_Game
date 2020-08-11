@@ -17,6 +17,13 @@ glm::vec3 Character::getLookDirection()
 	return lookDirection;
 }
 
+glm::vec3 Character::getLookOrigin()
+{
+	glm::vec3 lookOrigin = this->getPosition();
+	lookOrigin.y += this->getDimensions().y * 0.75;
+	return lookOrigin;
+}
+
 void Character::resetVerticalMovement()
 {
 	movement = movement * glm::vec3(0, 1, 0);
@@ -101,9 +108,42 @@ void Character::run(bool run)
 	}
 }
 
-Object* Character::getObjectLookingAt()
+std::shared_ptr<Object> Character::getObjectLookingAt()
 {
-	return nullptr;
+	std::vector< std::shared_ptr<Object> > objectsLookingAt;
+	
+	for (std::shared_ptr<Object> object : Game::objects)
+	{
+		if (object->getType() & ObjectType::Object_Player) continue;
+		if (object->getType() & ObjectType::Object_Environment) continue;
+
+
+		glm::vec3 rayOrigin = this->getLookOrigin();
+
+		glm::vec3 rayDirection = this->getLookDirection();
+
+		if (object->intersectWithRay(rayOrigin, rayDirection))
+		{
+			objectsLookingAt.push_back(object);
+		}
+	}
+
+	//return the object with the minimum distance
+	float minDistance = std::numeric_limits<float>::max();
+	float currentDistance = 0;
+	std::shared_ptr<Object> objectMinDistance = nullptr;
+
+	for (std::shared_ptr<Object> object : objectsLookingAt)
+	{
+		currentDistance = this->getDistance(object);
+		if (currentDistance < minDistance)
+		{
+			minDistance = currentDistance;
+			objectMinDistance = object;
+		}
+	}
+
+	return objectMinDistance;
 }
 
 /// <summary>

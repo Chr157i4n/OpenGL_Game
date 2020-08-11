@@ -18,6 +18,8 @@ public:
 
 	glm::vec3 getLookDirection();
 
+	virtual glm::vec3 getLookOrigin();
+
 	void onMouseMove(float xRel, float yRel);
 
 	void updateCameraPosition();

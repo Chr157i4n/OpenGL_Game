@@ -55,6 +55,76 @@ void Object::unbindShader()
 }
 
 
+bool  Object::intersectWithRay(glm::vec3 rayOrigin, glm::vec3 rayDirection)
+{
+	float minX = this->getPosition().x - this->getDimensions().x/2;
+	float maxX = this->getPosition().x + this->getDimensions().x/2;
+
+	float minY = this->getPosition().y;
+	float maxY = this->getPosition().y + this->getDimensions().y;
+
+	float minZ = this->getPosition().z - this->getDimensions().z/2;
+	float maxZ = this->getPosition().z + this->getDimensions().z/2;
+
+	
+	float tmin = (minX - rayOrigin.x) / rayDirection.x;
+	float tmax = (maxX - rayOrigin.x) / rayDirection.x;
+
+	if (tmin > tmax) std::swap(tmin, tmax);
+
+	float tymin = (minY - rayOrigin.y) / rayDirection.y;
+	float tymax = (maxY - rayOrigin.y) / rayDirection.y;
+
+	if (tymin > tymax) std::swap(tymin, tymax);
+
+	if ((tmin > tymax) || (tymin > tmax))
+		return false;
+
+	if (tymin > tmin)
+		tmin = tymin;
+
+	if (tymax < tmax)
+		tmax = tymax;
+
+	float tzmin = (minZ - rayOrigin.z) / rayDirection.z;
+	float tzmax = (maxZ - rayOrigin.z) / rayDirection.z;
+
+	if (tzmin > tzmax) std::swap(tzmin, tzmax);
+
+	if ((tmin > tzmax) || (tzmin > tmax))
+		return false;
+
+	if (tzmin > tmin)
+		tmin = tzmin;
+
+	if (tzmax < tmax)
+		tmax = tzmax;
+
+	//Ray is intersecting with plane
+	//test for right direction
+
+	if (glm::dot(rayDirection, this->getPosition()-rayOrigin) < 0)
+	{
+		//Logger::log("facing wrong direction");
+		return false;
+	}
+	else
+	{
+		//Logger::log("facing right direction");
+		return true;
+	}
+}
+
+float Object::getDistance(std::shared_ptr<Object> object)
+{
+	return std::abs(glm::length(object->getPosition() - this->getPosition()));
+}
+
+void Object::markObject()
+{
+	lastHitTimestamp = std::chrono::system_clock::now();
+}
+
 CollisionResult Object::checkCollision()
 {
 	

@@ -16,6 +16,8 @@ public:
 
 	virtual glm::vec3 getLookDirection();
 
+	virtual glm::vec3 getLookOrigin();
+
 	void resetVerticalMovement();
 
 	void moveForward();
@@ -34,7 +36,7 @@ public:
 
 	void run(bool run = true);
 
-	Object* getObjectLookingAt();
+	std::shared_ptr<Object> getObjectLookingAt();
 
 	std::shared_ptr<Bullet> shoot();
 
