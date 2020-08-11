@@ -32,7 +32,7 @@ GameState Game::gameState = GameState::GAME_MENU;
 GameState Game::newGameState;
 
 bool Game::showShadowMap = false;
-bool Game::postprocess = true;
+bool Game::showMap = false;
 
 Menu* Game::menu_Main = nullptr;
 Menu* Game::menu_Pause = nullptr;
@@ -45,6 +45,7 @@ irrklang::ISoundEngine* Game::SoundEngine = irrklang::createIrrKlangDevice();
 
 UI_Element_Label* Game::lbl_stopwatch1, * Game::lbl_stopwatch2, * Game::lbl_stopwatch3, * Game::lbl_stopwatch4;
 StopWatch Game::stopwatch1;
+StopWatch Game::gameStopWatch;
 
 /// <summary>
 /// this methods starts the game
@@ -53,6 +54,13 @@ void Game::startGame()
 {
 	delta = 0.0f;
 	gameState = GameState::GAME_ACTIVE;
+
+	Renderer::initFrameBuffer();
+
+	Game::resetKeys();
+	Renderer::resetFrameCount();
+
+	gameStopWatch.start();
 
 	SDL_SetRelativeMouseMode(SDL_TRUE);
 }
@@ -72,9 +80,10 @@ void Game::init()
 
 	Renderer::drawLoadingScreen();
 
+	//std::vector<std::string> maps =	ResourceManager::readAllMaps();
 
-	std::string levelname = ConfigManager::level;
-	Map::load(levelname);
+	//std::string levelname = ConfigManager::level;
+	//Map::load("level_farm");
 
 	menu_Main = new Menu_Main();
 	menu_Pause = new Menu_Pause();
@@ -294,21 +303,30 @@ void Game::render()
 	case GameState::GAME_ACTIVE:
 	case GameState::GAME_GAME_OVER:
 		{
-			Renderer::calcLight();
+			
+			if (!Game::showMap)
+			{
+				Renderer::calcLight();
 
-			if (ConfigManager::shadow_option != ShadowOption::off)
-				Renderer::calcShadows();
+				if (ConfigManager::shadow_option != ShadowOption::off)
+					Renderer::calcShadows();
 
-
-			if (postprocess) Renderer::frameBuffer.bind();
-			Renderer::clearBuffer();
-			Renderer::renderOpaqueObjects();
-			Renderer::renderSkybox(glm::mat4(glm::mat3(players[0]->getView())), players[0]->getProj());
-			Renderer::renderTransparentObjects();
-			if (postprocess) Renderer::frameBuffer.unbind();
-
+				Renderer::frameBuffer.bind();
+				Renderer::clearBuffer();
+				Renderer::renderOpaqueObjects();
+				Renderer::renderSkybox(glm::mat4(glm::mat3(players[0]->getView())), players[0]->getProj());
+				Renderer::renderTransparentObjects();
+				Renderer::frameBuffer.unbind();
+			}
+			else
+			{
+				Renderer::frameBuffer.bind();
+				Renderer::clearBuffer();
+				Renderer::renderMap();
+				Renderer::frameBuffer.unbind();
+			}
 			//Postprocessing
-			if (postprocess) Renderer::postProcessing();
+			Renderer::postProcessing();
 
 			//show the Shadow map
 			if (showShadowMap) Renderer::showShadowMap();
@@ -325,16 +343,21 @@ void Game::render()
 		}
 
 			UI::drawUI();
+
+			if (Game::showMap)
+			{
+				Renderer::drawMapOverlay();
+			}
 		}
 		break;
 	case GameState::GAME_MENU:
 		{
 			if (menu_current == nullptr) break;
 
-			GLCALL(glClearColor(0, 1, 0, 0.5));
+			GLCALL(glClearColor(0, 0, 0, 0));
 			GLCALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
-			if (postprocess) Renderer::postProcessing();
+			Renderer::postProcessing();
 			GLCALL(glDisable(GL_DEPTH_TEST));
 			GLCALL(glDisable(GL_CULL_FACE));
 			menu_current->drawMenu();
@@ -391,7 +414,10 @@ void Game::processInput()
 			}
 			else if (gameState == GameState::GAME_MENU)
 			{
-				menu_current->onMouseClick(event.motion.x, event.motion.y, event.button);
+				if (menu_current->onMouseClick(event.motion.x, event.motion.y, event.button) == 2)
+				{
+					continue;
+				}
 			}
 			pressedMouseButtons[event.button.button] = true;
 
@@ -416,13 +442,19 @@ void Game::processInput()
 
 	if (pressedKeys[PlayerAction::moveForward])
 	{
-		players[0]->moveForward();
-		updateAudioListener();
+		if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
+		{
+			players[0]->moveForward();
+			updateAudioListener();
+		}
 	}
 	if (pressedKeys[PlayerAction::moveBackward])
 	{
-		players[0]->moveBackward();
-		updateAudioListener();
+		if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
+		{
+			players[0]->moveBackward();
+			updateAudioListener();
+		}
 	}
 	if (pressedKeys[PlayerAction::moveLeft])
 	{
@@ -450,23 +482,38 @@ void Game::processInput()
 	}
 	if (pressedKeys[PlayerAction::jump])
 	{
-		players[0]->jump();
+		if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
+		{
+			players[0]->jump();
+		}
 	}
 	if (pressedKeys[PlayerAction::sprint])
 	{
-		players[0]->run(true);
+		if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
+		{
+			players[0]->run(true);
+		}
 	}
 	if (!pressedKeys[PlayerAction::sprint])
 	{
-		players[0]->run(false);
+		if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
+		{
+			players[0]->run(false);
+		}
 	}
 	if (pressedKeys[PlayerAction::crouch])
 	{
-		players[0]->crouch(true);
+		if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
+		{
+			players[0]->crouch(true);
+		}
 	}
 	if (!pressedKeys[PlayerAction::crouch])
 	{
-		players[0]->crouch(false);
+		if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
+		{
+			players[0]->crouch(false);
+		}
 	}
 }
 
@@ -500,6 +547,9 @@ void Game::keyPressed(SDL_Keycode key)
 						break;
 					case PlayerAction::toggleFlashlight:
 						players[0]->toggleFlashlight();
+						break;
+					case PlayerAction::toggleMap:
+						Game::toggleMap();
 						break;
 				}
 				break;
@@ -545,7 +595,7 @@ void Game::keyPressed(SDL_Keycode key)
 			showShadowMap = !showShadowMap;
 			break;
 		case togglePostprocess:
-			postprocess = !postprocess;
+
 			break;
 		case PlayerAction::pause:
 			togglePause();
@@ -583,6 +633,24 @@ void Game::keyReleased(SDL_Keycode key)
 
 
 	pressedKeys[action] = false;
+}
+
+void Game::resetKeys()
+{
+	for (int i = 0; i < 40; i++)
+	{
+		pressedKeys[i] = false;
+	}
+	for (int i = 0; i < 6; i++)
+	{
+		pressedMouseButtons[i] = false;
+	}
+
+	SDL_Event event1;
+	while (SDL_PollEvent(&event1))
+	{
+
+	}
 }
 
 /// <summary>
@@ -640,6 +708,8 @@ void Game::deleteObjects()
 
 void Game::togglePause()
 {
+	Game::resetKeys();
+
 	if (gameState == GameState::GAME_PAUSED)
 	{
 		gameState = GameState::GAME_ACTIVE;
@@ -654,15 +724,7 @@ void Game::togglePause()
 
 bool Game::toggleMenu()
 {
-	for (int i = 0; i < 40; i++)
-	{
-		pressedKeys[i] = false;
-	}
-	for (int i = 0; i < 6; i++)
-	{
-		pressedMouseButtons[i] = false;
-	}
-
+	Game::resetKeys();
 
 	if (gameState == GameState::GAME_PAUSED || gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
 	{
@@ -687,14 +749,7 @@ bool Game::toggleSubMenu(MenuType submenu)
 {
 	if (gameState != GameState::GAME_MENU) return false;
 
-	for(int i=0; i<40; i++)
-	{
-		pressedKeys[i] = false;
-	}
-	for (int i = 0; i < 6; i++)
-	{
-		pressedMouseButtons[i] = false;
-	}
+	Game::resetKeys();
 
 	Menu* newMenu = menu_last;
 
@@ -740,24 +795,9 @@ void Game::toggleFullscreen()
 	SDL_SetWindowFullscreen(window, IsFullscreen ? 0 : FullscreenFlag);
 
 	if (IsFullscreen) //now windowed
-	{
-		ConfigManager::fullscreen_option = FullscreenOption::windowed;
-
-		int resolutionW = std::stoi(ConfigManager::readConfig("windowed_resolution_width"));
-		int resolutionH = std::stoi(ConfigManager::readConfig("windowed_resolution_height"));
-
-		Game::changeSize(resolutionW, resolutionH);
-		Renderer::changeResolution(resolutionW, resolutionH);
-	}
-	else {
-		ConfigManager::fullscreen_option = FullscreenOption::fullscreen;
-
-		int resolutionW = std::stoi(ConfigManager::readConfig("fullscreen_resolution_width"));
-		int resolutionH = std::stoi(ConfigManager::readConfig("fullscreen_resolution_height"));
-
-		Game::changeSize(resolutionW, resolutionH);
-		Renderer::changeResolution(resolutionW, resolutionH);
-	}
+		Game::toggleFullscreen(FullscreenOption::windowed);
+	else
+		Game::toggleFullscreen(FullscreenOption::fullscreen);
 }
 
 void Game::toggleFullscreen(FullscreenOption option)
@@ -770,16 +810,16 @@ void Game::toggleFullscreen(FullscreenOption option)
 	case FullscreenOption::fullscreen:
 		SDL_SetWindowFullscreen(window, true);
 
-		resolutionW = std::stoi(ConfigManager::readConfig("windowed_resolution_width"));
-		resolutionH = std::stoi(ConfigManager::readConfig("windowed_resolution_height"));
+		resolutionW = ConfigManager::windowed_resolution_width;
+		resolutionH = ConfigManager::windowed_resolution_height;
 		break;
 
 	case FullscreenOption::windowed:
 	case FullscreenOption::windowed_borderless:
 		SDL_SetWindowFullscreen(window, false);
 
-		resolutionW = std::stoi(ConfigManager::readConfig("fullscreen_resolution_width"));
-		resolutionH = std::stoi(ConfigManager::readConfig("fullscreen_resolution_height"));
+		resolutionW = ConfigManager::fullscreen_resolution_width;
+		resolutionH = ConfigManager::fullscreen_resolution_height;
 		break;
 	}
 

@@ -1,8 +1,19 @@
 **Object Movement**
-
+The Movement of all objects needs to be indepentant of the framerate. If the game adds the movement to the position every frame
+without considering the framerate, it works perfectly fine, if the framerate is constant at 60 fps.
+But if the framerate (without VSync) is much higher than 60, the movement is added to the position a lot more often.
+And therefore the speed is higher at higher framerate.
+To solve this the time between two frames (delta time) needs to be measured.
+When the Engine then multiplies the movement with the current delta time, the object move further per frame, when the framerate is low.
+Then the movement is the same with differente framerates.
+When the Player wants to jump a constant impulse needs to be added and the gravity must also bei multiplied with the delta time before
+beeing added to the movement.
 
 **Model and Texture loading**
-
+I Export the models made in Blender to the FBX format, but that is not important, since the used model loading Libary
+Assimp can import many different formats. I programmed a second model converting tool, which obtains the needed information
+from the model file and write them into a binary modeling file (.bmf).
+The Model currently must contain a texture and a normal map per mesh.
 
 **Configuration (loading and saving)**
 For saving the configuration the engine uses a .ini file. It ignores comments, empty lines and sections.
@@ -16,9 +27,11 @@ Because this file needs a more complex data structure (each object has a positio
 
 
 **Menu**
-
+If the Player presses ESC while ingame the Engine opens the pause menu. Then the game itself is not beeing rendered anymore
+and the fps are limited to 60 fps to reduce to gpu load.
 
 **UI**
+The UI is drawn after the postprocessing process at last directly onto the next frame in the doublebuffer.
 
 
 **Camera**

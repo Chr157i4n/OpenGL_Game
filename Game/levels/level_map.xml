@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<map>
+  <name>Test Level</name>
+  <models>
+    <model>character.bmf</model>
+    <model>arrow.bmf</model>
+    <model>ground.bmf</model>
+    <model>box.bmf</model>
+  </models>
+  <objects>
+    <object>
+      <name>Ground</name>
+      <type>Environment</type>
+      <collisionboxtype>cube</collisionboxtype>
+      <gravity>false</gravity>
+      <modelfile>ground.bmf</modelfile>
+      <position>0;-0.2;0</position>
+      <rotation>0;0;0</rotation>
+      <scale>1;1;1</scale>
+    </object>
+  </objects>
+  <bots>
+  </bots>
+</map>

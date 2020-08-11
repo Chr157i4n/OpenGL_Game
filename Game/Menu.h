@@ -42,9 +42,9 @@ public:
 
 	void onMouseMove(float x, float y);
 
-	void onMouseDown(float x, float y, SDL_MouseButtonEvent buttonEvent);
+	int onMouseDown(float x, float y, SDL_MouseButtonEvent buttonEvent);
 
-	void onMouseClick(float x, float y, SDL_MouseButtonEvent buttonEvent);
+	int onMouseClick(float x, float y, SDL_MouseButtonEvent buttonEvent);
 
 
 protected:

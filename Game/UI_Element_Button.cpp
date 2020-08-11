@@ -51,7 +51,7 @@ void UI_Element_Button::drawUI_Element()
 
 }
 
-void UI_Element_Button::onMouseClick(float mouseX, float mouseY, SDL_MouseButtonEvent* buttonEvent)
+int UI_Element_Button::onMouseClick(float mouseX, float mouseY, SDL_MouseButtonEvent* buttonEvent)
 {
-	callCallBack();
+	return callCallBack();
 }

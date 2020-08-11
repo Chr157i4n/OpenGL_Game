@@ -9,6 +9,8 @@
 #include "libs/stb_image.h"
 #include <cmath>
 #include <sstream>
+#include <iostream>
+#include <filesystem>
 
 #include "Shader.h"
 #include "Model.h"
@@ -25,6 +27,8 @@ public:
 	static Model* loadModel(std::string modelFileName);
 
 	static Model* getModelByName(std::string modelFileName);
+
+	static std::vector<std::string> readAllMaps();
 
 	static void loadMap(std::string mapFileName);
 

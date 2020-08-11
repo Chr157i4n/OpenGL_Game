@@ -96,6 +96,7 @@ enum PlayerAction {
 	toggleFullscreen,
 	enter,
 	toggleConsole,
+	toggleMap,
 };
 
 std::unordered_map<SDL_Keycode, PlayerAction> const keybindings =
@@ -119,6 +120,7 @@ std::unordered_map<SDL_Keycode, PlayerAction> const keybindings =
 	{SDLK_F11,		toggleFullscreen},	
 	{SDLK_RETURN,	enter},
 	{SDLK_CARET,	toggleConsole},
+	{SDLK_m,		toggleMap},
 };
 
 enum MouseAction {
@@ -186,6 +188,11 @@ public:
 
 	static bool toggleMenu();
 
+	static void toggleMap()
+	{
+		Game::showMap = !Game::showMap;
+	}
+
 	static bool toggleSubMenu(MenuType submenu);
 
 	static void toggleFullscreen();
@@ -205,6 +212,11 @@ public:
 	}
 
 	static void changeSize(int w, int h);
+
+	static float64 getTimeStamp()
+	{
+		return gameStopWatch.stop();	
+	}
 
 
 	static std::vector< std::shared_ptr<Object> > map;
@@ -229,7 +241,7 @@ public:
 
 	static bool showInfo;
 	static bool showShadowMap;
-	static bool postprocess;
+	static bool showMap;
 
 	static GameState gameState;
 	static GameState newGameState;
@@ -255,6 +267,8 @@ private:
 
 	static void keyReleased(SDL_Keycode key);
 
+	static void resetKeys();
+
 	static void deleteObjects();
 
 	static void updateAudioListener();
@@ -263,4 +277,6 @@ private:
 
 	static UI_Element_Label * lbl_stopwatch1, * lbl_stopwatch2, * lbl_stopwatch3, * lbl_stopwatch4;
 	static StopWatch stopwatch1;
+
+	static StopWatch gameStopWatch;
 };

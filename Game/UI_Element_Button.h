@@ -34,7 +34,7 @@ public:
         return fontSize;
     }
 
-    virtual void onMouseClick(float mouseX, float mouseY, SDL_MouseButtonEvent* buttonEvent = nullptr);
+    virtual int onMouseClick(float mouseX, float mouseY, SDL_MouseButtonEvent* buttonEvent = nullptr);
 
     void addState(std::string stateLabel)
     {
@@ -47,6 +47,15 @@ public:
         this->setLabel(states[state]);
 
         return state;
+    }
+
+    void setState(int state)
+    {
+        if (state >= 0 && state < states.size())
+        {
+            this->state = state;
+            this->setLabel(states[state]);
+        }
     }
 
 

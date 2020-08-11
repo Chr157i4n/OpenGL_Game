@@ -82,7 +82,7 @@ void Menu::onMouseMove(float x, float y)
 	}
 }
 
-void Menu::onMouseDown(float x, float y, SDL_MouseButtonEvent buttonEvent)
+int Menu::onMouseDown(float x, float y, SDL_MouseButtonEvent buttonEvent)
 {
 	if (buttonEvent.button == SDL_BUTTON_LEFT)
 	{
@@ -90,15 +90,13 @@ void Menu::onMouseDown(float x, float y, SDL_MouseButtonEvent buttonEvent)
 		{
 			if (menuElementList[i]->isMouseOver(x, y))
 			{
-				menuElementList[i]->onMouseDrag(x, y, &buttonEvent);
-				//menuElementList[i]->callCallBack(&buttonEvent);
-				return;
+				return menuElementList[i]->onMouseDrag(x, y, &buttonEvent);
 			}
 		}
 	}
 }
 
-void Menu::onMouseClick(float x, float y, SDL_MouseButtonEvent buttonEvent)
+int Menu::onMouseClick(float x, float y, SDL_MouseButtonEvent buttonEvent)
 {
 	if (buttonEvent.button == SDL_BUTTON_LEFT)
 	{
@@ -106,9 +104,7 @@ void Menu::onMouseClick(float x, float y, SDL_MouseButtonEvent buttonEvent)
 		{
 			if (menuElementList[i]->isMouseOver(x, y))
 			{
-				menuElementList[i]->onMouseClick(x, y, &buttonEvent);
-				//menuElementList[i]->callCallBack(&buttonEvent);
-				return;
+				return menuElementList[i]->onMouseClick(x, y, &buttonEvent);
 			}
 		}
 	}

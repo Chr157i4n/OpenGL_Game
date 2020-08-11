@@ -154,6 +154,20 @@ Model* ResourceManager::getModelByName(std::string modelFileName)
 }
 
 
+std::vector<std::string> ResourceManager::readAllMaps()
+{
+	std::vector<std::string> maps;
+	std::string path = "levels";
+	if (!std::filesystem::exists(path)) return maps;
+
+	for (const auto& entry : std::filesystem::directory_iterator(path))
+	{
+		maps.push_back(entry.path().string());
+	}
+
+	return maps;
+}
+
 void ResourceManager::loadMap(std::string mapFileName)
 {
 	std::vector<std::shared_ptr<Object>>* map = &Game::map;
@@ -223,6 +237,13 @@ void ResourceManager::loadMap(std::string mapFileName)
 
 		xmlNodeText = xmlNodeObject->FirstChildElement("name")->GetText();
 		newObject->setName(xmlNodeText);
+
+		if (xmlNodeObject->FirstChildElement("textureflow"))
+		{
+			xmlNodeText = xmlNodeObject->FirstChildElement("textureflow")->GetText();
+			split(xmlNodeText, params, ';');
+			newObject->setTextureFlow( glm::vec2(stof(params[0]), stof(params[1])) );
+		}
 
 		newObject->setNumber(numObject);
 

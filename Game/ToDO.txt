@@ -1,7 +1,7 @@
-﻿- damage too high speed - different framerates
-- dynamic environment mapping game settings
+﻿- switch level from ingame
+- resolution windowed fullscreen are saved properly
 
-- choose level from main menu
+- dynamic environment mapping game settings
 - main menu background in options menu?
 - jump-climb walls should not be possible
 
@@ -29,12 +29,14 @@
 - UI elements
 	- button	✓
 	- slider	✓
+	- textedit
+	- numedit
 
 - Menu mouse interaction	✓
 
 - Menu
 	- Main Menu
-		- level selection
+		- level selection	✓
 	- Options Menu
 		- Audio volume	✓
 		- Graphics quality
@@ -72,4 +74,6 @@
 - Postprocessing
 	- Camera Shake
 
-- Performance Measurement
+- Performance Measurement	✓
+
+- Map	✓

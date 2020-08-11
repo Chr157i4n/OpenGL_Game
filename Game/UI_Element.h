@@ -62,20 +62,20 @@ public:
 
     virtual bool isMouseOver(float mouseX, float mouseY);
 
-    void setCallback(std::function<void()> callback)
+    void setCallback(std::function<int()> callback)
     {
         this->callback = callback;
     }
 
-    void callCallBack(SDL_MouseButtonEvent* buttonEvent = nullptr);
+    int callCallBack(SDL_MouseButtonEvent* buttonEvent = nullptr);
 
-    virtual void onMouseClick(float mouseX, float mouseY, SDL_MouseButtonEvent* buttonEvent = nullptr);
+    virtual int onMouseClick(float mouseX, float mouseY, SDL_MouseButtonEvent* buttonEvent = nullptr);
 
-    virtual void onMouseDrag(float mouseX, float mouseY, SDL_MouseButtonEvent* buttonEvent = nullptr);
+    virtual int onMouseDrag(float mouseX, float mouseY, SDL_MouseButtonEvent* buttonEvent = nullptr);
 
-    virtual void increase();
+    virtual int increase();
 
-    virtual void decrease();
+    virtual int decrease();
 
 protected:
 	int x, y, w, h;
@@ -94,7 +94,7 @@ protected:
     bool isSelected = false;
 
     bool singleAction = false;
-    std::function<void()> callback;
+    std::function<int()> callback;
 
  
 

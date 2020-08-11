@@ -25,10 +25,24 @@ public:
 		Map::gravity = gravity;
 	}
 
+	static glm::vec2 getMapSize()
+	{
+		return mapSize;
+	}
+
+	static void setMapSize(glm::vec2 mapSize)
+	{
+		Map::mapSize = mapSize;
+	}
+
 private:
 
 	static std::string mapFileName;
 	static std::string mapFileFolder;
+	static std::string mapFileExtension;
+
 	static glm::vec3 gravity;
+
+	static glm::vec2 mapSize;
 };
 

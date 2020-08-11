@@ -125,7 +125,7 @@ std::shared_ptr<Bullet> Character::shoot()
 	std::chrono::duration<double, std::milli> notshotDuration = now - lastTimeShot;
 	if (notshotDuration.count() > 1000)
 	{
-		glm::vec3 bulletCreationPosition = position + glm::vec3(0, 3, 0) +glm::vec3(1, 1, 1) * getLookDirection();
+		glm::vec3 bulletCreationPosition = position + glm::vec3(0, 2, 0) +glm::vec3(1, 1, 1) * getLookDirection();
 		glm::vec3 bulletCreationRotation = glm::vec3(0, rotation.y - 90 + scatteringAngleY, -rotation.x - 90 + scatteringAngleX);
 		glm::vec3 bulletCreationDirection = getLookDirection();
 		

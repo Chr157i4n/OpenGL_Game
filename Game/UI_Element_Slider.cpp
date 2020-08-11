@@ -61,7 +61,7 @@ void UI_Element_Slider::drawUI_Element()
 
 }
 
-void UI_Element_Slider::onMouseDrag(float mouseX, float mouseY, SDL_MouseButtonEvent* buttonEvent)
+int UI_Element_Slider::onMouseDrag(float mouseX, float mouseY, SDL_MouseButtonEvent* buttonEvent)
 {
 	float newValue = (mouseX - this->getX()) / this->getW();
 	if (newValue < 0.05)	newValue = 0;
@@ -70,17 +70,17 @@ void UI_Element_Slider::onMouseDrag(float mouseX, float mouseY, SDL_MouseButtonE
 	newValue = newValue * (maxValue - minValue) + minValue;
 
 	this->setValue(newValue);
-	this->callCallBack();
+	return this->callCallBack();
 }
 
-void UI_Element_Slider::increase()
+int UI_Element_Slider::increase()
 {
 	this->setValue(this->getValue() + 1 * (maxValue - minValue) * 0.5 * Game::getDelta()/1000);
-	this->callCallBack();
+	return this->callCallBack();
 }
 
-void UI_Element_Slider::decrease()
+int UI_Element_Slider::decrease()
 {
 	this->setValue(this->getValue() - 1 * (maxValue - minValue) * 0.5 * Game::getDelta()/1000);
-	this->callCallBack();
+	return this->callCallBack();
 }

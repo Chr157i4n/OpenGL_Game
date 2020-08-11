@@ -546,16 +546,172 @@ void Renderer::showShadowMap()
 	//SDL_GL_SwapWindow(*window);
 }
 
+void Renderer::DrawCircle(float cx, float cy, float r, int num_segments)
+{
+	glBegin(GL_LINE_LOOP);
+	for (int ii = 0; ii < num_segments; ii++)
+	{
+		float theta = (2.0f * 3.1415926f * float(ii) / float(num_segments));//get the current angle
+
+		float x = r * cosf(theta);//calculate the x component
+		float y = r * sinf(theta);//calculate the y component
+
+		glVertex2f(x + cx, y + cy);//output vertex
+
+	}
+	glEnd();
+}
+
+void Renderer::DrawFilledCircle(float cx, float cy, float r, int num_segments)
+{
+	glBegin(GL_TRIANGLE_FAN);
+	for (int ii = 0; ii < num_segments; ii++)
+	{
+		float theta = (2.0f * 3.1415926f * float(ii) / float(num_segments));//get the current angle
+
+		float x = r * cosf(theta);//calculate the x component
+		float y = r * sinf(theta);//calculate the y component
+
+		glVertex2f(x + cx, y + cy);//output vertex
+
+	}
+	glEnd();
+}
+
+void Renderer::renderMap()
+{
+	glm::mat4 view, proj;
+	float angle = 90.0f;
+
+	glViewport((Renderer::getResolutionX()-Renderer::getResolutionY())/2,0,Renderer::getResolutionY(), Renderer::getResolutionY());
+	
+	float near_plane = -100, far_plane = 10;
+	float viewsize=0.55f;
+	if (Map::getMapSize().x > Map::getMapSize().y)
+	{
+		viewsize *= Map::getMapSize().x;
+	}
+	else {
+		viewsize *= Map::getMapSize().y;
+	}
+	proj = glm::ortho(-viewsize, viewsize, -viewsize, viewsize, near_plane, far_plane);
+	//proj = glm::perspective(glm::radians(angle), 1.0f, -40.0f, 40.0f);
+	view = glm::lookAt(Game::objects[1]->getCenter(), Game::objects[1]->getCenter() + glm::vec3(0, -1, 0), glm::vec3(0, 0, -1));
+
+	shaderEnvMap->bind();
+
+
+
+	GLCALL(glCullFace(GL_BACK));
+	GLCALL(glClearColor(0, 0, 0, 0));
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	//Directionallight
+	//glm::vec4 transformedSunDirection = glm::vec4(sunDirection, 1.0f);
+	glm::vec4 transformedSunDirection = -glm::transpose(glm::inverse(view)) * glm::vec4(sunDirection, 1.0f);
+	transformedSunDirection3 = glm::vec3(transformedSunDirection.x, transformedSunDirection.y, transformedSunDirection.z);
+	glUniform3fv(glGetUniformLocation(shaderEnvMap->getShaderId(), "u_directional_light.direction"), 1, (float*)&transformedSunDirection);
+
+
+
+	for (std::shared_ptr<Object> object : Game::objects)
+	{
+		if (object->getType() & ObjectType::Object_Bullet) continue;
+
+		if (!(object->getType() & ObjectType::Object_Character))
+		{
+			glm::mat4 model = glm::mat4(1.0f);
+			//model = glm::scale(model, glm::vec3(1.0f));
+
+			//move to position of model
+			model = glm::translate(model, object->getPosition());
+
+			//rotate model around X
+			float angle = object->getRotation().x;
+			model = glm::rotate(model, glm::radians(angle), glm::vec3(1, 0, 0));
+
+			//rotate model around Y
+			angle = object->getRotation().y;
+			model = glm::rotate(model, glm::radians(angle), glm::vec3(0, 1, 0));
+
+			//rotate model around z
+			angle = object->getRotation().z;
+			model = glm::rotate(model, glm::radians(angle), glm::vec3(0, 0, 1));
+
+
+			int isGettingDamagedUniformLocation = GLCALL(glGetUniformLocation(shaderEnvMap->getShaderId(), "u_material.diffuse"));
+			if (object->isGettingDamaged()) {
+
+				GLCALL(glUniform1i(isGettingDamagedUniformLocation, 1));
+			}
+			else {
+				GLCALL(glUniform1i(isGettingDamagedUniformLocation, 0));
+			}
+
+			GLCALL(glActiveTexture(GL_TEXTURE3));
+			GLCALL(glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture));
+			GLCALL(glUniform1i(envmapEnvUniformIndex, 3));
+
+			int modelUniformIndex = GLCALL(glGetUniformLocation(shaderEnvMap->getShaderId(), "u_model"));
+			GLCALL(glUniformMatrix4fv(modelUniformIndex, 1, GL_FALSE, &model[0][0]));
+			int viewUniformIndex = GLCALL(glGetUniformLocation(shaderEnvMap->getShaderId(), "u_view"));
+			GLCALL(glUniformMatrix4fv(viewUniformIndex, 1, GL_FALSE, &view[0][0]));
+			int projUniformIndex = GLCALL(glGetUniformLocation(shaderEnvMap->getShaderId(), "u_proj"));
+			GLCALL(glUniformMatrix4fv(projUniformIndex, 1, GL_FALSE, &proj[0][0]));
+
+			object->renderEnvMap();
+		}
+
+	}
+
+	//renderSkybox(glm::mat4(glm::mat3(view)), proj);
+	shaderEnvMap->unbind();
+
+	glViewport(0, 0, Renderer::getResolutionX(), Renderer::getResolutionY());
+}
+
+void Renderer::drawMapOverlay()
+{
+	glViewport((Renderer::getResolutionX() - Renderer::getResolutionY()) / 2, 0, Renderer::getResolutionY(), Renderer::getResolutionY());
+
+	for (std::shared_ptr<Object> object : Game::objects)
+	{
+		if (!object->getEnabled()) continue;
+
+		if (object->getType() & ObjectType::Object_Character)
+		{
+			GLCALL(glDisable(GL_CULL_FACE));
+			GLCALL(glDisable(GL_DEPTH_TEST));
+
+			if (object->getType() & ObjectType::Object_Player)
+			{
+				glColor4f(0, 0, 1, 1);
+				DrawFilledCircle(object->getPosition().x / Map::getMapSize().x, -object->getPosition().z / Map::getMapSize().y, 0.01, 10);
+			}
+			else if (object->getType() & ObjectType::Object_NPC)
+			{
+				glColor4f(1, 0, 0, 1);
+				DrawFilledCircle(object->getPosition().x / Map::getMapSize().x, -object->getPosition().z / Map::getMapSize().y, 0.01, 10);
+			}
+
+			GLCALL(glEnable(GL_CULL_FACE));
+			GLCALL(glEnable(GL_DEPTH_TEST));
+		}
+	}
+
+	glViewport(0, 0, Renderer::getResolutionX(), Renderer::getResolutionY());
+}
+
 void Renderer::renderEnvironmentMap(std::shared_ptr<Object> objectFromView)
 {
 	if (objectFromView->getType() == ObjectType::Object_Bullet) return;
-	
+
 	std::vector<glm::mat4> views;
 	glm::mat4 view, proj;
 
-	#ifdef DEBUG_ENV_MAP
+#ifdef DEBUG_ENV_MAP
 	Logger::log("Rendering new EnvMap for object: " + objectFromView->printObject());
-	#endif
+#endif
 
 
 	glViewport(0, 0, ConfigManager::env_map_resolution, ConfigManager::env_map_resolution);
@@ -565,7 +721,7 @@ void Renderer::renderEnvironmentMap(std::shared_ptr<Object> objectFromView)
 	shaderEnvMap->bind();
 
 
-	#pragma region ViewProjection from Object x6
+#pragma region ViewProjection from Object x6
 
 	float angle = 90.0f;
 	proj = glm::perspective(glm::radians(angle), 1.0f, 0.1f, 40.0f);
@@ -589,9 +745,9 @@ void Renderer::renderEnvironmentMap(std::shared_ptr<Object> objectFromView)
 	views.push_back(view);
 
 
-	#pragma endregion
+#pragma endregion
 
-	
+
 
 	GLCALL(glCullFace(GL_BACK));
 	GLCALL(glClearColor(1, 0, 0, 0.5));
@@ -739,6 +895,7 @@ void Renderer::renderObjects(bool transparent)
 		if (!object->getEnabled()) continue;
 		if (transparent && !object->getModel()->getHasTransparentTexture()) continue;
 		if (!transparent && object->getModel()->getHasTransparentTexture()) continue;
+		if (object->getType() & ObjectType::Object_Player) continue;
 
 
 		if (ConfigManager::env_map_render_interval != 0)
@@ -1016,7 +1173,7 @@ void Renderer::toggleShadows(ShadowOption option)
 
 void Renderer::changeResolution(int x, int y)
 {
-	if (ConfigManager::fullscreen_option)
+	if (ConfigManager::fullscreen_option == FullscreenOption::fullscreen)
 	{
 		if (x != 0)
 			ConfigManager::fullscreen_resolution_width = x;
@@ -1030,9 +1187,6 @@ void Renderer::changeResolution(int x, int y)
 		if (y != 0)
 			ConfigManager::windowed_resolution_height = y;
 	}
-	
-
 
 	initFrameBuffer();
 }
-

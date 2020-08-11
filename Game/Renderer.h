@@ -54,6 +54,14 @@ public:
 
 	static void showShadowMap();
 
+	static void DrawCircle(float cx, float cy, float r, int num_segments);
+
+	static void DrawFilledCircle(float cx, float cy, float r, int num_segments);
+
+	static void renderMap();
+
+	static void drawMapOverlay();
+
 	static void renderEnvironmentMap(std::shared_ptr<Object> objectFromView);
 
 	static void renderSkybox(glm::mat4 view, glm::mat4 proj);
@@ -99,16 +107,19 @@ public:
 		if (SDL_GL_GetSwapInterval() == 0)
 		{
 			SDL_GL_SetSwapInterval(1);
+			ConfigManager::v_sync = true;
 		}
 		else
 		{
 			SDL_GL_SetSwapInterval(0);
+			ConfigManager::v_sync = false;
 		}
 	}
 
 	static void toggleVSync(int enable)
 	{
 		SDL_GL_SetSwapInterval(enable);
+		ConfigManager::v_sync = enable;
 	}
 
 	static void toggleShadows(ShadowOption option);
@@ -117,7 +128,7 @@ public:
 
 	static int getResolutionX()
 	{
-		if (ConfigManager::fullscreen_option)
+		if (ConfigManager::fullscreen_option == FullscreenOption::fullscreen)
 			return ConfigManager::fullscreen_resolution_width;
 		else
 			return ConfigManager::windowed_resolution_width;
@@ -125,10 +136,15 @@ public:
 
 	static int getResolutionY()
 	{
-		if (ConfigManager::fullscreen_option)
+		if (ConfigManager::fullscreen_option == FullscreenOption::fullscreen)
 			return ConfigManager::fullscreen_resolution_height;
 		else
 			return ConfigManager::windowed_resolution_height;
+	}
+
+	static int getFrameCount()
+	{
+		return frameCount;
 	}
 
 	static FrameBuffer frameBuffer;

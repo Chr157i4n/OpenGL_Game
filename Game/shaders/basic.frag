@@ -59,6 +59,7 @@ uniform sampler2D u_shadow_map;     //textureslot 2
 uniform samplerCube u_env_map;      //textureslot 3
 
 uniform vec3 u_camerapos;
+uniform vec2 u_textureflow;
 
 uniform int u_showNormalMode;
 uniform int u_isgettingdamaged;
@@ -75,8 +76,8 @@ layout(location = 0) out vec4 f_color;
 float ShadowCalculation(vec3 position_light_space, vec3 normal)
 {
     float shadow = 0.0;
-    float bias = 0.00001;
-    //float bias = max(0.05 * (1.0 - dot(normal, u_directional_light.direction)), 0.005);  
+    //float bias = 0.0002;
+    float bias = max(0.00001 * (1.0 - dot(normal, u_directional_light.direction)), 0.0003);  
 
     if(u_shadow_mode == 0)  //off
     {
@@ -113,15 +114,17 @@ float ShadowCalculation(vec3 position_light_space, vec3 normal)
 
 void main()
 {
+    vec2 tex_coord = v_tex_coord + u_textureflow;
+    
     // Vector from fragment to camera (camera always at 0,0,0)
     vec3 view = normalize(-v_position_view_space);
 
     // Normal from normal map
-    vec3 normal = texture(u_normal_map, v_tex_coord).rgb;
-    normal = normalize(normal * 2.0 - 1.0f);
+    vec3 normaltex = texture(u_normal_map, tex_coord).rgb;
+    vec3 normal = normalize(normaltex * 2.0 - 1.0f);
     normal = normalize(v_tbn * normal);
 
-    vec4 diffuseColor = texture(u_diffuse_map, v_tex_coord);
+    vec4 diffuseColor = texture(u_diffuse_map, tex_coord);
     if(diffuseColor.a < 0.1) {
         discard;
     }
@@ -181,7 +184,7 @@ void main()
     vec3 R = reflect(I, v_normal_world_space);
     //float ratio = 1.00 / 1.52;
     //vec3 R = refract(I, v_normal_world_space, ratio);
-    vec3 normaltex = texture(u_normal_map, v_tex_coord).rgb;
+
     R = R*normaltex;
 
     vec4 envmapcolor = vec4(texture(u_env_map, R).rgb, 1.0);

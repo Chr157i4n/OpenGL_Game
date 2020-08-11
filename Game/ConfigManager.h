@@ -18,9 +18,9 @@ enum ShadowOption {
 };
 
 enum FullscreenOption {
+	fullscreen,
 	windowed,
 	windowed_borderless,
-	fullscreen,
 };
 
 static class ConfigManager

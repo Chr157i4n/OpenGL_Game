@@ -71,7 +71,7 @@ void UI_Element_Dropdown::drawUI_Element()
 void UI_Element_Dropdown::addItem(UI_Element_Dropdown_Item* item)
 {
 	item->ID = items.size();
-	item->labelOffsetX = w / 2 - 5 * item->label.size();		//todo: pixelsize of character are different. calculate the offset correctly
+	item->labelOffsetX = w / 2 - 4 * item->label.size();		//todo: pixelsize of character are different. calculate the offset correctly
 	item->labelOffsetY = h / 2 - 10;
 
 	items.push_back(item);
@@ -108,7 +108,7 @@ bool UI_Element_Dropdown::isMouseOver(float mouseX, float mouseY)
 	return false;
 }
 
-void UI_Element_Dropdown::onMouseClick(float mouseX, float mouseY, SDL_MouseButtonEvent* buttonEvent)
+int UI_Element_Dropdown::onMouseClick(float mouseX, float mouseY, SDL_MouseButtonEvent* buttonEvent)
 {
 	if (mouseX > this->getX() &&
 		mouseX < this->getX() + this->getW() &&
@@ -130,8 +130,10 @@ void UI_Element_Dropdown::onMouseClick(float mouseX, float mouseY, SDL_MouseButt
 					selectedItem->isSelected = false;
 					selectedItem = items[i];
 					selectedItem->isSelected = true;
-					selectedItem->callback();
+					return selectedItem->callback();
 			}
 		}
 	}
+
+	return 0;
 }

@@ -6,18 +6,18 @@
 Menu_Pause::Menu_Pause()
 {
 	UI_Element_Button* pB_resume = new UI_Element_Button(10, 190, 200, 50, 0, "Weiterspielen");
-	pB_resume->setCallback([&] { Game::toggleMenu(); });
+	pB_resume->setCallback([&] { Game::toggleMenu(); return 0; });
 	addMenuElement(pB_resume);
 
 	UI_Element_Button* pB_restart = new UI_Element_Button(10, 130, 200, 50, 0, "Neustart");
-	pB_restart->setCallback([&] { Map::restart(); });
+	pB_restart->setCallback([&] { Map::restart(); return 0; });
 	addMenuElement(pB_restart);
 
 	UI_Element_Button* pB_options = new UI_Element_Button(10, 70, 200, 50, 0, "Optionen");
-	pB_options->setCallback([&] { Game::toggleSubMenu(MenuType::MENU_OPTIONS); });
+	pB_options->setCallback([&] { Game::toggleSubMenu(MenuType::MENU_OPTIONS); return 0; });
 	addMenuElement(pB_options);
 
 	UI_Element_Button* pB_exit = new UI_Element_Button(10, 10, 200, 50, 0, "Beenden");
-	pB_exit->setCallback([&] { Game::quit(); });
+	pB_exit->setCallback([&] { Game::quit(); return 0; });
 	addMenuElement(pB_exit);
 }

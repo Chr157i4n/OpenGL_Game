@@ -269,6 +269,16 @@ public:
 		enabled = enable;
 	}
 
+	void setTextureFlow(glm::vec2 textureFlow)
+	{
+		this->textureFlow = textureFlow;
+	}
+
+	glm::vec2 getTextureFlow()
+	{
+		return this->textureFlow;
+	}
+
 protected:
 
 	glm::vec3 position;						//x, y, z
@@ -294,6 +304,7 @@ protected:
 	bool onOtherObject=false;
 	bool gravity = true;
 	bool enabled = true;
+	glm::vec2 textureFlow = glm::vec2(0, 0);
 
 	std::chrono::system_clock::time_point lastHitTimestamp = std::chrono::system_clock::now() - std::chrono::hours(1);
 

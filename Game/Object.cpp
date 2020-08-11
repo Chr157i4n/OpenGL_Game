@@ -676,6 +676,10 @@ int32 Object::getNumber()
 
 void Object::render()
 {
+	glm::vec2 currentTextureFlowPosition = textureFlow * glm::vec2(Game::getTimeStamp()*0.001, Game::getTimeStamp()*0.001);
+	int textureFlowUniformLocation = GLCALL(glGetUniformLocation(Renderer::getShader(ShaderType::basic)->getShaderId(), "u_textureflow"));
+	GLCALL(glUniform2fv(textureFlowUniformLocation, 1, &currentTextureFlowPosition[0] ));
+
 	this->model->render();
 }
 

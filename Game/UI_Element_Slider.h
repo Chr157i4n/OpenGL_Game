@@ -44,11 +44,11 @@ public:
         return value;
     }
 
-    virtual void onMouseDrag(float mouseX, float mouseY, SDL_MouseButtonEvent* buttonEvent = nullptr);
+    virtual int onMouseDrag(float mouseX, float mouseY, SDL_MouseButtonEvent* buttonEvent = nullptr);
 
-    virtual void increase();
+    virtual int increase();
 
-    virtual void decrease();
+    virtual int decrease();
 
     void setMinValue(float minValue)
     {

@@ -142,29 +142,29 @@ bool UI_Element::isMouseOver(float mouseX, float mouseY)
     return (mouseX > this->getX() && mouseX < this->getX() + this->getW() && Game::getWindowHeight() - mouseY > this->getY() && Game::getWindowHeight() - mouseY < this->getY() + this->getH());
 }
 
-void UI_Element::callCallBack(SDL_MouseButtonEvent* buttonEvent)
+int UI_Element::callCallBack(SDL_MouseButtonEvent* buttonEvent)
 {
-    if (callback == nullptr) return;
+    if (callback == nullptr) return -1;
     //if (buttonEvent->clicks > 1 && singleAction) return;
-    callback();
+    return callback();
 }
 
-void UI_Element::onMouseClick(float mouseX, float mouseY, SDL_MouseButtonEvent* buttonEvent)
+int UI_Element::onMouseClick(float mouseX, float mouseY, SDL_MouseButtonEvent* buttonEvent)
 {
-
+    return 0;
 }
 
-void UI_Element::onMouseDrag(float mouseX, float mouseY, SDL_MouseButtonEvent* buttonEvent)
+int UI_Element::onMouseDrag(float mouseX, float mouseY, SDL_MouseButtonEvent* buttonEvent)
 {
-
+    return 0;
 }
 
-void UI_Element::increase()
+int UI_Element::increase()
 {
-
+    return 0;
 }
 
-void UI_Element::decrease()
+int UI_Element::decrease()
 {
-
+    return 0;
 }
