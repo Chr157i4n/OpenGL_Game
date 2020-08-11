@@ -149,7 +149,7 @@ void NPC::reactToCollision(CollisionResult collisionResult)
 void NPC::calculateNextTarget()
 {
 	std::shared_ptr<Character> nextTarget = nullptr;
-	float nextTargetdistance= std::numeric_limits<float>::max();
+	float nextTargetdistance= (std::numeric_limits<float>::max)();
 
 	for (std::shared_ptr<Character> character : Game::characters)
 	{

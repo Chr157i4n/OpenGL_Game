@@ -1,8 +1,8 @@
 #pragma once
 #include "defines.h"
 
-#include <stdio.h>      /* printf, scanf, puts, NULL */
-#include <stdlib.h>     /* srand, rand */
+#include <stdio.h>
+#include <stdlib.h>
 #include <time.h> 
 #include <iostream>
 #include <fstream>
@@ -53,7 +53,8 @@
 
 //Utilitiy
 #include "StopWatch.h"
-
+#include "LuaManager.h"
+#include "NetworkManager.h"
 
 //#define DEBUG_COLLISION
 //#define DEBUG_OUTOFBOUNDS
@@ -143,10 +144,9 @@ std::unordered_map<Uint8, MouseAction> const mousebindings =
 static class Game
 {
 public:
+	static void init();
 
 	static void startGame();
-
-	static void init();
 
 	static int getWindowWidth();
 
@@ -275,7 +275,8 @@ private:
 
 	static void openConsole();
 
-	static UI_Element_Label * lbl_stopwatch1, * lbl_stopwatch2, * lbl_stopwatch3, * lbl_stopwatch4;
+	static UI_Element_Graph * fpsGraph;
+	static UI_Element_Label * lbl_stopwatch1, * lbl_stopwatch2, * lbl_stopwatch3, * lbl_stopwatch4, * lbl_stopwatch5;
 	static StopWatch stopwatch1;
 
 	static StopWatch gameStopWatch;

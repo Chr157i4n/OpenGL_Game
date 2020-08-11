@@ -381,7 +381,7 @@ size_t ResourceManager::split(const std::string& txt, std::vector<std::string>& 
 	}
 
 	// Add the last one
-	strs.push_back(txt.substr(initialPos, std::min(pos, txt.size()) - initialPos + 1));
+	strs.push_back(txt.substr(initialPos, (std::min)(pos, txt.size()) - initialPos + 1));
 
 	return strs.size();
 }

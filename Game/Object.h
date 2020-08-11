@@ -118,6 +118,8 @@ public:
 
 	void markObject();
 
+	void interact();
+
 	CollisionResult checkCollision();
 
 	bool checkCollision_AABB(std::shared_ptr < Object> object);

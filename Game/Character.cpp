@@ -24,6 +24,18 @@ glm::vec3 Character::getLookOrigin()
 	return lookOrigin;
 }
 
+void Character::interactWithObject()
+{
+	std::shared_ptr<Object> objectPlayerLookingAt = this->getObjectLookingAt();
+	if (objectPlayerLookingAt != nullptr)
+	{
+		if (this->getDistance(objectPlayerLookingAt) < 10)
+		{
+			objectPlayerLookingAt->interact();
+		}
+	}
+}
+
 void Character::resetVerticalMovement()
 {
 	movement = movement * glm::vec3(0, 1, 0);
@@ -116,7 +128,7 @@ std::shared_ptr<Object> Character::getObjectLookingAt()
 	{
 		if (object->getType() & ObjectType::Object_Player) continue;
 		if (object->getType() & ObjectType::Object_Environment) continue;
-
+		if (!object->getEnabled()) continue;
 
 		glm::vec3 rayOrigin = this->getLookOrigin();
 
@@ -129,7 +141,7 @@ std::shared_ptr<Object> Character::getObjectLookingAt()
 	}
 
 	//return the object with the minimum distance
-	float minDistance = std::numeric_limits<float>::max();
+	float minDistance = (std::numeric_limits<float>::max)();
 	float currentDistance = 0;
 	std::shared_ptr<Object> objectMinDistance = nullptr;
 

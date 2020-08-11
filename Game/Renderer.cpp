@@ -616,6 +616,7 @@ void Renderer::renderMap()
 	for (std::shared_ptr<Object> object : Game::objects)
 	{
 		if (object->getType() & ObjectType::Object_Bullet) continue;
+		if (!object->getEnabled()) continue;
 
 		if (!(object->getType() & ObjectType::Object_Character))
 		{
@@ -673,6 +674,15 @@ void Renderer::drawMapOverlay()
 {
 	glViewport((Renderer::getResolutionX() - Renderer::getResolutionY()) / 2, 0, Renderer::getResolutionY(), Renderer::getResolutionY());
 
+	float viewsize = 0.55f;
+	if (Map::getMapSize().x > Map::getMapSize().y)
+	{
+		viewsize *= Map::getMapSize().x;
+	}
+	else {
+		viewsize *= Map::getMapSize().y;
+	}
+
 	for (std::shared_ptr<Object> object : Game::objects)
 	{
 		if (!object->getEnabled()) continue;
@@ -685,12 +695,12 @@ void Renderer::drawMapOverlay()
 			if (object->getType() & ObjectType::Object_Player)
 			{
 				glColor4f(0, 0, 1, 1);
-				DrawFilledCircle(object->getPosition().x / Map::getMapSize().x, -object->getPosition().z / Map::getMapSize().y, 0.01, 10);
+				DrawFilledCircle(object->getPosition().x / viewsize, -object->getPosition().z / viewsize, 0.01, 10);
 			}
 			else if (object->getType() & ObjectType::Object_NPC)
 			{
 				glColor4f(1, 0, 0, 1);
-				DrawFilledCircle(object->getPosition().x / Map::getMapSize().x, -object->getPosition().z / Map::getMapSize().y, 0.01, 10);
+				DrawFilledCircle(object->getPosition().x / viewsize, -object->getPosition().z / viewsize, 0.01, 10);
 			}
 
 			GLCALL(glEnable(GL_CULL_FACE));

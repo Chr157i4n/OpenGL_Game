@@ -18,6 +18,8 @@ public:
 
 	virtual glm::vec3 getLookOrigin();
 
+	virtual void interactWithObject();
+
 	void resetVerticalMovement();
 
 	void moveForward();

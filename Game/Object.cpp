@@ -7,7 +7,7 @@
 #include "Logger.h"
 
 float projectedOverlap(float minA, float maxA, float minB, float maxB) {
-	return std::max(0.0f, std::min(maxA, maxB) - std::max(minA, minB));
+	return (std::max)(0.0f, (std::min)(maxA, maxB) - (std::max)(minA, minB));
 }
 
 
@@ -123,6 +123,11 @@ float Object::getDistance(std::shared_ptr<Object> object)
 void Object::markObject()
 {
 	lastHitTimestamp = std::chrono::system_clock::now();
+}
+
+void Object::interact()
+{
+	this->registerHit();
 }
 
 CollisionResult Object::checkCollision()

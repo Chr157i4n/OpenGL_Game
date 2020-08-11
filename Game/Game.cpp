@@ -43,9 +43,11 @@ Menu* Game::menu_last = menu_Main;
 
 irrklang::ISoundEngine* Game::SoundEngine = irrklang::createIrrKlangDevice();
 
-UI_Element_Label* Game::lbl_stopwatch1, * Game::lbl_stopwatch2, * Game::lbl_stopwatch3, * Game::lbl_stopwatch4;
+UI_Element_Graph* Game::fpsGraph;
+UI_Element_Label* Game::lbl_stopwatch1, * Game::lbl_stopwatch2, * Game::lbl_stopwatch3, * Game::lbl_stopwatch4, * Game::lbl_stopwatch5;
 StopWatch Game::stopwatch1;
 StopWatch Game::gameStopWatch;
+
 
 /// <summary>
 /// this methods starts the game
@@ -60,10 +62,12 @@ void Game::startGame()
 	Game::resetKeys();
 	Renderer::resetFrameCount();
 
+
 	gameStopWatch.start();
 
 	SDL_SetRelativeMouseMode(SDL_TRUE);
 }
+
 
 
 /// <summary>
@@ -74,9 +78,32 @@ void Game::init()
 
 	Renderer::initOpenGL();
 	Renderer::loadShader();
-	
+
+	NetworkManager::init();
+	NetworkManager::deinit();
+
+	LuaManager::testLua();
 
 	UI::init();
+
+	fpsGraph = new UI_Element_Graph(10, getWindowHeight() * 3 / 4, 100, 100, 0, glm::vec4(0, 0, 1, 1), glm::vec4(0.2, 0.2, 0.2, 0.4), true);
+	UI::addElement(fpsGraph);
+
+	lbl_stopwatch1 = new UI_Element_Label(10, 50, 100, 50, "", 0, 1, glm::vec4(1, 1, 1, 1), glm::vec4(0, 0, 0, 0.2), true);
+	UI::addElement(lbl_stopwatch1);
+
+	lbl_stopwatch2 = new UI_Element_Label(10, 70, 100, 50, "", 0, 1, glm::vec4(1, 1, 1, 1), glm::vec4(0, 0, 0, 0.2), true);
+	UI::addElement(lbl_stopwatch2);
+
+	lbl_stopwatch3 = new UI_Element_Label(10, 90, 100, 50, "", 0, 1, glm::vec4(1, 1, 1, 1), glm::vec4(0, 0, 0, 0.2), true);
+	UI::addElement(lbl_stopwatch3);
+
+	lbl_stopwatch4 = new UI_Element_Label(10, 110, 100, 50, "", 0, 1, glm::vec4(1, 1, 1, 1), glm::vec4(0, 0, 0, 0.2), true);
+	UI::addElement(lbl_stopwatch4);
+
+	lbl_stopwatch5 = new UI_Element_Label(10, 130, 100, 50, "", 0, 1, glm::vec4(1, 1, 1, 1), glm::vec4(0, 0, 0, 0.2), true);
+	UI::addElement(lbl_stopwatch5);
+
 
 	Renderer::drawLoadingScreen();
 
@@ -110,20 +137,7 @@ void Game::gameLoop()
 	std::chrono::system_clock::time_point a = std::chrono::system_clock::now();
 	std::chrono::system_clock::time_point b = std::chrono::system_clock::now();
 
-	UI_Element_Graph* fpsGraph = new UI_Element_Graph(10, getWindowHeight() * 3 / 4, 100, 100, 0, glm::vec4(0, 0, 1, 1), glm::vec4(0.2, 0.2, 0.2, 0.4), true);
-	UI::addElement(fpsGraph);
 
-	lbl_stopwatch1 = new UI_Element_Label(10, 50, 100, 50, "", 0, 1, glm::vec4(1, 1, 1, 1), glm::vec4(0, 0, 0, 0.2), true);
-	UI::addElement(lbl_stopwatch1);
-
-	lbl_stopwatch2 = new UI_Element_Label(10, 70, 100, 50, "", 0, 1, glm::vec4(1, 1, 1, 1), glm::vec4(0, 0, 0, 0.2), true);
-	UI::addElement(lbl_stopwatch2);
-
-	lbl_stopwatch3 = new UI_Element_Label(10, 90, 100, 50, "", 0, 1, glm::vec4(1, 1, 1, 1), glm::vec4(0, 0, 0, 0.2), true);
-	UI::addElement(lbl_stopwatch3);
-
-	lbl_stopwatch4 = new UI_Element_Label(10, 110, 100, 50, "", 0, 1, glm::vec4(1, 1, 1, 1), glm::vec4(0, 0, 0, 0.2), true);
-	UI::addElement(lbl_stopwatch4);
 
 	while (!close)
 	{
@@ -201,14 +215,14 @@ void Game::gameLoop()
 
 			deleteObjects();
 
-			if (npcs.size() <= 0 && gameState == GameState::GAME_ACTIVE)
+			if (npcs.size() <= 0 && gameState == GameState::GAME_ACTIVE) //todo npcs get disabled
 			{
 				UI_Element* victoryLabel = new UI_Element_Label(getWindowWidth() / 2 - 100, getWindowHeight() / 2, 10, 10, "Du hast alle Bots besiegt", 1000, 1, glm::vec4(0, 0, 1, 1), glm::vec4(0.2, 0.2, 0.2, 0.4), false);
 				UI::addElement(victoryLabel);
 				gameState = GameState::GAME_GAME_OVER;
 			}
 
-			
+			stopwatch1.start();
 			//testing - Raypicking
 			std::shared_ptr<Object> objectPlayerLookingAt = players[0]->getObjectLookingAt();
 			if (objectPlayerLookingAt != nullptr)
@@ -218,6 +232,8 @@ void Game::gameLoop()
 					objectPlayerLookingAt->markObject();
 				}
 			}
+			double stopwatch5duration = stopwatch1.stop();
+			lbl_stopwatch5->setText("Raypicking: " + std::to_string(stopwatch5duration));
 
 		}
 		
@@ -550,7 +566,7 @@ void Game::keyPressed(SDL_Keycode key)
 				switch (action)
 				{
 					case PlayerAction::interact:
-						// todo
+						players[0]->interactWithObject();
 						break;
 					case PlayerAction::toggleFlashlight:
 						players[0]->toggleFlashlight();
