@@ -1,5 +1,6 @@
 #include "NetworkManager.h"
 
+#include "ConfigManager.h"
 
 ENetAddress								NetworkManager::address;
 ENetHost*								NetworkManager::server;
@@ -15,7 +16,7 @@ void NetworkManager::init()
 
 	address.host = ENET_HOST_ANY;
 	/* Bind the server to port 1234. */
-	address.port = 1234;
+	address.port = ConfigManager::server_port;
 
 	server = enet_host_create(&address,32,2,0,0);
 	if (server == NULL)
@@ -65,8 +66,7 @@ void NetworkManager::waitForEvent()
         {
         case ENET_EVENT_TYPE_CONNECT:
 		{
-			Logger::log("A new client connected from" + std::to_string(event.peer->address.host) + ":" + std::to_string(event.peer->address.port));
-
+			Logger::log("A new client connected from " + std::to_string(event.peer->address.host) + ":" + std::to_string(event.peer->address.port));
 			initClient(event);
 			break;
 		}
@@ -81,15 +81,7 @@ void NetworkManager::waitForEvent()
 		}
         case ENET_EVENT_TYPE_DISCONNECT:
             Logger::log("disconnect");
-			for (std::shared_ptr<Client> client : clients)
-			{
-				if (client->peerclient->address.host == event.peer->address.host)
-				{
-					auto it = std::find(clients.begin(), clients.end(), client);
-					if (it != clients.end()) { clients.erase(it); }
-					break;
-				}
-			}
+			deinitClient(event);
         }
     }
 }
@@ -113,34 +105,16 @@ void NetworkManager::broadcastData(std::string data)
 	}
 }
 
-void NetworkManager::broadcastClientPosition()
+void NetworkManager::broadcastClientPosition(std::shared_ptr<Client> client)
 {
-	for (std::shared_ptr<Client> client : clients)
-	{
-		std::string data;
+	//Logger::log("Broadcasting position of client: " + getClientID(client));
+	broadcastData("p|" + getClientID(client) + "|" + glmVec3_to_string(client->position));
+}
 
-		data = "p|";
-		if (client->clientID < 10) data += "0";
-		data += std::to_string(client->clientID) + "|";
-		data += std::to_string(client->position.x) + ";";
-		data += std::to_string(client->position.y) + ";";
-		data += std::to_string(client->position.z);
-
-		Logger::log(data);
-
-		broadcastData(data);
-
-		data = "r|";
-		if (client->clientID < 10) data += "0";
-		data += std::to_string(client->clientID) + "|";
-		data += std::to_string(client->rotation.x) + ";";
-		data += std::to_string(client->rotation.y) + ";";
-		data += std::to_string(client->rotation.z);
-
-		Logger::log(data);
-
-		broadcastData(data);
-	}
+void NetworkManager::broadcastClientRotation(std::shared_ptr<Client> client)
+{
+	//Logger::log("Broadcasting rotation of client: " + getClientID(client));
+	broadcastData("r|" + getClientID(client) + "|" + glmVec3_to_string(client->rotation));
 }
 
 void NetworkManager::initClient(ENetEvent event)
@@ -159,20 +133,44 @@ void NetworkManager::initClient(ENetEvent event)
 	clients.push_back(newClient);
 	Logger::log("new Client got id assigned: "+std::to_string(newClient->clientID));
 
-	std::string message = "i|";
-	if (newClient->clientID < 10) message += "0";
-	message += std::to_string(newClient->clientID) + "|0";
-	sendData(newClient, message);
-	sendData(newClient, "m|00|level_farm");
+	std::string data = "i|" + getClientID(newClient) + "|0";
+	Logger::log(data);
+	sendData(newClient, data);
+	
+	data = "m|00|"+ConfigManager::level;
+	Logger::log(data);
+	sendData(newClient, data);
+
+	data = "n|" + getClientID(newClient) + "|0";
+	Logger::log(data);
+	for (std::shared_ptr<Client> client : clients)
+	{
+		broadcastData(data);
+	}
 
 	for (std::shared_ptr<Client> client : clients)
 	{
-		message = "n|";
-		if (client->clientID < 10) message += "0";
-		message += std::to_string(client->clientID) + "|0";
-		broadcastData(message);
+		broadcastClientPosition(client);
+		broadcastClientRotation(client);
 	}
+}
 
+void NetworkManager::deinitClient(ENetEvent event)
+{
+	std::shared_ptr<Client> client_ptr;
+
+	for (std::shared_ptr<Client> client : clients)
+	{
+		if (client->peerclient->address.host == event.peer->address.host)
+		{
+			auto it = std::find(clients.begin(), clients.end(), client);
+			if (it != clients.end()) { clients.erase(it); }
+
+			Logger::log("broadcasting: d|" + getClientID(client) + "|0");
+			broadcastData("d|" + getClientID(client) + "|0");
+			break;
+		}
+	}
 }
 
 void NetworkManager::parseData(ENetPeer* peerclient, std::string data)
@@ -192,24 +190,41 @@ void NetworkManager::parseData(ENetPeer* peerclient, std::string data)
 			break;
 		}
 	}
+	if (currentClient == nullptr) return;
 
 	switch (command)
 	{
 		case 'p':
 		{
-			std::vector<std::string> params;
-			split(param_string, params, ';');
-			currentClient->position = glm::vec3(std::stof(params[0]), std::stof(params[1]), std::stof(params[2]));
+			currentClient->position = NetworkManager::string_to_glmVec3(param_string);
+			broadcastClientPosition(currentClient);
 			break;
 		}
 		case 'r':
 		{
-			std::vector<std::string> params;
-			split(param_string, params, ';');
-			currentClient->rotation = glm::vec3(std::stof(params[0]), std::stof(params[1]), std::stof(params[2]));
+			currentClient->rotation = NetworkManager::string_to_glmVec3(param_string);
+			broadcastClientRotation(currentClient);
 			break;
 		}
 	}
+}
+
+
+std::string NetworkManager::glmVec3_to_string(glm::vec3 vector)
+{
+	std::string data = "";
+	data += std::to_string(vector.x) + ";";
+	data += std::to_string(vector.y) + ";";
+	data += std::to_string(vector.z);
+
+	return data;
+}
+
+glm::vec3 NetworkManager::string_to_glmVec3(std::string string)
+{
+	std::vector<std::string> params;
+	split(string, params, ';');
+	return glm::vec3(std::stof(params[0]), std::stof(params[1]), std::stof(params[2]));
 }
 
 size_t NetworkManager::split(const std::string& txt, std::vector<std::string>& strs, char ch)

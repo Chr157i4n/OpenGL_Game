@@ -1,6 +1,8 @@
 #pragma once
 
+#include "libs/glm/glm.hpp"
 #include <enet/enet.h>
+
 #include <string>
 #include <vector>
 
@@ -15,9 +17,16 @@ public:
 
 	static void disconnect();
 
+	static void sendData(char command, std::string data);
+
 	static void sendData(std::string data);
 
 	static void readData(int timeout_ms = 0);
+
+	static void sendPlayerPosition();
+
+	static void sendPlayerRotation();
+
 
 	static bool getIsConnected()
 	{
@@ -25,8 +34,6 @@ public:
 	}
 
 	static void parseData(std::string data);
-
-	static size_t split(const std::string& txt, std::vector<std::string>& strs, char ch);
 
 	static std::string getClientID()
 	{
@@ -38,7 +45,15 @@ public:
 		return answer;
 	}
 
+
+
 private:
+	static std::string glmVec3_to_string(glm::vec3 vector);
+
+	static glm::vec3 string_to_glmVec3(std::string string);
+
+	static size_t split(const std::string& txt, std::vector<std::string>& strs, char ch);
+
 	static ENetAddress address;
 	static ENetHost* client;
 	static ENetPeer* peer;

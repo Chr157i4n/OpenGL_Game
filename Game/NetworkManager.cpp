@@ -70,7 +70,7 @@ void NetworkManager::disconnect()
 		ENetEvent event;
 
 		enet_peer_disconnect(peer, 0);
-		while (enet_host_service(client, &event, 3000) > 0)
+		while (enet_host_service(client, &event, 1000) > 0)
 		{
 			switch (event.type)
 			{
@@ -84,6 +84,21 @@ void NetworkManager::disconnect()
 			}
 		}
 	}
+}
+
+void NetworkManager::sendData(char command, std::string data)
+{
+	if (!isConnected) return;
+
+	std::string message = "";
+	message += command;
+	message += "|" + NetworkManager::getClientID() + "|" + data;
+
+	ENetPacket* packet = enet_packet_create(message.c_str(), strlen(message.c_str()) + 1, ENET_PACKET_FLAG_RELIABLE);
+
+	enet_peer_send(peer, 0, packet);
+
+	enet_host_flush(client);
 }
 
 void NetworkManager::sendData(std::string data)
@@ -130,6 +145,16 @@ void NetworkManager::readData(int timeout_ms)
 	}
 }
 
+void NetworkManager::sendPlayerPosition()
+{
+	NetworkManager::sendData('p', NetworkManager::glmVec3_to_string(Game::players[0]->getPosition()));
+}
+
+void NetworkManager::sendPlayerRotation()
+{
+	NetworkManager::sendData('r', NetworkManager::glmVec3_to_string(Game::players[0]->getRotation()));
+}
+
 void NetworkManager::parseData(std::string data)
 {
 	if (data.length() <= 0) return;
@@ -152,6 +177,8 @@ void NetworkManager::parseData(std::string data)
 			Logger::log("Server send current Map: "+param_string);
 			Map::load(param_string);
 			Game::startGame();
+			sendPlayerPosition();
+			sendPlayerRotation();
 			break;
 		}
 		case 'n':
@@ -162,7 +189,25 @@ void NetworkManager::parseData(std::string data)
 			newCharacter->setClientID(clientId_m);
 			Game::clients.push_back(newCharacter);
 			Game::objects.push_back(newCharacter);
-			Renderer::initFrameBuffer();
+			//Renderer::initFrameBuffer();
+			break;
+		}
+		case 'd':
+		{
+			if (clientId_m == NetworkManager::clientID) break;
+			Logger::log("client diconnected from server: " + std::to_string(clientId_m));
+			for (std::shared_ptr<Character> client : Game::clients)
+			{
+				if (client->getClientID() == clientId_m)
+				{
+					auto it = std::find(Game::clients.begin(), Game::clients.end(), client);
+					if (it != Game::clients.end()) { Game::clients.erase(it); }
+
+					auto it1 = std::find(Game::objects.begin(), Game::objects.end(), client);
+					if (it1 != Game::objects.end()) { Game::objects.erase(it1); }
+					break;
+				}
+			}
 			break;
 		}
 		case 'p':
@@ -198,6 +243,24 @@ void NetworkManager::parseData(std::string data)
 			break;
 		}
 	}
+}
+
+
+std::string NetworkManager::glmVec3_to_string(glm::vec3 vector)
+{
+	std::string data = "";
+	data += std::to_string(vector.x) + ";";
+	data += std::to_string(vector.y) + ";";
+	data += std::to_string(vector.z);
+
+	return data;
+}
+
+glm::vec3 NetworkManager::string_to_glmVec3(std::string string)
+{
+	std::vector<std::string> params;
+	split(string, params, ';');
+	return glm::vec3(std::stof(params[0]), std::stof(params[1]), std::stof(params[2]));
 }
 
 size_t NetworkManager::split(const std::string& txt, std::vector<std::string>& strs, char ch)

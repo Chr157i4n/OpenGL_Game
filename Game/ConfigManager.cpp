@@ -16,7 +16,7 @@ float				ConfigManager::mouse_sensitivity = 0.2;
 int					ConfigManager::max_bullets = 20;
 //[Network]
 std::string			ConfigManager::server_address="127.0.0.1";
-int					ConfigManager::server_port=1234;
+int					ConfigManager::server_port= 12975;
 //[Audio]
 float				ConfigManager::master_volume = 0.5;
 float				ConfigManager::music_volume = 0.5;

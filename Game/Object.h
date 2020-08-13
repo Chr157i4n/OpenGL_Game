@@ -236,7 +236,7 @@ public:
 		envCubeMap = newEnvCubeMap;
 	}
 
-	unsigned int getEnvCubeMap()
+	int getEnvCubeMap()
 	{
 		return envCubeMap;
 	}
@@ -246,7 +246,7 @@ public:
 		envCubeMapFrameBuffer = newEnvCubeMapFrameBuffer;
 	}
 
-	unsigned int getEnvCubeMapFrameBuffer()
+	int getEnvCubeMapFrameBuffer()
 	{
 		return envCubeMapFrameBuffer;
 	}
@@ -315,6 +315,6 @@ protected:
 
 	std::chrono::system_clock::time_point lastHitTimestamp = std::chrono::system_clock::now() - std::chrono::hours(1);
 
-	unsigned int envCubeMap, envCubeMapFrameBuffer;
+	int envCubeMap=-1, envCubeMapFrameBuffer=-1;
 };
 

@@ -292,6 +292,8 @@ void Renderer::initFrameBuffer()
 	shadowMapBuffer.destroy();
 	for (std::shared_ptr<Object> object : Game::objects)
 	{
+		if (object->getType() & ObjectType::Object_Character) continue;
+
 		unsigned int textureid = object->getEnvCubeMap();
 		glDeleteTextures(1, &textureid);
 		unsigned int framebufferid = object->getEnvCubeMapFrameBuffer();
@@ -300,9 +302,9 @@ void Renderer::initFrameBuffer()
 	//envMapBuffer.destroy();
 
 	//create them new
-
 	for (std::shared_ptr<Object> object : Game::objects)
 	{
+		if (object->getType() & ObjectType::Object_Character) continue;
 
 		unsigned int  framebuffer, depthbuffer;
 
@@ -713,7 +715,8 @@ void Renderer::drawMapOverlay()
 
 void Renderer::renderEnvironmentMap(std::shared_ptr<Object> objectFromView)
 {
-	if (objectFromView->getType() == ObjectType::Object_Bullet) return;
+	if (objectFromView->getType() & ObjectType::Object_Bullet) return;
+	if (objectFromView->getType() & ObjectType::Object_Character) return;
 
 	std::vector<glm::mat4> views;
 	glm::mat4 view, proj;
@@ -725,7 +728,7 @@ void Renderer::renderEnvironmentMap(std::shared_ptr<Object> objectFromView)
 
 	glViewport(0, 0, ConfigManager::env_map_resolution, ConfigManager::env_map_resolution);
 
-	if (objectFromView->getEnvCubeMapFrameBuffer() <= 0)
+	if (objectFromView->getEnvCubeMapFrameBuffer() < 0)
 	{
 		initFrameBuffer();
 	}
@@ -932,7 +935,7 @@ void Renderer::renderObjects(bool transparent)
 		glViewport(0, 0, Renderer::getResolutionX(), Renderer::getResolutionY()); //render in the desired resolution
 
 		GLCALL(glActiveTexture(GL_TEXTURE3));
-		if (object->getEnvCubeMap() >= 0)
+		if (object->getEnvCubeMap() >= 0 && !(object->getType() & ObjectType::Object_Character))
 		{
 			GLCALL(glBindTexture(GL_TEXTURE_CUBE_MAP, object->getEnvCubeMap()));
 		}

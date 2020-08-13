@@ -42,10 +42,14 @@ public:
 
 	void spawn(glm::vec3 position = glm::vec3(20,0,0), glm::vec3 lookAt = glm::vec3(1,0,0));
 
+	void move();
+
 private:
 
 	bool flashlightActive = false;
 	UI_Element_ProgressBar* healthBar;
+
+	glm::vec3 cameraOffset = glm::vec3(0, 2.8, 0);
 	
 
 

@@ -9,6 +9,7 @@ Character::Character(Shader* shader) : Object(shader, "character.bmf")
 	lookDirection = glm::vec3(1.0f, 0.0f, 0.0f);
 	up = glm::vec3(0.0f, 1.0f, 0.0f);
 	this->name = "Character";
+	this->setType(ObjectType::Object_Character);
 	this->setCollisionBoxType(CollisionBoxType::cube);
 }
 

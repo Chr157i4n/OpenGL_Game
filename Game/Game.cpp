@@ -159,20 +159,6 @@ void Game::gameLoop()
 		if (gameState == GameState::GAME_ACTIVE)
 		{
 			
-			std::string playerposition = "p|";
-			playerposition += NetworkManager::getClientID() + "|";
-			playerposition += std::to_string(players[0]->getPosition().x) + ";";
-			playerposition += std::to_string(players[0]->getPosition().y) + ";";
-			playerposition += std::to_string(players[0]->getPosition().z);
-			NetworkManager::sendData(playerposition);
-
-			std::string playerrotation = "r|";
-			playerrotation += NetworkManager::getClientID() + "|";
-			playerrotation += std::to_string(players[0]->getRotation().x) + ";";
-			playerrotation += std::to_string(players[0]->getRotation().y) + ";";
-			playerrotation += std::to_string(players[0]->getRotation().z);
-			NetworkManager::sendData(playerrotation);
-
 		}
 		double stopwatch6duration = stopwatch1.stop();
 		lbl_stopwatch6->setText("Network: " + std::to_string(stopwatch6duration));
@@ -453,6 +439,7 @@ void Game::processInput()
 				if (SDL_GetRelativeMouseMode()) {
 					players[0]->onMouseMove(event.motion.xrel, event.motion.yrel);
 					AudioManager::updateAudioListener();
+					NetworkManager::sendPlayerRotation();
 				}
 			}
 			else if (gameState == GameState::GAME_MENU)

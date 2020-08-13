@@ -1,7 +1,11 @@
 #include "Logger.h"
-#include "NetworkManager.h"
 #include <chrono>
 #include <thread>
+
+#include "NetworkManager.h"
+#include "ConfigManager.h"
+
+#include "StopWatch.h"
 
 void sleep(int ms)
 {
@@ -12,16 +16,24 @@ void sleep(int ms)
 
 int main()
 {
+    StopWatch frametimeStopWatch;
+
     NetworkManager::init();
 
     bool close=false;
 
     while (!close)
     {
+        frametimeStopWatch.start();
         NetworkManager::waitForEvent();
 
-        NetworkManager::broadcastClientPosition();
+        float64 frametime = frametimeStopWatch.stop();
 
-        sleep(10);
+        if (frametime < 1000 / ConfigManager::fps_limit_server && ConfigManager::fps_limit_server != 0)
+        {
+            sleep(1000 / ConfigManager::fps_limit_server - frametime);
+        }
+
+        
     }
 }

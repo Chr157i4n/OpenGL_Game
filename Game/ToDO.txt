@@ -5,7 +5,10 @@
 - main menu background in options menu?
 - jump-climb walls should not be possible
 
-- rotation is wrong
+- env map problem with rock
+
+- Netcode optimisation 
+	- dont broadcast to the sender of the data
 
 - ambient sounds
 

@@ -31,15 +31,33 @@ public:
 
 	static void broadcastData(std::string data);
 
-	static void broadcastClientPosition();
+	static void broadcastClientPosition(std::shared_ptr<Client> client);
+
+	static void broadcastClientRotation(std::shared_ptr<Client> client);
 
 	static void initClient(ENetEvent event);
 
+	static void deinitClient(ENetEvent event);
+
 	static void parseData(ENetPeer* peerclient, std::string data);
+
+	static std::string getClientID(std::shared_ptr<Client> client)
+	{
+		std::string answer = "";
+
+		if (client->clientID < 10) answer += "0";
+
+		answer += std::to_string(client->clientID);
+		return answer;
+	}
+
+private:
+	static std::string glmVec3_to_string(glm::vec3 vector);
+
+	static glm::vec3 string_to_glmVec3(std::string);
 
 	static size_t split(const std::string& txt, std::vector<std::string>& strs, char ch);
 
-private:
 	static ENetAddress address;
 	static ENetHost* server;
 	static std::vector<std::shared_ptr<Client>> clients;

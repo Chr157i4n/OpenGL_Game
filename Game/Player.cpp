@@ -13,9 +13,7 @@ Player::Player(Shader* shader, float fov, float width, float height) : Character
 	position.y = 0;
 	position.z = 0;
 
-	cameraposition.x = position.x;
-	cameraposition.y = position.y + 4;
-	cameraposition.z = position.z;
+	cameraposition = position + cameraOffset;
 
 	this->name = "Player";
 
@@ -45,10 +43,10 @@ void Player::updateCameraPosition()
 
 	if (isCrouched)
 	{
-		cameraposition.y = position.y + 2;
+		cameraposition.y = position.y + cameraOffset.y * 0.6;
 	}
 	else {
-		cameraposition.y = position.y + 4;
+		cameraposition.y = position.y + cameraOffset.y * 1;
 	}
 
 	update();
@@ -163,4 +161,14 @@ void Player::spawn(glm::vec3 position, glm::vec3 lookAt)
 	this->health = 100;
 
 	this->setEnabled(true);
+}
+
+void Player::move()
+{
+	this->Object::move();
+
+	if (movement != glm::vec3(0, 0, 0))
+	{
+		NetworkManager::sendPlayerPosition();
+	}
 }
