@@ -86,13 +86,15 @@ void NetworkManager::disconnect()
 	}
 }
 
-void NetworkManager::sendData(char command, std::string data)
+void NetworkManager::sendData(NetworkCommand command, std::string data)
 {
 	if (!isConnected) return;
 
 	std::string message = "";
-	message += command;
-	message += "|" + NetworkManager::getClientID() + "|" + data;
+	int commandI = (int)command;
+	if (commandI < 10) message += "0";
+	message += std::to_string(commandI) + "|";
+	message += NetworkManager::getClientID() + "|" + data;
 
 	ENetPacket* packet = enet_packet_create(message.c_str(), strlen(message.c_str()) + 1, ENET_PACKET_FLAG_RELIABLE);
 
@@ -147,41 +149,41 @@ void NetworkManager::readData(int timeout_ms)
 
 void NetworkManager::sendPlayerPosition()
 {
-	NetworkManager::sendData('p', NetworkManager::glmVec3_to_string(Game::players[0]->getPosition()));
+	NetworkManager::sendData(NetworkCommand::change_position, NetworkManager::glmVec3_to_string(Game::players[0]->getPosition()));
 }
 
 void NetworkManager::sendPlayerRotation()
 {
-	NetworkManager::sendData('r', NetworkManager::glmVec3_to_string(Game::players[0]->getRotation()));
+	NetworkManager::sendData(NetworkCommand::change_rotation, NetworkManager::glmVec3_to_string(Game::players[0]->getRotation()));
 }
 
 void NetworkManager::parseData(std::string data)
 {
 	if (data.length() <= 0) return;
 
-	char command = data[0];
-	int clientId_m = std::stoi(data.substr(2,2));
-	std::string param_string = data.substr(5);
+	NetworkCommand command = (NetworkCommand)std::stoi(data.substr(0, 2));
+	int clientId_m = std::stoi(data.substr(3,2));
+	std::string param_string = data.substr(6);
 	
 
 	switch (command)
 	{
-		case 'i':
+	case NetworkCommand::change_id:
 		{
 			Logger::log("this client has id: "+std::to_string(clientId_m));
 			NetworkManager::clientID = clientId_m;
 			break;
 		}
-		case 'm':
+	case NetworkCommand::change_map:
 		{
-			Logger::log("Server send current Map: "+param_string);
+			Logger::log("Server changes map: "+param_string);
 			Map::load(param_string);
 			Game::startGame();
 			sendPlayerPosition();
 			sendPlayerRotation();
 			break;
 		}
-		case 'n':
+	case NetworkCommand::player_connected:
 		{
 			if (clientId_m == NetworkManager::clientID) break;
 			Logger::log("new client connected to server, id: " + std::to_string(clientId_m));
@@ -192,7 +194,7 @@ void NetworkManager::parseData(std::string data)
 			//Renderer::initFrameBuffer();
 			break;
 		}
-		case 'd':
+	case NetworkCommand::player_disconnected:
 		{
 			if (clientId_m == NetworkManager::clientID) break;
 			Logger::log("client diconnected from server: " + std::to_string(clientId_m));
@@ -210,7 +212,7 @@ void NetworkManager::parseData(std::string data)
 			}
 			break;
 		}
-		case 'p':
+	case NetworkCommand::change_position:
 		{
 			if (clientId_m == NetworkManager::clientID) break;
 			//Logger::log("update Client position, id: " + std::to_string(clientId_m));
@@ -219,14 +221,14 @@ void NetworkManager::parseData(std::string data)
 				if (client->getClientID() == clientId_m)
 				{
 					std::vector<std::string> params;
-					split(param_string, params, ';');
+					Helper::split(param_string, params, ';');
 					client->setPosition(glm::vec3(std::stof(params[0]), std::stof(params[1]), std::stof(params[2])));
 					break;
 				}
 			}
 			break;
 		}
-		case 'r':
+	case NetworkCommand::change_rotation:
 		{
 			if (clientId_m == NetworkManager::clientID) break;
 			//Logger::log("update Client rotation, id: " + std::to_string(clientId_m));
@@ -235,7 +237,7 @@ void NetworkManager::parseData(std::string data)
 				if (client->getClientID() == clientId_m)
 				{
 					std::vector<std::string> params;
-					split(param_string, params, ';');
+					Helper::split(param_string, params, ';');
 					client->setRotation(glm::vec3(std::stof(params[0]), std::stof(params[1]), std::stof(params[2])));
 					break;
 				}
@@ -259,26 +261,6 @@ std::string NetworkManager::glmVec3_to_string(glm::vec3 vector)
 glm::vec3 NetworkManager::string_to_glmVec3(std::string string)
 {
 	std::vector<std::string> params;
-	split(string, params, ';');
+	Helper::split(string, params, ';');
 	return glm::vec3(std::stof(params[0]), std::stof(params[1]), std::stof(params[2]));
-}
-
-size_t NetworkManager::split(const std::string& txt, std::vector<std::string>& strs, char ch)
-{
-	size_t pos = txt.find(ch);
-	size_t initialPos = 0;
-	strs.clear();
-
-	// Decompose statement
-	while (pos != std::string::npos) {
-		strs.push_back(txt.substr(initialPos, pos - initialPos));
-		initialPos = pos + 1;
-
-		pos = txt.find(ch, initialPos);
-	}
-
-	// Add the last one
-	strs.push_back(txt.substr(initialPos, (std::min)(pos, txt.size()) - initialPos + 1));
-
-	return strs.size();
 }

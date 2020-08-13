@@ -6,6 +6,19 @@
 #include <string>
 #include <vector>
 
+#include "Helper.h"
+#include "Logger.h"
+
+enum NetworkCommand {
+	change_position,
+	change_rotation,
+	change_id,
+	change_map,
+	player_connected,
+	player_disconnected
+};
+
+
 class NetworkManager
 {
 public:
@@ -17,7 +30,7 @@ public:
 
 	static void disconnect();
 
-	static void sendData(char command, std::string data);
+	static void sendData(NetworkCommand command, std::string data);
 
 	static void sendData(std::string data);
 
@@ -52,7 +65,6 @@ private:
 
 	static glm::vec3 string_to_glmVec3(std::string string);
 
-	static size_t split(const std::string& txt, std::vector<std::string>& strs, char ch);
 
 	static ENetAddress address;
 	static ENetHost* client;

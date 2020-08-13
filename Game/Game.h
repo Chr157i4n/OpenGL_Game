@@ -54,6 +54,7 @@
 #include "LuaManager.h"
 #include "NetworkManager.h"
 #include "AudioManager.h"
+#include "Helper.h"
 
 //#define DEBUG_COLLISION
 //#define DEBUG_OUTOFBOUNDS
@@ -275,6 +276,7 @@ private:
 
 	static UI_Element_Graph * fpsGraph;
 	static UI_Element_Label * lbl_stopwatch1, * lbl_stopwatch2, * lbl_stopwatch3, * lbl_stopwatch4, * lbl_stopwatch5, * lbl_stopwatch6;
+	static UI_Element_Label* lbl_ObjectCount;
 	static StopWatch stopwatch1;
 
 	static StopWatch gameStopWatch;

@@ -44,6 +44,7 @@ Menu* Game::menu_last = menu_Main;
 
 UI_Element_Graph* Game::fpsGraph;
 UI_Element_Label* Game::lbl_stopwatch1, * Game::lbl_stopwatch2, * Game::lbl_stopwatch3, * Game::lbl_stopwatch4, * Game::lbl_stopwatch5, * Game::lbl_stopwatch6;
+UI_Element_Label* Game::lbl_ObjectCount;
 StopWatch Game::stopwatch1;
 StopWatch Game::gameStopWatch;
 
@@ -104,6 +105,9 @@ void Game::init()
 	lbl_stopwatch6 = new UI_Element_Label(10, 200, 100, 50, "", 0, 1, glm::vec4(1, 1, 1, 1), glm::vec4(0, 0, 0, 0.2), true);
 	UI::addElement(lbl_stopwatch6);
 
+	lbl_ObjectCount = new UI_Element_Label(10, 230, 100, 50, "", 0, 1, glm::vec4(1, 1, 1, 1), glm::vec4(0, 0, 0, 0.2), true);
+	UI::addElement(lbl_ObjectCount);
+
 
 	Renderer::drawLoadingScreen();
 
@@ -163,6 +167,7 @@ void Game::gameLoop()
 		double stopwatch6duration = stopwatch1.stop();
 		lbl_stopwatch6->setText("Network: " + std::to_string(stopwatch6duration));
 
+		lbl_ObjectCount->setText("Objects: " + std::to_string(Game::objects.size()));
 
 		stopwatch1.start();
 		processInput();
@@ -890,20 +895,34 @@ void Game::openConsole()
 {
 	std::string enteredText = "";
 
-	std::cin >> enteredText;
+	std::getline(std::cin, enteredText);
 
-	if (enteredText[0] == 'x')
+	std::vector<std::string> params;
+	Helper::split(enteredText, params, ' ');
+
+	if (params[0] == "x")
 	{
-		players[0]->setPosition(glm::vec3(std::stof(enteredText.substr(1)), players[0]->getPosition().y, players[0]->getPosition().z));
+		players[0]->setPosition(glm::vec3(std::stof(params[1]), players[0]->getPosition().y, players[0]->getPosition().z));
 	}
-	if (enteredText[0] == 'y')
+	else if (params[0] == "y")
 	{
-		players[0]->setPosition(glm::vec3(players[0]->getPosition().x, std::stof(enteredText.substr(1)), players[0]->getPosition().z));
+		players[0]->setPosition(glm::vec3(players[0]->getPosition().x, std::stof(params[1]), players[0]->getPosition().z));
 	}
-	if (enteredText[0] == 'z')
+	else if (params[0] == "z")
 	{
-		players[0]->setPosition(glm::vec3(players[0]->getPosition().x, players[0]->getPosition().y, std::stof(enteredText.substr(1))));
+		players[0]->setPosition(glm::vec3(players[0]->getPosition().x, players[0]->getPosition().y, std::stof(params[1])));
 	}
+	else if (params[0] == "xyz")
+	{
+		players[0]->setPosition(glm::vec3(std::stof(params[1]), std::stof(params[2]), std::stof(params[3])));
+	}
+	else if (params[0] == "map")
+	{
+		std::string message = params[1];
+		Helper::eraseSubStr(message, "^");
+		NetworkManager::sendData(NetworkCommand::change_map, message);
+	}
+
 }
 
 void Game::changeSize(int w, int h)

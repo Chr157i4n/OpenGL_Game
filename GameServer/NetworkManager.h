@@ -9,6 +9,15 @@
 #include "Logger.h"
 #include <enet/enet.h>
 
+enum NetworkCommand {
+	change_position,
+	change_rotation,
+	change_id,
+	change_map,
+	player_connected,
+	player_disconnected
+};
+
 struct Client {
 	ENetPeer* peerclient;
 	int clientID;
@@ -29,7 +38,11 @@ public:
 
 	static void sendData(std::shared_ptr<Client> client, std::string data);
 
+	static void sendData(std::shared_ptr<Client> client, NetworkCommand command, std::string data);
+
 	static void broadcastData(std::string data);
+
+	static void broadcastData(NetworkCommand command, std::string data);
 
 	static void broadcastClientPosition(std::shared_ptr<Client> client);
 
