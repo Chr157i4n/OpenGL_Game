@@ -40,14 +40,20 @@ public:
 
 	//SETTINGS
 	//[General]
+	static std::string player_name;
 	static std::string level;
 	static int bots;
 	static float bot_speed_mult;
 	static bool show_debug_console;
 	static float mouse_sensitivity;
-	static float music_volume;
 	static int max_bullets;
-
+	//[Network]
+	static std::string server_address;
+	static int server_port;
+	//[Audio]
+	static float master_volume;
+	static float music_volume;
+	static float effect_volume;
 	//[Renderer]
 	static int fullscreen_resolution_width;
 	static int fullscreen_resolution_height;

@@ -17,8 +17,6 @@
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
 
-#include <irrKlang.h>
-
 #include "libs/glm/glm.hpp"
 #include "libs/glm/ext/matrix_transform.hpp"
 #include "libs/glm/gtc/matrix_transform.hpp"
@@ -55,6 +53,7 @@
 #include "StopWatch.h"
 #include "LuaManager.h"
 #include "NetworkManager.h"
+#include "AudioManager.h"
 
 //#define DEBUG_COLLISION
 //#define DEBUG_OUTOFBOUNDS
@@ -148,6 +147,8 @@ public:
 
 	static void startGame();
 
+	static void initMultiplayer();
+
 	static int getWindowWidth();
 
 	static int getWindowHeight();
@@ -223,12 +224,11 @@ public:
 	static std::vector< std::shared_ptr<Object> > objects;
 	static std::vector< std::shared_ptr<Character> > characters;
 	static std::vector< std::shared_ptr<Player> > players;
+	static std::vector< std::shared_ptr<Character> > clients;
 	static std::vector< std::shared_ptr<NPC> > npcs;
 	static std::vector< std::shared_ptr<Bullet> > bullets;
 
 	static SDL_Window* window;
-
-	static irrklang::ISoundEngine* SoundEngine;
 
 	static bool pressedKeys[40];
 	static bool pressedMouseButtons[6];
@@ -271,12 +271,10 @@ private:
 
 	static void deleteObjects();
 
-	static void updateAudioListener();
-
 	static void openConsole();
 
 	static UI_Element_Graph * fpsGraph;
-	static UI_Element_Label * lbl_stopwatch1, * lbl_stopwatch2, * lbl_stopwatch3, * lbl_stopwatch4, * lbl_stopwatch5;
+	static UI_Element_Label * lbl_stopwatch1, * lbl_stopwatch2, * lbl_stopwatch3, * lbl_stopwatch4, * lbl_stopwatch5, * lbl_stopwatch6;
 	static StopWatch stopwatch1;
 
 	static StopWatch gameStopWatch;

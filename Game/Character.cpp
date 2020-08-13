@@ -75,8 +75,7 @@ void Character::jump()
 	{
 		Logger::log("Character: " + printObject() + " jumped");
 
-		irrklang::vec3df SPosition = irrklang::vec3df(getPosition().x, getPosition().y, getPosition().z);
-		irrklang::ISound* jumpSound = Game::SoundEngine->play3D("audio/jump.wav", SPosition, false, false, true);
+		AudioManager::play3D("audio/jump.wav", this->getPosition());
 
 		movement.y += 30;
 		//movement.y += 0.06 * Game::getDelta();
@@ -196,6 +195,8 @@ std::shared_ptr<Bullet> Character::shoot()
 
 
 		lastTimeShot = std::chrono::system_clock::now();
+
+		AudioManager::play3D("audio/shoot.wav", this->getPosition());
 
 		return newBullet;
 	}

@@ -50,6 +50,16 @@ public:
 		team = newTeam;
 	}
 
+	int getClientID()
+	{
+		return clientID;
+	}
+
+	void setClientID(int newClientID)
+	{
+		clientID = newClientID;
+	}
+
 protected:
 
 	bool isCrouched = false;
@@ -70,5 +80,7 @@ protected:
 	glm::vec3 up;
 
 	int team = 0;
+
+	int clientID = -1;
 };
 

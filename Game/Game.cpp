@@ -13,6 +13,7 @@ std::vector<std::shared_ptr<Object>> Game::map;
 std::vector<std::shared_ptr<Object>> Game::objects;
 std::vector< std::shared_ptr<Character> > Game::characters;
 std::vector< std::shared_ptr<Player> > Game::players;
+std::vector< std::shared_ptr<Character> > Game::clients;
 std::vector< std::shared_ptr<NPC> > Game::npcs;
 std::vector< std::shared_ptr<Bullet> > Game::bullets;
 
@@ -41,10 +42,8 @@ Menu* Game::menu_Options = nullptr;
 Menu* Game::menu_current = menu_Main;
 Menu* Game::menu_last = menu_Main;
 
-irrklang::ISoundEngine* Game::SoundEngine = irrklang::createIrrKlangDevice();
-
 UI_Element_Graph* Game::fpsGraph;
-UI_Element_Label* Game::lbl_stopwatch1, * Game::lbl_stopwatch2, * Game::lbl_stopwatch3, * Game::lbl_stopwatch4, * Game::lbl_stopwatch5;
+UI_Element_Label* Game::lbl_stopwatch1, * Game::lbl_stopwatch2, * Game::lbl_stopwatch3, * Game::lbl_stopwatch4, * Game::lbl_stopwatch5, * Game::lbl_stopwatch6;
 StopWatch Game::stopwatch1;
 StopWatch Game::gameStopWatch;
 
@@ -69,7 +68,6 @@ void Game::startGame()
 }
 
 
-
 /// <summary>
 /// this function inits everything before the game can be started
 /// </summary>
@@ -79,10 +77,9 @@ void Game::init()
 	Renderer::initOpenGL();
 	Renderer::loadShader();
 
-	NetworkManager::init();
-	NetworkManager::deinit();
-
 	LuaManager::testLua();
+
+	AudioManager::init();
 
 	UI::init();
 
@@ -92,17 +89,20 @@ void Game::init()
 	lbl_stopwatch1 = new UI_Element_Label(10, 50, 100, 50, "", 0, 1, glm::vec4(1, 1, 1, 1), glm::vec4(0, 0, 0, 0.2), true);
 	UI::addElement(lbl_stopwatch1);
 
-	lbl_stopwatch2 = new UI_Element_Label(10, 70, 100, 50, "", 0, 1, glm::vec4(1, 1, 1, 1), glm::vec4(0, 0, 0, 0.2), true);
+	lbl_stopwatch2 = new UI_Element_Label(10, 80, 100, 50, "", 0, 1, glm::vec4(1, 1, 1, 1), glm::vec4(0, 0, 0, 0.2), true);
 	UI::addElement(lbl_stopwatch2);
 
-	lbl_stopwatch3 = new UI_Element_Label(10, 90, 100, 50, "", 0, 1, glm::vec4(1, 1, 1, 1), glm::vec4(0, 0, 0, 0.2), true);
+	lbl_stopwatch3 = new UI_Element_Label(10, 110, 100, 50, "", 0, 1, glm::vec4(1, 1, 1, 1), glm::vec4(0, 0, 0, 0.2), true);
 	UI::addElement(lbl_stopwatch3);
 
-	lbl_stopwatch4 = new UI_Element_Label(10, 110, 100, 50, "", 0, 1, glm::vec4(1, 1, 1, 1), glm::vec4(0, 0, 0, 0.2), true);
+	lbl_stopwatch4 = new UI_Element_Label(10, 140, 100, 50, "", 0, 1, glm::vec4(1, 1, 1, 1), glm::vec4(0, 0, 0, 0.2), true);
 	UI::addElement(lbl_stopwatch4);
 
-	lbl_stopwatch5 = new UI_Element_Label(10, 130, 100, 50, "", 0, 1, glm::vec4(1, 1, 1, 1), glm::vec4(0, 0, 0, 0.2), true);
+	lbl_stopwatch5 = new UI_Element_Label(10, 170, 100, 50, "", 0, 1, glm::vec4(1, 1, 1, 1), glm::vec4(0, 0, 0, 0.2), true);
 	UI::addElement(lbl_stopwatch5);
+
+	lbl_stopwatch6 = new UI_Element_Label(10, 200, 100, 50, "", 0, 1, glm::vec4(1, 1, 1, 1), glm::vec4(0, 0, 0, 0.2), true);
+	UI::addElement(lbl_stopwatch6);
 
 
 	Renderer::drawLoadingScreen();
@@ -121,12 +121,20 @@ void Game::init()
 
 	Renderer::init();
 
-	SoundEngine->setSoundVolume(ConfigManager::music_volume);
-
-	irrklang::ISound* music = SoundEngine->play2D("audio/breakout.mp3", true);
+	
 
 
 	gameLoop();
+}
+
+
+void Game::initMultiplayer()
+{
+	NetworkManager::init();
+	NetworkManager::connect();
+	//NetworkManager::sendData(ConfigManager::player_name);
+
+	
 }
 
 /// <summary>
@@ -145,6 +153,30 @@ void Game::gameLoop()
 		a = std::chrono::system_clock::now();
 
 		#pragma region gameloop
+
+		stopwatch1.start();
+		NetworkManager::readData();
+		if (gameState == GameState::GAME_ACTIVE)
+		{
+			
+			std::string playerposition = "p|";
+			playerposition += NetworkManager::getClientID() + "|";
+			playerposition += std::to_string(players[0]->getPosition().x) + ";";
+			playerposition += std::to_string(players[0]->getPosition().y) + ";";
+			playerposition += std::to_string(players[0]->getPosition().z);
+			NetworkManager::sendData(playerposition);
+
+			std::string playerrotation = "r|";
+			playerrotation += NetworkManager::getClientID() + "|";
+			playerrotation += std::to_string(players[0]->getRotation().x) + ";";
+			playerrotation += std::to_string(players[0]->getRotation().y) + ";";
+			playerrotation += std::to_string(players[0]->getRotation().z);
+			NetworkManager::sendData(playerrotation);
+
+		}
+		double stopwatch6duration = stopwatch1.stop();
+		lbl_stopwatch6->setText("Network: " + std::to_string(stopwatch6duration));
+
 
 		stopwatch1.start();
 		processInput();
@@ -281,6 +313,8 @@ void Game::gameLoop()
 
 	}
 
+	AudioManager::deinit();
+	NetworkManager::deinit();
 	ConfigManager::writeAllConfigs();
 }
 
@@ -418,7 +452,7 @@ void Game::processInput()
 			{
 				if (SDL_GetRelativeMouseMode()) {
 					players[0]->onMouseMove(event.motion.xrel, event.motion.yrel);
-					updateAudioListener();
+					AudioManager::updateAudioListener();
 				}
 			}
 			else if (gameState == GameState::GAME_MENU)
@@ -454,7 +488,7 @@ void Game::processInput()
 	{
 		if (gameState == GameState::GAME_ACTIVE)
 		{
-			if (players[0]->shoot())	SoundEngine->play2D("audio/shoot.wav", false);
+			players[0]->shoot();
 		}
 		else if (gameState == GameState::GAME_MENU)
 		{
@@ -468,7 +502,7 @@ void Game::processInput()
 		if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
 		{
 			players[0]->moveForward();
-			updateAudioListener();
+			AudioManager::updateAudioListener();
 		}
 	}
 	if (pressedKeys[PlayerAction::moveBackward])
@@ -476,7 +510,7 @@ void Game::processInput()
 		if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
 		{
 			players[0]->moveBackward();
-			updateAudioListener();
+			AudioManager::updateAudioListener();
 		}
 	}
 	if (pressedKeys[PlayerAction::moveLeft])
@@ -484,7 +518,7 @@ void Game::processInput()
 		if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
 		{
 			players[0]->moveLeft();
-			updateAudioListener();
+			AudioManager::updateAudioListener();
 		}
 		else if (gameState == GameState::GAME_MENU)
 		{
@@ -496,7 +530,7 @@ void Game::processInput()
 		if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
 		{
 			players[0]->moveRight();
-			updateAudioListener();
+			AudioManager::updateAudioListener();
 		}
 		else if (gameState == GameState::GAME_MENU)
 		{
@@ -583,19 +617,19 @@ void Game::keyPressed(SDL_Keycode key)
 				{
 					case PlayerAction::moveForward:
 						menu_current->selectPreviousElement();
-						SoundEngine->play2D("audio/select.wav", false);
+						AudioManager::play2D("audio/select.wav");
 						break;
 					case PlayerAction::moveBackward:
 						menu_current->selectNextElement();
-						SoundEngine->play2D("audio/select.wav", false);
+						AudioManager::play2D("audio/select.wav");
 						break;
 					case PlayerAction::enter:
 						menu_current->enterSelectedMenuElement();
-						SoundEngine->play2D("audio/select.wav", false);
+						AudioManager::play2D("audio/select.wav");
 						break;
 					case PlayerAction::jump:
 						menu_current->enterSelectedMenuElement();
-						SoundEngine->play2D("audio/select.wav", false);
+						AudioManager::play2D("audio/select.wav");
 						break;
 				}
 				break;
@@ -847,13 +881,6 @@ void Game::toggleFullscreen(FullscreenOption option)
 	}
 
 	Game::changeSize(resolutionW, resolutionH);
-}
-
-void Game::updateAudioListener()
-{
-	irrklang::vec3df Lposition = irrklang::vec3df(players[0]->getPosition().x, players[0]->getPosition().y, players[0]->getPosition().z);
-	irrklang::vec3df LlookAt = irrklang::vec3df(-players[0]->getLookDirection().x, players[0]->getLookDirection().y, -players[0]->getLookDirection().z);
-	Game::SoundEngine->setListenerPosition(Lposition, LlookAt);
 }
 
 int Game::getWindowWidth()

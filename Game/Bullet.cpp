@@ -48,8 +48,7 @@ void Bullet::checkHit()
 		collidedObject->object->registerHit();
 		Logger::log(collidedObject->object->printObject() + " was hit");
 		
-		irrklang::vec3df sPosition = irrklang::vec3df(this->getPosition().x, this->getPosition().y, this->getPosition().z);
-		Game::SoundEngine->play3D("audio/hit.wav", sPosition, false);
+		AudioManager::play3D("audio/hit.wav", this->getPosition());
 	}
 
 

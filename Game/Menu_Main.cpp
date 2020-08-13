@@ -5,9 +5,13 @@
 
 Menu_Main::Menu_Main()
 {
-	pB_start = new UI_Element_Button(10, 130, 200, 50, 0, "Start");
-	pB_start->setCallback([&] { loadMap("level_test"); return 2; });
-	addMenuElement(pB_start);
+	pB_start_singleplayer = new UI_Element_Button(10, 190, 200, 50, 0, "Einzelspieler");
+	pB_start_singleplayer->setCallback([&] { loadMap("level_test"); return 2; });
+	addMenuElement(pB_start_singleplayer);
+
+	pB_start_multiplayer = new UI_Element_Button(10, 130, 200, 50, 0, "Mehrspieler");
+	pB_start_multiplayer->setCallback([&] { Game::initMultiplayer(); return 2; });
+	addMenuElement(pB_start_multiplayer);
 
 	pB_options = new UI_Element_Button(10, 70, 200, 50, 0, "Optionen");
 	pB_options->setCallback([&] { Game::toggleSubMenu(MenuType::MENU_OPTIONS); return 0; });

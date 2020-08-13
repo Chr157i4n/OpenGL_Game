@@ -5,6 +5,17 @@
 - main menu background in options menu?
 - jump-climb walls should not be possible
 
+- rotation is wrong
+
+- ambient sounds
+
+- push boxes
+
+- Multiplayer
+	- dedicated Server
+	- Client/Server
+	- chat
+
 - 3D Raypicking	✓
 
 - NPCS

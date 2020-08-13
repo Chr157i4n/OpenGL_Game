@@ -724,6 +724,11 @@ void Renderer::renderEnvironmentMap(std::shared_ptr<Object> objectFromView)
 
 
 	glViewport(0, 0, ConfigManager::env_map_resolution, ConfigManager::env_map_resolution);
+
+	if (objectFromView->getEnvCubeMapFrameBuffer() <= 0)
+	{
+		initFrameBuffer();
+	}
 	glBindFramebuffer(GL_FRAMEBUFFER, objectFromView->getEnvCubeMapFrameBuffer());
 	GLCALL(glActiveTexture(GL_TEXTURE3));
 	glBindTexture(GL_TEXTURE_CUBE_MAP, objectFromView->getEnvCubeMap());
@@ -927,7 +932,14 @@ void Renderer::renderObjects(bool transparent)
 		glViewport(0, 0, Renderer::getResolutionX(), Renderer::getResolutionY()); //render in the desired resolution
 
 		GLCALL(glActiveTexture(GL_TEXTURE3));
-		GLCALL(glBindTexture(GL_TEXTURE_CUBE_MAP, object->getEnvCubeMap()));
+		if (object->getEnvCubeMap() >= 0)
+		{
+			GLCALL(glBindTexture(GL_TEXTURE_CUBE_MAP, object->getEnvCubeMap()));
+		}
+		else
+		{
+			GLCALL(glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture));
+		}
 		GLCALL(glUniform1i(envmapBasicUniformIndex, 3));
 
 

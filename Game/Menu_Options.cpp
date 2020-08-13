@@ -13,12 +13,26 @@ Menu_Options::Menu_Options()
 	pB_fullscreen->setCallback([&] { toggleFullscreen(); return 0; });
 	addMenuElement(pB_fullscreen);
 
-	sL_volume = new UI_Element_Slider(10, 190, 200, 50, 0, "Master-Volume");
-	sL_volume->setMinValue(0);
-	sL_volume->setMaxValue(1);
-	sL_volume->setValue(ConfigManager::music_volume);
-	sL_volume->setCallback([&] { setVolume(); return 0; });
-	addMenuElement(sL_volume);
+	sL_volume_master = new UI_Element_Slider(Game::getWindowWidth()-220, 130, 200, 50, 0, "Master-Volume");
+	sL_volume_master->setMinValue(0);
+	sL_volume_master->setMaxValue(1);
+	sL_volume_master->setValue(ConfigManager::master_volume);
+	sL_volume_master->setCallback([&] { setVolume(); return 0; });
+	addMenuElement(sL_volume_master);
+
+	sL_volume_music = new UI_Element_Slider(Game::getWindowWidth() - 220, 70, 200, 50, 0, "Musik-Volume");
+	sL_volume_music->setMinValue(0);
+	sL_volume_music->setMaxValue(1);
+	sL_volume_music->setValue(ConfigManager::music_volume);
+	sL_volume_music->setCallback([&] { setVolume(); return 0; });
+	addMenuElement(sL_volume_music);
+
+	sL_volume_effect = new UI_Element_Slider(Game::getWindowWidth() - 220, 10, 200, 50, 0, "Effekt-Volume");
+	sL_volume_effect->setMinValue(0);
+	sL_volume_effect->setMaxValue(1);
+	sL_volume_effect->setValue(ConfigManager::effect_volume);
+	sL_volume_effect->setCallback([&] { setVolume(); return 0; });
+	addMenuElement(sL_volume_effect);
 
 	pB_vsync = new UI_Element_Button(10, 130, 200, 50, 0, "V_Sync: Aus");
 	pB_vsync->addState("V_Sync: Aus");
@@ -114,10 +128,18 @@ void Menu_Options::toggleShadows()
 
 void Menu_Options::setVolume()
 {
-	float newVolume = sL_volume->getValue();
-	Game::SoundEngine->setSoundVolume(newVolume);
+	float newVolume;
+
+	newVolume = sL_volume_master->getValue();
+	ConfigManager::master_volume = newVolume;
+
+	newVolume = sL_volume_music->getValue();
 	ConfigManager::music_volume = newVolume;
-	Logger::log("changed Volume to: " + std::to_string(sL_volume->getValue()));
+
+	newVolume = sL_volume_effect->getValue();
+	ConfigManager::effect_volume = newVolume;
+
+	AudioManager::setVolume();
 }
 
 void Menu_Options::changeShadowMapResolution()

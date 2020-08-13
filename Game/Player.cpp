@@ -154,3 +154,13 @@ void Player::addToHealth(float32 addHealth)
 		Game::setGameState(GameState::GAME_GAME_OVER);
 	}
 }
+
+void Player::spawn(glm::vec3 position, glm::vec3 lookAt)
+{
+	this->setPosition(position);
+	this->lookAt = lookAt;
+
+	this->health = 100;
+
+	this->setEnabled(true);
+}

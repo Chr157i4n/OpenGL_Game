@@ -40,6 +40,8 @@ public:
 
 	virtual void addToHealth(float32 addHealth);
 
+	void spawn(glm::vec3 position = glm::vec3(20,0,0), glm::vec3 lookAt = glm::vec3(1,0,0));
+
 private:
 
 	bool flashlightActive = false;
