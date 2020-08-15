@@ -30,7 +30,3 @@ void Helper::eraseSubStr(std::string& mainStr, const std::string& toErase)
 		mainStr.erase(pos, toErase.length());
 	}
 }
-
-
-
-

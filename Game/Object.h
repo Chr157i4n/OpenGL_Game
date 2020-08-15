@@ -286,6 +286,16 @@ public:
 		return this->textureFlow;
 	}
 
+	int getNetworkID()
+	{
+		return networkID;
+	}
+
+	void setNetworkID(int newNetworkID)
+	{
+		networkID = newNetworkID;
+	}
+
 protected:
 
 	glm::vec3 position;						//x, y, z
@@ -316,5 +326,7 @@ protected:
 	std::chrono::system_clock::time_point lastHitTimestamp = std::chrono::system_clock::now() - std::chrono::hours(1);
 
 	int envCubeMap=-1, envCubeMapFrameBuffer=-1;
+
+	int networkID = -1;
 };
 

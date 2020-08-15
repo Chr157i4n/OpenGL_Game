@@ -704,6 +704,11 @@ void Renderer::drawMapOverlay()
 				glColor4f(1, 0, 0, 1);
 				DrawFilledCircle(object->getPosition().x / viewsize, -object->getPosition().z / viewsize, 0.01, 10);
 			}
+			else if (object->getType() & ObjectType::Object_Character)
+			{
+				glColor4f(0, 1, 0, 1);
+				DrawFilledCircle(object->getPosition().x / viewsize, -object->getPosition().z / viewsize, 0.01, 10);
+			}
 
 			GLCALL(glEnable(GL_CULL_FACE));
 			GLCALL(glEnable(GL_DEPTH_TEST));

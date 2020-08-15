@@ -160,7 +160,7 @@ std::shared_ptr<Object> Character::getObjectLookingAt()
 
 /// <summary>
 /// creates a bullet at the position of the character, with a little offset.
-//  it gives the bullet also the direction the character is looking at.
+///  it gives the bullet also the direction the character is looking at.
 /// </summary>
 /// <returns>a shared pointer to the bullet</returns>
 std::shared_ptr<Bullet> Character::shoot()

@@ -10,12 +10,20 @@
 #include "Logger.h"
 
 enum NetworkCommand {
-	change_position,
-	change_rotation,
+	change_position_player,
+	change_rotation_player,
+	change_lookdirection_player,
+	change_position_object,
+	change_rotation_object,
+	change_position_bullet,
+	change_rotation_bullet,
 	change_id,
 	change_map,
 	player_connected,
-	player_disconnected
+	player_disconnected,
+	shoot,
+	disable_object,
+	hit,
 };
 
 
@@ -30,7 +38,7 @@ public:
 
 	static void disconnect();
 
-	static void sendData(NetworkCommand command, std::string data);
+	static void sendData(NetworkCommand command, std::string data = "00");
 
 	static void sendData(std::string data);
 
@@ -39,6 +47,8 @@ public:
 	static void sendPlayerPosition();
 
 	static void sendPlayerRotation();
+
+	static void sendShoot();
 
 
 	static bool getIsConnected()
@@ -52,6 +62,7 @@ public:
 	{
 		std::string answer="";
 
+		if (clientID < 100) answer += "0";
 		if (clientID < 10) answer += "0";
 
 		answer += std::to_string(clientID);

@@ -30,3 +30,20 @@ void Helper::eraseSubStr(std::string& mainStr, const std::string& toErase)
 		mainStr.erase(pos, toErase.length());
 	}
 }
+
+std::string Helper::glmVec3_to_string(glm::vec3 vector)
+{
+	std::string data = "";
+	data += std::to_string(vector.x) + ";";
+	data += std::to_string(vector.y) + ";";
+	data += std::to_string(vector.z);
+
+	return data;
+}
+
+glm::vec3 Helper::string_to_glmVec3(std::string string)
+{
+	std::vector<std::string> params;
+	Helper::split(string, params, ';');
+	return glm::vec3(std::stof(params[0]), std::stof(params[1]), std::stof(params[2]));
+}

@@ -11,16 +11,6 @@
 std::string ResourceManager::modelFolder = "models";
 float ResourceManager::percentageLoading = 0;
 
-
-template <typename T>
-std::string to_string_with_precision(const T a_value, const int n = 6)
-{
-	std::ostringstream out;
-	out.precision(n);
-	out << std::fixed << a_value;
-	return out.str();
-}
-
 Shader* ResourceManager::loadShader(std::string vertexShaderFilename, std::string fragmentShaderFilename)
 {
 	Shader* newShader = new Shader(vertexShaderFilename, fragmentShaderFilename);
@@ -115,7 +105,7 @@ std::vector<Model*> ResourceManager::loadAllModels(std::string modelFileName)
 		newModel->setModelID(id++);
 
 		percentageLoading += 80 / modelCount;
-		Logger::log("loaded Model " + std::to_string(newModel->getModelID()) + ": " + newModel->getModelName() + " - " + to_string_with_precision(percentageLoading, 0) + "%");
+		Logger::log("loaded Model " + std::to_string(newModel->getModelID()) + ": " + newModel->getModelName() + " - " + Helper::to_string_with_precision(percentageLoading, 0) + "%");
 		Renderer::loadingProgressBar->setValue(percentageLoading);
 		Renderer::drawLoadingScreen();
 
@@ -170,6 +160,14 @@ std::vector<std::string> ResourceManager::readAllMaps()
 
 void ResourceManager::loadMap(std::string mapFileName)
 {
+	Game::map.clear();
+	Game::objects.clear();
+	Game::characters.clear();
+	Game::players.clear();
+	Game::npcs.clear();
+	Game::bullets.clear();
+
+
 	std::vector<std::shared_ptr<Object>>* map = &Game::map;
 	std::vector<std::shared_ptr<Object>>* objects = &Game::objects;
 	std::vector<std::shared_ptr<Character>>* characters = &Game::characters;
@@ -214,15 +212,15 @@ void ResourceManager::loadMap(std::string mapFileName)
 		std::shared_ptr<Object> newObject = std::make_shared<Object>(Renderer::getShader(ShaderType::basic), xmlNodeText);
 
 		xmlNodeText = xmlNodeObject->FirstChildElement("position")->GetText();
-		split(xmlNodeText, params, ';');
+		Helper::split(xmlNodeText, params, ';');
 		newObject->setPosition(glm::vec3(stof(params[0]), stof(params[1]), stof(params[2])));
 
 		xmlNodeText = xmlNodeObject->FirstChildElement("rotation")->GetText();
-		split(xmlNodeText, params, ';');
+		Helper::split(xmlNodeText, params, ';');
 		newObject->setRotation(glm::vec3(stof(params[0]), stof(params[1]), stof(params[2])));
 
 		xmlNodeText = xmlNodeObject->FirstChildElement("scale")->GetText();
-		split(xmlNodeText, params, ';');
+		Helper::split(xmlNodeText, params, ';');
 		newObject->setScale(glm::vec3(stof(params[0]), stof(params[1]), stof(params[2])));
 
 		xmlNodeText = xmlNodeObject->FirstChildElement("type")->GetText();
@@ -241,14 +239,14 @@ void ResourceManager::loadMap(std::string mapFileName)
 		if (xmlNodeObject->FirstChildElement("textureflow"))
 		{
 			xmlNodeText = xmlNodeObject->FirstChildElement("textureflow")->GetText();
-			split(xmlNodeText, params, ';');
+			Helper::split(xmlNodeText, params, ';');
 			newObject->setTextureFlow( glm::vec2(stof(params[0]), stof(params[1])) );
 		}
 
 		newObject->setNumber(numObject);
 
 		percentageLoading += 10 / objectCount;
-		Logger::log("loaded Object:" + newObject->printObject() + " - " + to_string_with_precision(percentageLoading, 0) + "%");
+		Logger::log("loaded Object:" + newObject->printObject() + " - " + Helper::to_string_with_precision(percentageLoading, 0) + "%");
 		Renderer::loadingProgressBar->setValue(percentageLoading);
 		Renderer::drawLoadingScreen();
 		objects->push_back(newObject);
@@ -283,15 +281,15 @@ void ResourceManager::loadMap(std::string mapFileName)
 		newNPC->setModel(xmlNodeText);
 
 		xmlNodeText = xmlNodeBot->FirstChildElement("position")->GetText();
-		split(xmlNodeText, params, ';');
+		Helper::split(xmlNodeText, params, ';');
 		newNPC->setPosition(glm::vec3(stof(params[0]), stof(params[1]), stof(params[2])));
 
 		xmlNodeText = xmlNodeBot->FirstChildElement("rotation")->GetText();
-		split(xmlNodeText, params, ';');
+		Helper::split(xmlNodeText, params, ';');
 		newNPC->setRotation(glm::vec3(stof(params[0]), stof(params[1]), stof(params[2])));
 
 		xmlNodeText = xmlNodeBot->FirstChildElement("scale")->GetText();
-		split(xmlNodeText, params, ';');
+		Helper::split(xmlNodeText, params, ';');
 		newNPC->setScale(glm::vec3(stof(params[0]), stof(params[1]), stof(params[2])));
 
 
@@ -320,7 +318,7 @@ void ResourceManager::loadMap(std::string mapFileName)
 			for (tinyxml2::XMLElement* xmlNodeNavPoint = xmlNodeBot->FirstChildElement("navpoints")->FirstChildElement("navpoint"); xmlNodeNavPoint != NULL; xmlNodeNavPoint = xmlNodeNavPoint->NextSiblingElement())
 			{
 				xmlNodeText = xmlNodeNavPoint->GetText();
-				split(xmlNodeText, params, ';');
+				Helper::split(xmlNodeText, params, ';');
 				newNPC->addNavPoint(glm::vec3(stof(params[0]), stof(params[1]), stof(params[2])));
 			}
 		}
@@ -329,7 +327,7 @@ void ResourceManager::loadMap(std::string mapFileName)
 		newNPC->setNumber(numObject);
 
 		percentageLoading += 10 / npcCount;
-		Logger::log("loaded NPC:" + newNPC->printObject() + " - " + to_string_with_precision(percentageLoading, 0) + "%");
+		Logger::log("loaded NPC:" + newNPC->printObject() + " - " + Helper::to_string_with_precision(percentageLoading, 0) + "%");
 		Renderer::loadingProgressBar->setValue(percentageLoading);
 		Renderer::drawLoadingScreen();
 
@@ -362,28 +360,15 @@ void ResourceManager::loadMap(std::string mapFileName)
 	}
 	Logger::log("Loading all NPCs - finished");
 
-	Logger::log("Loading Map - finished");
-}
-
-
-size_t ResourceManager::split(const std::string& txt, std::vector<std::string>& strs, char ch)
-{
-	size_t pos = txt.find(ch);
-	size_t initialPos = 0;
-	strs.clear();
-
-	// Decompose statement
-	while (pos != std::string::npos) {
-		strs.push_back(txt.substr(initialPos, pos - initialPos));
-		initialPos = pos + 1;
-
-		pos = txt.find(ch, initialPos);
+	int id = 100;
+	for (std::shared_ptr<Object> object : Game::objects)
+	{
+		if (object->getType() & ObjectType::Object_Player) continue;
+		object->setNetworkID(id);
+		id++;
 	}
 
-	// Add the last one
-	strs.push_back(txt.substr(initialPos, (std::min)(pos, txt.size()) - initialPos + 1));
-
-	return strs.size();
+	Logger::log("Loading Map - finished");
 }
 
 int ResourceManager::loadCubemap(std::vector<std::string> faces)

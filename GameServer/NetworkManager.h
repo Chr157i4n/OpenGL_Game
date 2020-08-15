@@ -5,24 +5,26 @@
 #include <algorithm>
 
 #include "libs/glm/glm.hpp"
-
-#include "Logger.h"
 #include <enet/enet.h>
 
+#include "Logger.h"
+#include "Client.h"
+
 enum NetworkCommand {
-	change_position,
-	change_rotation,
+	change_position_player,
+	change_rotation_player,
+	change_lookdirection_player,
+	change_position_object,
+	change_rotation_object,
+	change_position_bullet,
+	change_rotation_bullet,
 	change_id,
 	change_map,
 	player_connected,
-	player_disconnected
-};
-
-struct Client {
-	ENetPeer* peerclient;
-	int clientID;
-	glm::vec3 position;
-	glm::vec3 rotation;
+	player_disconnected,
+	shoot,
+	disable_object,
+	hit,
 };
 
 class NetworkManager
@@ -44,9 +46,9 @@ public:
 
 	static void broadcastData(NetworkCommand command, std::string data);
 
-	static void broadcastClientPosition(std::shared_ptr<Client> client);
+	static void broadcastObjectPosition(std::shared_ptr<Object> object);
 
-	static void broadcastClientRotation(std::shared_ptr<Client> client);
+	static void broadcastObjectRotation(std::shared_ptr<Object> object);
 
 	static void initClient(ENetEvent event);
 
@@ -54,25 +56,20 @@ public:
 
 	static void parseData(ENetPeer* peerclient, std::string data);
 
-	static std::string getClientID(std::shared_ptr<Client> client)
+	static std::string networkIDtoString(std::shared_ptr<Object> object)
 	{
 		std::string answer = "";
 
-		if (client->clientID < 10) answer += "0";
+		if (object->getNetworkID() < 100) answer += "0";
+		if (object->getNetworkID()< 10) answer += "0";
 
-		answer += std::to_string(client->clientID);
+		answer += std::to_string(object->getNetworkID());
 		return answer;
 	}
 
 private:
-	static std::string glmVec3_to_string(glm::vec3 vector);
-
-	static glm::vec3 string_to_glmVec3(std::string);
-
-	static size_t split(const std::string& txt, std::vector<std::string>& strs, char ch);
 
 	static ENetAddress address;
 	static ENetHost* server;
-	static std::vector<std::shared_ptr<Client>> clients;
 };
 

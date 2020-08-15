@@ -11,6 +11,13 @@ Bullet::Bullet(Shader* shader, glm::vec3 position, glm::vec3 rotation, glm::vec3
 	this->setCollisionBoxType(CollisionBoxType::cube);
 }
 
+Bullet::Bullet(Shader* shader) : Object(shader, "arrow.bmf")
+{
+	this->setType(ObjectType::Object_Bullet);
+	this->name = "Bullet";
+	this->setCollisionBoxType(CollisionBoxType::cube);
+}
+
 void Bullet::fall()
 {
 	this->Object::fall();

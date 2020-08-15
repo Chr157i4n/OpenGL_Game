@@ -30,7 +30,6 @@ float32 Game::delta = 0;
 
 bool Game::showInfo = false;
 GameState Game::gameState = GameState::GAME_MENU;
-GameState Game::newGameState;
 
 bool Game::showShadowMap = false;
 bool Game::showMap = false;
@@ -47,6 +46,8 @@ UI_Element_Label* Game::lbl_stopwatch1, * Game::lbl_stopwatch2, * Game::lbl_stop
 UI_Element_Label* Game::lbl_ObjectCount;
 StopWatch Game::stopwatch1;
 StopWatch Game::gameStopWatch;
+
+StopWatch  Game::frametimeStopWatch;
 
 
 /// <summary>
@@ -136,9 +137,6 @@ void Game::initMultiplayer()
 {
 	NetworkManager::init();
 	NetworkManager::connect();
-	//NetworkManager::sendData(ConfigManager::player_name);
-
-	
 }
 
 /// <summary>
@@ -146,24 +144,21 @@ void Game::initMultiplayer()
 /// </summary>
 void Game::gameLoop()
 {
-	std::chrono::system_clock::time_point a = std::chrono::system_clock::now();
-	std::chrono::system_clock::time_point b = std::chrono::system_clock::now();
-
-
 
 	while (!close)
 	{
-
-		a = std::chrono::system_clock::now();
+		frametimeStopWatch.start();
 
 		#pragma region gameloop
 
 		stopwatch1.start();
 		NetworkManager::readData();
+
 		if (gameState == GameState::GAME_ACTIVE)
 		{
 			
 		}
+
 		double stopwatch6duration = stopwatch1.stop();
 		lbl_stopwatch6->setText("Network: " + std::to_string(stopwatch6duration));
 
@@ -187,10 +182,13 @@ void Game::gameLoop()
 
 
 			stopwatch1.start();
-			for (std::shared_ptr<NPC> npc : npcs)
+			if (!NetworkManager::getIsConnected())
 			{
-				if (!npc->getEnabled()) continue;
-				npc->doCurrentTask();
+				for (std::shared_ptr<NPC> npc : npcs)
+				{
+					if (!npc->getEnabled()) continue;
+					npc->doCurrentTask();
+				}
 			}
 			double stopwatch2duration = stopwatch1.stop();
 			lbl_stopwatch2->setText("NPCs: " + std::to_string(stopwatch2duration));
@@ -198,6 +196,7 @@ void Game::gameLoop()
 			//Move every Object
 			for (std::shared_ptr<Object> object : objects)
 			{
+				if (NetworkManager::getIsConnected() && !(object->getType() & ObjectType::Object_Player)) continue;
 				if (!object->getEnabled()) continue;
 				if (object->getType() == ObjectType::Object_Environment) continue; //Environment doesnt move
 
@@ -207,10 +206,13 @@ void Game::gameLoop()
 			}
 
 			stopwatch1.start();
-			for (std::shared_ptr<Bullet> bullet : bullets)
+			if (!NetworkManager::getIsConnected())
 			{
-				if (!bullet->getEnabled()) continue;
-				bullet->checkHit();
+				for (std::shared_ptr<Bullet> bullet : bullets)
+				{
+					if (!bullet->getEnabled()) continue;
+					bullet->checkHit();
+				}
 			}
 
 			//Check every Object for collision
@@ -229,14 +231,24 @@ void Game::gameLoop()
 					UI::addElement(eastereggLabel);
 				}
 			}
-
-			for (std::shared_ptr<Character> character : characters)
+			if (!NetworkManager::getIsConnected())
 			{
-				if (!character->getEnabled()) continue;
-				character->resetVerticalMovement();
+				for (std::shared_ptr<Character> character : characters)
+				{
+					if (!character->getEnabled()) continue;
+					character->resetVerticalMovement();
+				}
+			}
+			else
+			{
+				if (!players[0]->getEnabled()) continue;
+				players[0]->resetVerticalMovement();
 			}
 
-			deleteObjects();
+			if (!NetworkManager::getIsConnected())
+			{
+				deleteObjects();
+			}
 
 			if (npcs.size() <= 0 && gameState == GameState::GAME_ACTIVE) //todo npcs get disabled
 			{
@@ -268,36 +280,35 @@ void Game::gameLoop()
 		double stopwatch4duration = stopwatch1.stop();
 		lbl_stopwatch4->setText("Render: " + std::to_string(stopwatch4duration));
 
-		if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
+		if (!NetworkManager::getIsConnected())
 		{
-			for (std::shared_ptr<Object> object : objects)
+			if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
 			{
-				if (!object->getEnabled()) continue;
-				object->calculationAfterFrame();
+				for (std::shared_ptr<Object> object : objects)
+				{
+					if (!object->getEnabled()) continue;
+					object->calculationAfterFrame();
+				}
 			}
 		}
 
 		#pragma endregion
 
-		b = std::chrono::system_clock::now();
-
-		std::chrono::duration<double, std::milli> work_time = b - a;
+		float64 frametime = frametimeStopWatch.stop();
 
 		float32 fps_limit_current=0;
 		if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER) fps_limit_current = ConfigManager::fps_limit_ingame;
 		if (gameState == GameState::GAME_MENU || gameState == GameState::GAME_PAUSED) fps_limit_current = ConfigManager::fps_limit_menu;
 
-		if (work_time.count() < 1000/ fps_limit_current && fps_limit_current !=0)
+		if (frametime < 1000/ fps_limit_current && fps_limit_current !=0)
 		{
-			std::chrono::duration<double, std::milli> delta_ms(1000 / fps_limit_current - work_time.count());
-			auto delta_ms_duration = std::chrono::duration_cast<std::chrono::milliseconds>(delta_ms);
-			std::this_thread::sleep_for(std::chrono::milliseconds(delta_ms_duration.count()));
+			Game::sleep(1000 / fps_limit_current - frametime);
 		}
 
-		b = std::chrono::system_clock::now();
-		std::chrono::duration<double, std::milli> loop_time = b - a;
+		frametime = frametimeStopWatch.stop();
 
-		delta = loop_time.count();
+		delta = frametime;
+
 		FPS = 1 / (delta/1000);
 
 		fpsGraph->setValue(FPS);
@@ -316,6 +327,9 @@ void Game::processCollision()
 {
 	for (std::shared_ptr<Object> object : objects)
 	{
+		if (NetworkManager::getIsConnected() && !(object->getType() & ObjectType::Object_Player)) continue;
+
+
 		CollisionResult collisionResult = object->checkCollision();
 		if (!collisionResult.collided) continue;
 		if (!object->getEnabled()) continue;
@@ -480,7 +494,14 @@ void Game::processInput()
 	{
 		if (gameState == GameState::GAME_ACTIVE)
 		{
-			players[0]->shoot();
+			if (!NetworkManager::getIsConnected())
+			{
+				players[0]->shoot();
+			}
+			else
+			{
+				NetworkManager::sendShoot();
+			}
 		}
 		else if (gameState == GameState::GAME_MENU)
 		{
@@ -929,4 +950,11 @@ void Game::changeSize(int w, int h)
 {
 	SDL_SetWindowSize(window, w, h);
 	Renderer::initFrameBuffer();
+}
+
+void Game::sleep(int ms)
+{
+	std::chrono::duration<double, std::milli> delta_ms(ms);
+	auto delta_ms_duration = std::chrono::duration_cast<std::chrono::milliseconds>(delta_ms);
+	std::this_thread::sleep_for(std::chrono::milliseconds(delta_ms_duration));
 }

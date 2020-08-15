@@ -136,7 +136,7 @@ void Player::addToHealth(float32 addHealth)
 
 	if (addHealth < -10)
 	{
-		Renderer::applyPostprocessingEffect(PostProcessingEffect::blood, 0.005 * std::abs(health));
+		Renderer::applyPostprocessingEffect(PostProcessingEffect::blood, 0.005 * std::abs(addHealth));
 	}
 
 	if (addHealth > 0)

@@ -70,6 +70,12 @@ enum GameState {
 	GAME_MENU,
 };
 
+enum GameStateOnline {
+	Game_Online,
+	Game_Offline,
+};
+
+
 enum MenuType {
 	MENU_MAIN,
 	MENU_OPTIONS,
@@ -220,6 +226,8 @@ public:
 		return gameStopWatch.stop();	
 	}
 
+	static void sleep(int ms);
+
 
 	static std::vector< std::shared_ptr<Object> > map;
 	static std::vector< std::shared_ptr<Object> > objects;
@@ -245,7 +253,7 @@ public:
 	static bool showMap;
 
 	static GameState gameState;
-	static GameState newGameState;
+	static GameStateOnline gameStateOnline;
 
 	static Menu* menu_Main;
 	static Menu* menu_Pause;
@@ -280,4 +288,5 @@ private:
 	static StopWatch stopwatch1;
 
 	static StopWatch gameStopWatch;
+	static StopWatch frametimeStopWatch;
 };

@@ -40,7 +40,7 @@ public:
 
 	std::shared_ptr<Object> getObjectLookingAt();
 
-	std::shared_ptr<Bullet> shoot();
+	virtual std::shared_ptr<Bullet> shoot();
 
 	int getTeam() {
 		return team;
@@ -48,16 +48,6 @@ public:
 
 	void setTeam(int newTeam){
 		team = newTeam;
-	}
-
-	int getClientID()
-	{
-		return clientID;
-	}
-
-	void setClientID(int newClientID)
-	{
-		clientID = newClientID;
 	}
 
 protected:
@@ -80,7 +70,5 @@ protected:
 	glm::vec3 up;
 
 	int team = 0;
-
-	int clientID = -1;
 };
 

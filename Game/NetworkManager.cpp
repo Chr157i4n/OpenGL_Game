@@ -149,29 +149,51 @@ void NetworkManager::readData(int timeout_ms)
 
 void NetworkManager::sendPlayerPosition()
 {
-	NetworkManager::sendData(NetworkCommand::change_position, NetworkManager::glmVec3_to_string(Game::players[0]->getPosition()));
+	NetworkManager::sendData(NetworkCommand::change_position_player, NetworkManager::glmVec3_to_string(Game::players[0]->getPosition()));
 }
 
 void NetworkManager::sendPlayerRotation()
 {
-	NetworkManager::sendData(NetworkCommand::change_rotation, NetworkManager::glmVec3_to_string(Game::players[0]->getRotation()));
+	NetworkManager::sendData(NetworkCommand::change_rotation_player, NetworkManager::glmVec3_to_string(Game::players[0]->getRotation()));
+	NetworkManager::sendData(NetworkCommand::change_lookdirection_player, NetworkManager::glmVec3_to_string(Game::players[0]->getLookDirection()));
+}
+
+void NetworkManager::sendShoot()
+{
+	NetworkManager::sendData(NetworkCommand::shoot);
 }
 
 void NetworkManager::parseData(std::string data)
 {
 	if (data.length() <= 0) return;
 
-	NetworkCommand command = (NetworkCommand)std::stoi(data.substr(0, 2));
-	int clientId_m = std::stoi(data.substr(3,2));
-	std::string param_string = data.substr(6);
+	NetworkCommand command;
+	int networkID_m;
+	std::string param_string;
+
+	//Logger::log("NetworkData: " + data);
+
+	try {
+		command = (NetworkCommand)std::stoi(data.substr(0, 2));
+		networkID_m = std::stoi(data.substr(3, 3));
+		param_string = data.substr(7);
+	}
+	catch (std::exception)
+	{
+		Logger::log("cant parse NetworkData: "+ data);
+		
+		std::stringstream errMsg;
+		errMsg << "cant parse NetworkData: " << data;
+		throw std::exception(errMsg.str().c_str());
+	}
 	
 
 	switch (command)
 	{
 	case NetworkCommand::change_id:
 		{
-			Logger::log("this client has id: "+std::to_string(clientId_m));
-			NetworkManager::clientID = clientId_m;
+			Logger::log("this client has id: "+std::to_string(networkID_m));
+			NetworkManager::clientID = networkID_m;
 			break;
 		}
 	case NetworkCommand::change_map:
@@ -185,10 +207,10 @@ void NetworkManager::parseData(std::string data)
 		}
 	case NetworkCommand::player_connected:
 		{
-			if (clientId_m == NetworkManager::clientID) break;
-			Logger::log("new client connected to server, id: " + std::to_string(clientId_m));
+			if (networkID_m == NetworkManager::clientID) break;
+			Logger::log("new client connected to server, id: " + std::to_string(networkID_m));
 			std::shared_ptr<Character> newCharacter = std::make_shared<Character>(Renderer::getShader(ShaderType::basic));
-			newCharacter->setClientID(clientId_m);
+			newCharacter->setNetworkID(networkID_m);
 			Game::clients.push_back(newCharacter);
 			Game::objects.push_back(newCharacter);
 			//Renderer::initFrameBuffer();
@@ -196,11 +218,11 @@ void NetworkManager::parseData(std::string data)
 		}
 	case NetworkCommand::player_disconnected:
 		{
-			if (clientId_m == NetworkManager::clientID) break;
-			Logger::log("client diconnected from server: " + std::to_string(clientId_m));
+			if (networkID_m == NetworkManager::clientID) break;
+			Logger::log("client diconnected from server: " + std::to_string(networkID_m));
 			for (std::shared_ptr<Character> client : Game::clients)
 			{
-				if (client->getClientID() == clientId_m)
+				if (client->getNetworkID() == networkID_m)
 				{
 					auto it = std::find(Game::clients.begin(), Game::clients.end(), client);
 					if (it != Game::clients.end()) { Game::clients.erase(it); }
@@ -212,13 +234,13 @@ void NetworkManager::parseData(std::string data)
 			}
 			break;
 		}
-	case NetworkCommand::change_position:
+	case NetworkCommand::change_position_player:
 		{
-			if (clientId_m == NetworkManager::clientID) break;
+			if (networkID_m == NetworkManager::clientID) break;
 			//Logger::log("update Client position, id: " + std::to_string(clientId_m));
 			for (std::shared_ptr<Character> client : Game::clients)
 			{
-				if (client->getClientID() == clientId_m)
+				if (client->getNetworkID() == networkID_m)
 				{
 					std::vector<std::string> params;
 					Helper::split(param_string, params, ';');
@@ -228,13 +250,13 @@ void NetworkManager::parseData(std::string data)
 			}
 			break;
 		}
-	case NetworkCommand::change_rotation:
+	case NetworkCommand::change_rotation_player:
 		{
-			if (clientId_m == NetworkManager::clientID) break;
+			if (networkID_m == NetworkManager::clientID) break;
 			//Logger::log("update Client rotation, id: " + std::to_string(clientId_m));
 			for (std::shared_ptr<Character> client : Game::clients)
 			{
-				if (client->getClientID() == clientId_m)
+				if (client->getNetworkID() == networkID_m)
 				{
 					std::vector<std::string> params;
 					Helper::split(param_string, params, ';');
@@ -244,7 +266,69 @@ void NetworkManager::parseData(std::string data)
 			}
 			break;
 		}
+	case NetworkCommand::change_position_object:
+	{
+		if (networkID_m == NetworkManager::clientID) break;
+		//Logger::log("update Client position, id: " + std::to_string(clientId_m));
+		for (std::shared_ptr<Object> object : Game::objects)
+		{
+			if (object->getNetworkID() == networkID_m)
+			{
+				std::vector<std::string> params;
+				Helper::split(param_string, params, ';');
+				object->setPosition(glm::vec3(std::stof(params[0]), std::stof(params[1]), std::stof(params[2])));
+
+				//Logger::log("new position for: " + object->printObject() + ": " + glmVec3_to_string(object->getPosition()));
+				break;
+			}
+		}
+		break;
 	}
+	case NetworkCommand::change_rotation_object:
+	{
+		if (networkID_m == NetworkManager::clientID) break;
+		//Logger::log("update Client rotation, id: " + std::to_string(clientId_m));
+		for (std::shared_ptr<Object> object : Game::objects)
+		{
+			if (object->getNetworkID() == networkID_m)
+			{
+				std::vector<std::string> params;
+				Helper::split(param_string, params, ';');
+				object->setRotation(glm::vec3(std::stof(params[0]), std::stof(params[1]), std::stof(params[2])));
+				break;
+			}
+		}
+		break;
+	}
+	case NetworkCommand::shoot:
+		{
+			Logger::log("someone shot");
+			std::shared_ptr<Bullet> newBullet = std::make_shared<Bullet>(Renderer::getShader(ShaderType::basic));
+			newBullet->setNetworkID(networkID_m);
+			Game::bullets.push_back(newBullet);
+			Game::objects.push_back(newBullet);
+			break;
+		}
+	case NetworkCommand::disable_object:
+		{
+		for (std::shared_ptr<Object> object : Game::objects)
+		{
+			if (object->getNetworkID() == networkID_m)
+			{
+				object->disable();
+			}
+		}
+		break;
+	}
+	case NetworkCommand::hit:
+	{
+		if (networkID_m != NetworkManager::clientID) break;
+		Logger::log("you got hit");
+		Game::players[0]->registerHit();
+		break;
+	}
+	}
+
 }
 
 

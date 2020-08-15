@@ -38,12 +38,8 @@ public:
 	static int loadImage(std::string fileName);
 
 
-
-	
-
 private:
 
-	static size_t split(const std::string& txt, std::vector<std::string>& strs, char ch);
 	
 	static std::string modelFolder;
 	static float percentageLoading;
