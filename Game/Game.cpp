@@ -257,7 +257,7 @@ void Game::gameLoop()
 				gameState = GameState::GAME_GAME_OVER;
 			}
 
-			stopwatch1.start();
+			/*stopwatch1.start();
 			//testing - Raypicking
 			std::shared_ptr<Object> objectPlayerLookingAt = players[0]->getObjectLookingAt();
 			if (objectPlayerLookingAt != nullptr)
@@ -268,7 +268,7 @@ void Game::gameLoop()
 				}
 			}
 			double stopwatch5duration = stopwatch1.stop();
-			lbl_stopwatch5->setText("Raypicking: " + std::to_string(stopwatch5duration));
+			lbl_stopwatch5->setText("Raypicking: " + std::to_string(stopwatch5duration));*/
 
 		}
 		
@@ -613,14 +613,27 @@ void Game::keyPressed(SDL_Keycode key)
 				switch (action)
 				{
 					case PlayerAction::interact:
-						players[0]->interactWithObject();
+					{//players[0]->interactWithObject();
+						std::shared_ptr<Object> objectPlayerLookingAt = players[0]->getObjectLookingAt();
+						if (objectPlayerLookingAt != nullptr)
+						{
+							if (players[0]->getDistance(objectPlayerLookingAt) < 10)
+							{
+								objectPlayerLookingAt->markObject();
+							}
+						}
 						break;
+					}
 					case PlayerAction::toggleFlashlight:
+					{
 						players[0]->toggleFlashlight();
 						break;
+					}
 					case PlayerAction::toggleMap:
+					{
 						Game::toggleMap();
 						break;
+					}
 				}
 				break;
 			}

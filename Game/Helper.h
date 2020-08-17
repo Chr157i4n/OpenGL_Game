@@ -5,6 +5,8 @@
 #include <algorithm>
 #include <ios>
 
+#include "libs/glm/glm.hpp"
+
 class Helper
 {
 public:
@@ -21,5 +23,9 @@ public:
 		out << std::fixed << a_value;
 		return out.str();
 	}
+
+	static std::string glmVec3_to_string(glm::vec3 vector);
+
+	static glm::vec3 string_to_glmVec3(std::string string);
 };
 

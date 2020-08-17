@@ -4,13 +4,20 @@
 #include "ResourceManager.h"
 #include "Game.h"
 
+std::string Map::mapName = "";
 std::string Map::mapFileName = "";
 std::string Map::mapFileFolder = "levels\\";
 std::string Map::mapFileExtension = ".xml";
 
+glm::vec3 Map::sun_direction= glm::vec3(-0.8, +0.4, +0.4);
+glm::vec3 Map::sun_color = glm::vec3(0.8, 0.8, 0.8);
+std::string Map::skyboxName = "skybox1";
+
 glm::vec3 Map::gravity = glm::vec3(0, -80, 0);
 
 glm::vec2 Map::mapSize = glm::vec2(110,110);
+
+unsigned int Map::skyboxTexture;
 
 void Map::load(std::string mapFileName)
 {
@@ -29,6 +36,9 @@ void Map::load(std::string mapFileName)
 
 	Map::mapSize.x = Game::map[0]->getDimensions().x;
 	Map::mapSize.y = Game::map[0]->getDimensions().z;
+
+	Map::loadSkybox();
+	Renderer::initLight();
 }
 
 void Map::restart()
@@ -70,4 +80,25 @@ void Map::restart()
 
 	Game::setGameState(GameState::GAME_ACTIVE);
 	SDL_SetRelativeMouseMode(SDL_TRUE);
+}
+
+std::vector<std::string> Map::getSkyboxFaces()
+{
+	std::vector<std::string> faces;
+
+	faces.push_back("textures/skybox/" + skyboxName + "_right.jpg");
+	faces.push_back("textures/skybox/" + skyboxName + "_left.jpg");
+	faces.push_back("textures/skybox/" + skyboxName + "_top.jpg");
+	faces.push_back("textures/skybox/" + skyboxName + "_bottom.jpg");
+	faces.push_back("textures/skybox/" + skyboxName + "_front.jpg");
+	faces.push_back("textures/skybox/" + skyboxName + "_back.jpg");
+
+	return faces;
+}
+
+void Map::loadSkybox()
+{
+	Logger::log("Load Skybox: " + Map::skyboxName);
+	std::vector<std::string> faces = Map::getSkyboxFaces();
+	skyboxTexture = ResourceManager::loadCubemap(faces);
 }

@@ -46,6 +46,8 @@ public:
 	static void drawMainMenuBackground();
 
 
+	static void initLight();
+
 	static void calcLight();
 
 	static void calcShadows();
@@ -170,7 +172,6 @@ private:
 	static Shader* shaderEnvMap;
 
 	static unsigned int loadingScreenTexture;
-	static unsigned int skyboxTexture;
 	static unsigned int main_menu_backgroundTexture;
 	static VertexBuffer* skyboxVertexBuffer;
 	static VertexBuffer* axisVertexBuffer;
@@ -197,16 +198,11 @@ private:
 
 	static glm::mat4 modelViewProj;
 
-
-	static glm::vec3 sunDirection;
 	static glm::vec3 spotLightPosition;
 	static glm::vec4 pointLightPosition;
 
 	static bool wireframeMode;
 	static bool showNormalMode;
-
-	
-	static void initLight();
 
 	static int frameCount;
 	

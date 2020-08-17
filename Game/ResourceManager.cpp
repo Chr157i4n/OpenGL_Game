@@ -183,7 +183,49 @@ void ResourceManager::loadMap(std::string mapFileName)
 	Logger::log("Loading Map");
 	doc.LoadFile(mapFileNameC);
 
-	std::string title = doc.FirstChildElement("map")->FirstChildElement("name")->GetText();
+	tinyxml2::XMLElement* xmlNode;
+	tinyxml2::XMLElement* mapNode;
+	
+	mapNode = doc.FirstChildElement("map");
+
+	if (!mapNode)
+	{
+		Logger::log("Map file has now 'map' Node.");
+		return;
+	}
+
+	//meta infos
+	xmlNode = mapNode->FirstChildElement("name");
+	if (xmlNode)
+	{
+		Map::mapName =xmlNode->GetText();
+	}
+
+	//map properties
+	tinyxml2::XMLElement* xmlNodeMapProperties = mapNode->FirstChildElement("map_properties");
+	if (xmlNodeMapProperties != NULL)
+	{
+		xmlNode = xmlNodeMapProperties->FirstChildElement("sun_direction");
+		if (xmlNode)
+		{
+			Map::sun_direction = glm::normalize( glm::vec3(Helper::string_to_glmVec3(xmlNode->GetText())));
+		}
+
+		xmlNode = xmlNodeMapProperties->FirstChildElement("sun_color");
+		if (xmlNode)
+		{
+			Map::sun_color = glm::vec3(Helper::string_to_glmVec3(xmlNode->GetText()));
+		}
+
+		xmlNode = xmlNodeMapProperties->FirstChildElement("skybox");
+		if (xmlNode)
+		{
+			Map::skyboxName = xmlNode->GetText();
+		}
+	}
+
+
+
 
 	//Player(s)
 	float fov = std::stof(ConfigManager::readConfig("fov"));

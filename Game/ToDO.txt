@@ -1,11 +1,8 @@
 ﻿- switch level from ingame
-- resolution windowed fullscreen are saved properly
 
 - dynamic environment mapping game settings
 - main menu background in options menu?
 - jump-climb walls should not be possible
-
-- env map problem with rock
 
 - Netcode optimisation 
 	- dont broadcast to the sender of the data
@@ -15,7 +12,7 @@
 - push boxes
 
 - Multiplayer
-	- dedicated Server
+	- dedicated Server	✓
 	- Client/Server
 	- chat
 
@@ -91,3 +88,7 @@
 - Performance Measurement	✓
 
 - Map	✓
+	- skybox	✓
+	- sun direction	✓
+	- buttons with script
+	- sound sources connected to objects

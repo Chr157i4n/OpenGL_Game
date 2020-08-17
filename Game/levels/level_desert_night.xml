@@ -2,9 +2,9 @@
 <map>
   <name>Test Level</name>
   <map_properties>
-    <sun_direction>-0.8;0.4;0.4</sun_direction>
-    <sun_color>0.8;0.8;0.8</sun_color>
-    <skybox>skybox1</skybox>
+    <sun_direction>0.75;0.47;0.47</sun_direction>
+    <sun_color>0.2;0.2;0.2</sun_color>
+    <skybox>skybox5</skybox>
   </map_properties>
   <models>
     <model>character.bmf</model>

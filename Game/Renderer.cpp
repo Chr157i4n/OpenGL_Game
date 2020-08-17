@@ -120,7 +120,6 @@ Shader* Renderer::shaderEnvMap = nullptr;
 UI_Element_ProgressBar* Renderer::loadingProgressBar;
 
 unsigned int Renderer::loadingScreenTexture;
-unsigned int Renderer::skyboxTexture;
 unsigned int Renderer::main_menu_backgroundTexture;
 
 VertexBuffer* Renderer::skyboxVertexBuffer;
@@ -143,8 +142,6 @@ int Renderer::lightspacematrixUniformIndex;
 int Renderer::shadowmapUniformIndex;
 int Renderer::shadowmodeUniformIndex;
 
-
-glm::vec3 Renderer::sunDirection;
 glm::vec3 Renderer::spotLightPosition;
 glm::vec4 Renderer::pointLightPosition;
 
@@ -246,17 +243,6 @@ void Renderer::init()
 	Renderer::changeResolution(Game::getWindowWidth(), Game::getWindowHeight());
 	//initFrameBuffer();
 
-	std::vector<std::string> faces
-	{
-			"textures/skybox/skybox1_right.jpg",
-			"textures/skybox/skybox1_left.jpg",
-			"textures/skybox/skybox1_top.jpg",
-			"textures/skybox/skybox1_bottom.jpg",
-			"textures/skybox/skybox1_front.jpg",
-			"textures/skybox/skybox1_back.jpg"
-	};
-	skyboxTexture = ResourceManager::loadCubemap(faces);
-
 	main_menu_backgroundTexture = ResourceManager::loadImage("images/main_menu_background.png");
 
 	//get Uniform location indices for passing data to the GPU
@@ -279,7 +265,7 @@ void Renderer::init()
 	envmapEnvUniformIndex = GLCALL(glGetUniformLocation(shaderEnvMap->getShaderId(), "u_env_map"));
 
 
-	Renderer::initLight();
+	//Renderer::initLight();
 
 	Renderer::initFrameBuffer();
 
@@ -354,12 +340,12 @@ void Renderer::initLight()
 	lightpositionUniformIndex = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_point_light.position"));
 
 	//glm::vec3 sunColor = glm::vec3(0.98f, 0.83f, 0.30f);
-	glm::vec3 sunColor = glm::vec3(0.8);
-	sunDirection = glm::vec3(-0.8, +0.4, +0.4);
+	glm::vec3 sunColor = Map::sun_color;
+	glm::vec3 sunColorAmbient = Map::sun_color * glm::vec3(0.3);
 	GLCALL(glUniform3fv(glGetUniformLocation(shaderBasic->getShaderId(), "u_directional_light.diffuse"), 1, (float*)&sunColor));
 	GLCALL(glUniform3fv(glGetUniformLocation(shaderBasic->getShaderId(), "u_directional_light.specular"), 1, (float*)&sunColor));
-	sunColor = glm::vec3(0.3);
-	GLCALL(glUniform3fv(glGetUniformLocation(shaderBasic->getShaderId(), "u_directional_light.ambient"), 1, (float*)&sunColor));
+	
+	GLCALL(glUniform3fv(glGetUniformLocation(shaderBasic->getShaderId(), "u_directional_light.ambient"), 1, (float*)&sunColorAmbient));
 
 	glm::vec3 pointLightColor = glm::vec3(0, 0, 0);
 	GLCALL(glUniform3fv(glGetUniformLocation(shaderBasic->getShaderId(), "u_point_light.diffuse"), 1, (float*)&pointLightColor));
@@ -391,14 +377,10 @@ void Renderer::initLight()
 	shaderEnvMap->bind();
 
 	lightdirectionEnvUniformIndex = GLCALL(glGetUniformLocation(shaderEnvMap->getShaderId(), "u_directional_light.direction"));
-	//glm::vec3 sunColor = glm::vec3(0.98f, 0.83f, 0.30f);
-	sunColor = glm::vec3(0.8);
-	sunDirection = glm::vec3(-0.8, +0.4, +0.4);
 	GLCALL(glUniform3fv(glGetUniformLocation(shaderEnvMap->getShaderId(), "u_directional_light.diffuse"), 1, (float*)&sunColor));
 	GLCALL(glUniform3fv(glGetUniformLocation(shaderEnvMap->getShaderId(), "u_directional_light.specular"), 1, (float*)&sunColor));
-	sunColor = glm::vec3(0.3);
-	GLCALL(glUniform3fv(glGetUniformLocation(shaderEnvMap->getShaderId(), "u_directional_light.ambient"), 1, (float*)&sunColor));
-	GLCALL(glUniform3fv(lightdirectionEnvUniformIndex, 1, (float*)&sunDirection));
+	GLCALL(glUniform3fv(glGetUniformLocation(shaderEnvMap->getShaderId(), "u_directional_light.ambient"), 1, (float*)&sunColorAmbient));
+	GLCALL(glUniform3fv(lightdirectionEnvUniformIndex, 1, (float*)&Map::sun_direction));
 #pragma endregion
 }
 
@@ -434,7 +416,7 @@ void Renderer::calcLight()
 
 	//Directionallight
 	//glm::vec4 transformedSunDirection = glm::vec4(sunDirection, 1.0f);
-	glm::vec4 transformedSunDirection = -glm::transpose(glm::inverse(Game::players[0]->getView())) * glm::vec4(sunDirection, 1.0f);
+	glm::vec4 transformedSunDirection = -glm::transpose(glm::inverse(Game::players[0]->getView())) * glm::vec4(Map::sun_direction, 1.0f);
 	transformedSunDirection3 = glm::vec3(transformedSunDirection.x, transformedSunDirection.y, transformedSunDirection.z);
 
 
@@ -483,7 +465,7 @@ void Renderer::renderShadowsMap()
 
 	float near_plane = -150, far_plane = 250;
 	glm::mat4 depthProjectionMatrix = glm::ortho(-150.0f, 150.0f, -150.0f, 150.0f, near_plane, far_plane);
-	glm::mat4 depthViewMatrix = glm::lookAt(sunDirection, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+	glm::mat4 depthViewMatrix = glm::lookAt(Map::sun_direction, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 
 	glm::mat4 lightSpaceMatrix = depthProjectionMatrix * depthViewMatrix;
 
@@ -609,7 +591,7 @@ void Renderer::renderMap()
 
 	//Directionallight
 	//glm::vec4 transformedSunDirection = glm::vec4(sunDirection, 1.0f);
-	glm::vec4 transformedSunDirection = -glm::transpose(glm::inverse(view)) * glm::vec4(sunDirection, 1.0f);
+	glm::vec4 transformedSunDirection = -glm::transpose(glm::inverse(view)) * glm::vec4(Map::sun_direction, 1.0f);
 	transformedSunDirection3 = glm::vec3(transformedSunDirection.x, transformedSunDirection.y, transformedSunDirection.z);
 	glUniform3fv(glGetUniformLocation(shaderEnvMap->getShaderId(), "u_directional_light.direction"), 1, (float*)&transformedSunDirection);
 
@@ -651,7 +633,7 @@ void Renderer::renderMap()
 			}
 
 			GLCALL(glActiveTexture(GL_TEXTURE3));
-			GLCALL(glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture));
+			GLCALL(glBindTexture(GL_TEXTURE_CUBE_MAP, Map::getSkyboxTexture()));
 			GLCALL(glUniform1i(envmapEnvUniformIndex, 3));
 
 			int modelUniformIndex = GLCALL(glGetUniformLocation(shaderEnvMap->getShaderId(), "u_model"));
@@ -778,7 +760,7 @@ void Renderer::renderEnvironmentMap(std::shared_ptr<Object> objectFromView)
 	{
 		//Directionallight
 		//glm::vec4 transformedSunDirection = glm::vec4(sunDirection, 1.0f);
-		glm::vec4 transformedSunDirection = -glm::transpose(glm::inverse(views[i])) * glm::vec4(sunDirection, 1.0f);
+		glm::vec4 transformedSunDirection = -glm::transpose(glm::inverse(views[i])) * glm::vec4(Map::sun_direction, 1.0f);
 		transformedSunDirection3 = glm::vec3(transformedSunDirection.x, transformedSunDirection.y, transformedSunDirection.z);
 		glUniform3fv(glGetUniformLocation(shaderEnvMap->getShaderId(), "u_directional_light.direction"), 1, (float*)&transformedSunDirection);
 
@@ -820,7 +802,7 @@ void Renderer::renderEnvironmentMap(std::shared_ptr<Object> objectFromView)
 			}
 
 			GLCALL(glActiveTexture(GL_TEXTURE3));
-			GLCALL(glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture));
+			GLCALL(glBindTexture(GL_TEXTURE_CUBE_MAP, Map::getSkyboxTexture()));
 			GLCALL(glUniform1i(envmapEnvUniformIndex, 3));
 
 			int modelUniformIndex = GLCALL(glGetUniformLocation(shaderEnvMap->getShaderId(), "u_model"));
@@ -865,7 +847,7 @@ void Renderer::renderSkybox(glm::mat4 view, glm::mat4 proj)
 	glUniformMatrix4fv(skyboxProjUniformIndex, 1, GL_FALSE, &proj[0][0]);
 
 	GLCALL(glActiveTexture(GL_TEXTURE0));
-	glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, Map::getSkyboxTexture());
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 
 	glDepthFunc(GL_LESS);
@@ -946,7 +928,7 @@ void Renderer::renderObjects(bool transparent)
 		}
 		else
 		{
-			GLCALL(glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture));
+			GLCALL(glBindTexture(GL_TEXTURE_CUBE_MAP, Map::getSkyboxTexture()));
 		}
 		GLCALL(glUniform1i(envmapBasicUniformIndex, 3));
 

@@ -35,7 +35,22 @@ public:
 		Map::mapSize = mapSize;
 	}
 
+	static std::vector<std::string> getSkyboxFaces();
+
+	static void loadSkybox();
+
+	static unsigned int getSkyboxTexture()
+	{
+		return skyboxTexture;
+	}
+
+	static std::string mapName;
+	static glm::vec3 sun_direction;
+	static glm::vec3 sun_color;
+	static std::string skyboxName;
+
 private:
+
 
 	static std::string mapFileName;
 	static std::string mapFileFolder;
@@ -44,5 +59,7 @@ private:
 	static glm::vec3 gravity;
 
 	static glm::vec2 mapSize;
+
+	static unsigned int skyboxTexture;
 };
 

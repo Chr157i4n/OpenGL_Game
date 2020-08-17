@@ -1,6 +1,11 @@
 <?xml version="1.0"?>
 <map>
   <name>Test Level</name>
+  <map_properties>
+    <sun_direction>-0.8;0.4;0.0</sun_direction>
+    <sun_color>0.5;0.5;0.5</sun_color>
+    <skybox>skybox3</skybox>
+  </map_properties>
   <models>
     <model>character.bmf</model>
     <model>arrow.bmf</model>

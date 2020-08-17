@@ -1,6 +1,11 @@
 <?xml version="1.0"?>
 <map>
   <name>Farm</name>
+  <map_properties>
+       <sun_direction>0.4;0.64;0.65</sun_direction>
+    <sun_color>0.8;0.8;0.8</sun_color>
+    <skybox>skybox4</skybox>
+  </map_properties>
   <models>
     <model>character.bmf</model>
     <model>arrow.bmf</model>
