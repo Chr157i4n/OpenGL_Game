@@ -325,6 +325,7 @@ void NetworkManager::parseData(std::string data)
 		if (networkID_m != NetworkManager::clientID) break;
 		Logger::log("you got hit");
 		Game::players[0]->registerHit();
+		AudioManager::play3D("audio/hit.wav", Game::players[0]->getPosition());
 		break;
 	}
 	}

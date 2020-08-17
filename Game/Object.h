@@ -118,7 +118,7 @@ public:
 
 	void markObject();
 
-	void interact();
+	virtual void interact();
 
 	CollisionResult checkCollision();
 

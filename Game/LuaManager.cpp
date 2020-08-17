@@ -3,6 +3,29 @@
 #include "Game.h"
 
 
+lua_State* LuaManager::L;
+
+static int lua_toggleFlashlight(lua_State* L)
+{
+	Game::players[0]->toggleFlashlight();
+
+	return 0;
+}
+
+
+void LuaManager::init()
+{
+	L = luaL_newstate();
+	luaL_openlibs(L);
+
+	registerFunction("ToggleFlashlight", lua_toggleFlashlight);
+}
+
+void LuaManager::deinit()
+{
+	lua_close(L);
+}
+
 bool LuaManager::checkLua(lua_State* L, int r)
 {
 	if (r != LUA_OK)
@@ -10,6 +33,32 @@ bool LuaManager::checkLua(lua_State* L, int r)
 		std::string errormsg = lua_tostring(L, -1);
 		Logger::log("[LUA Error]" + errormsg);
 		return false;
+	}
+}
+
+void LuaManager::registerFunction(std::string luafunctionIndentifierer, lua_CFunction function)
+{
+	lua_register(L, luafunctionIndentifierer.c_str(), function);
+}
+
+void LuaManager::loadScripts()
+{
+	Logger::log("Loading LUA Scripts");
+	checkLua(L, luaL_dofile(L, "scripts/button1.lua"));
+}
+
+void LuaManager::runFunction()
+{
+	lua_getglobal(L, "interact");
+	if (lua_isfunction(L, -1))
+	{
+		//lua_pushnumber(L, 3.5f);
+
+		if (checkLua(L, lua_pcall(L, 0, 1, 0)))
+		{
+			std::string returnValue = lua_tostring(L, -1);
+			Logger::log("[C++] called in Lua: " + returnValue);
+		}
 	}
 }
 
@@ -28,10 +77,8 @@ int LuaManager::lua_Hostfunction(lua_State* L)
 }
 
 void LuaManager::testLua()
-{
-	lua_State* L = luaL_newstate();
-	luaL_openlibs(L);
-	lua_register(L, "HostFunction", LuaManager::lua_Hostfunction);
+{	
+	registerFunction("HostFunction", LuaManager::lua_Hostfunction);
 
 	checkLua(L, luaL_dofile(L, "scripts/test.lua"));
 
@@ -63,9 +110,6 @@ void LuaManager::testLua()
 			Logger::log("[C++] called in Lua: " + std::to_string(returnValue));
 		}
 	}
-
-
-	lua_close(L);
 
 	float64 time = stopwatchlua.stop();
 	Logger::log("Lua took " + std::to_string(time) + " ms");

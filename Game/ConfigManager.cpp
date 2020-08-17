@@ -21,6 +21,8 @@ int					ConfigManager::server_port= 12975;
 float				ConfigManager::master_volume = 0.5;
 float				ConfigManager::music_volume = 0.5;
 float				ConfigManager::effect_volume = 0.5;
+float				ConfigManager::ambient_volume = 0.5;
+float				ConfigManager::voice_volume = 0.5;
 //[Renderer]
 int					ConfigManager::fullscreen_resolution_width = 1920;
 int					ConfigManager::fullscreen_resolution_height = 1080;
@@ -136,6 +138,12 @@ void ConfigManager::readAllConfigs()
 
 	config = ConfigManager::readConfig("effect_volume");
 	if (config != "") ConfigManager::effect_volume = std::stof(config);
+
+	config = ConfigManager::readConfig("ambient_volume");
+	if (config != "") ConfigManager::ambient_volume = std::stof(config);
+
+	config = ConfigManager::readConfig("voice_volume");
+	if (config != "") ConfigManager::voice_volume = std::stof(config);
 
 	//[Renderer]
 	config = ConfigManager::readConfig("fullscreen_resolution_width");
@@ -276,6 +284,8 @@ void ConfigManager::writeAllConfigs()
 	ConfigManager::writeConfig("master_volume", std::to_string(ConfigManager::master_volume));
 	ConfigManager::writeConfig("music_volume", std::to_string(ConfigManager::music_volume));
 	ConfigManager::writeConfig("effect_volume", std::to_string(ConfigManager::effect_volume));
+	ConfigManager::writeConfig("ambient_volume", std::to_string(ConfigManager::ambient_volume));
+	ConfigManager::writeConfig("voice_volume", std::to_string(ConfigManager::voice_volume));
 
 	//[Renderer]
 	ConfigManager::writeConfig("fullscreen_resolution_width", std::to_string(ConfigManager::fullscreen_resolution_width));

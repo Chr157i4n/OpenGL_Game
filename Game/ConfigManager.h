@@ -54,6 +54,8 @@ public:
 	static float master_volume;
 	static float music_volume;
 	static float effect_volume;
+	static float ambient_volume;
+	static float voice_volume;
 	//[Renderer]
 	static int fullscreen_resolution_width;
 	static int fullscreen_resolution_height;

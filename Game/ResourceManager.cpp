@@ -7,6 +7,7 @@
 #include "ConfigManager.h"
 #include "Object.h"
 #include "Game.h"
+#include "Button.h"
 
 std::string ResourceManager::modelFolder = "models";
 float ResourceManager::percentageLoading = 0;
@@ -247,11 +248,21 @@ void ResourceManager::loadMap(std::string mapFileName)
 		objectCount++;
 	}
 
+
 	for (tinyxml2::XMLElement* xmlNodeObject = doc.FirstChildElement("map")->FirstChildElement("objects")->FirstChildElement("object"); xmlNodeObject != NULL; xmlNodeObject = xmlNodeObject->NextSiblingElement())
 	{
+		std::shared_ptr<Object> newObject;
+
 		xmlNodeText = xmlNodeObject->FirstChildElement("modelfile")->GetText();
 
-		std::shared_ptr<Object> newObject = std::make_shared<Object>(Renderer::getShader(ShaderType::basic), xmlNodeText);
+		if (xmlNodeObject->FirstChildElement("interactable"))
+		{
+			newObject = std::make_shared<Button>(Renderer::getShader(ShaderType::basic), xmlNodeText);
+		}
+		else
+		{
+			newObject = std::make_shared<Object>(Renderer::getShader(ShaderType::basic), xmlNodeText);
+		}
 
 		xmlNodeText = xmlNodeObject->FirstChildElement("position")->GetText();
 		Helper::split(xmlNodeText, params, ';');
@@ -383,8 +394,7 @@ void ResourceManager::loadMap(std::string mapFileName)
 
 
 	//random bots
-	int botcount = std::stoi(ConfigManager::readConfig("bots"));
-	for (int i = 0; i < botcount; i++)
+	for (int i = 0; i < ConfigManager::bots; i++)
 	{
 		float x = rand() % 100 - 50;
 		float z = rand() % 100 - 50;

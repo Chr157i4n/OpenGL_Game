@@ -54,7 +54,7 @@ irrklang::ISound* AudioManager::play2D(std::string musicFile, bool playLooped)
 	return sound;
 }
 
-irrklang::ISound* AudioManager::play3D(std::string musicFile, glm::vec3 position, bool playLooped)
+irrklang::ISound* AudioManager::play3D(std::string musicFile, glm::vec3 position, AudioType audiotype, bool playLooped)
 {
 	irrklang::ISound* sound = SoundEngine->play3D(musicFile.c_str(), glmVec3toIrrklang(position), playLooped, false, true);
 	if (!sound)
@@ -63,7 +63,24 @@ irrklang::ISound* AudioManager::play3D(std::string musicFile, glm::vec3 position
 		return nullptr;
 	}
 	
-	sound->setVolume(ConfigManager::effect_volume);
+	switch (audiotype)
+	{
+		case AudioType::soundeffect:
+		{
+			sound->setVolume(ConfigManager::effect_volume);
+			break;
+		}
+		case AudioType::ambient:
+		{
+			sound->setVolume(ConfigManager::ambient_volume);
+			break;
+		}
+		case AudioType::voice:
+		{
+			sound->setVolume(ConfigManager::voice_volume);
+			break;
+		}
+	}
 
 	return sound;
 }

@@ -61,6 +61,7 @@
 //#define DEBUG_GRAVITY
 //#define DEBUG_NPC
 //#define DEBUG_ENV_MAP
+#define DEBUG_RAYPICKING
 
 enum GameState {
 	GAME_LOADING,

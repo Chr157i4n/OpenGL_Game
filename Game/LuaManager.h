@@ -1,5 +1,7 @@
 #pragma once
 
+#include <functional>
+
 extern "C"
 {
 #include "lua.h"
@@ -10,11 +12,26 @@ extern "C"
 class LuaManager
 {
 public:
+
+	static void init();
+
+	static void deinit();
+
 	static bool checkLua(lua_State* L, int r);
+
+	static void registerFunction(std::string luafunctionIndentifierer, lua_CFunction function);
+
+	static void loadScripts();
+
+	static void runFunction();
+
 
 	static int lua_Hostfunction(lua_State* L);
 	
 	static void testLua();
+
+private:
+	static lua_State* L;
 
 };
 

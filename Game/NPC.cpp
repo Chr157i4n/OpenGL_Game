@@ -11,6 +11,17 @@ NPC::NPC(Shader* shader) : Character(shader)
 	float npc_speed_mult = ConfigManager::bot_speed_mult;
 	forwardSpeed = forwardSpeed * npc_speed_mult;
 	backwardSidewaySpeed = backwardSidewaySpeed * npc_speed_mult;
+
+	std::string path = "audio\\npc";
+	if (std::filesystem::exists(path))
+	{
+		for (const auto& entry : std::filesystem::directory_iterator(path))
+		{
+			if(entry.path().string().find("random") != std::string::npos)
+				voicefiles.push_back(entry.path().string());
+		}
+	}
+
 }
 
 void NPC::followCharacter(std::shared_ptr <Character> character)
@@ -156,7 +167,7 @@ void NPC::calculateNextTarget()
 		if (!character->getEnabled()) continue;
 		if (character->getType() & ObjectType::Object_Player) continue;
 		if (character->getNumber() == this->getNumber()) continue;
-		if (character->getTeam() == this->getTeam()) continue;
+		if (character->getTeam() == this->getTeam() && this->getTeam()!=0) continue;
 
 		float distance = glm::length( character->getPosition() - this->getPosition() );
 
@@ -183,4 +194,43 @@ void NPC::attackCurrentTarget()
 
 	calculateNextTarget();
 
+}
+
+void NPC::interact()
+{
+	if (!this->getEnabled()) return;
+
+	int randomvoicefile = (std::rand() * voicefiles.size() / RAND_MAX);
+
+	this->speak(voicefiles[randomvoicefile]);
+}
+
+void NPC::move()
+{
+	this->Object::move();
+
+	if (movement != glm::vec3(0, 0, 0) && voice != nullptr)
+	{
+		voice->setPosition(AudioManager::glmVec3toIrrklang(this->getCenter()));
+	}
+}
+
+void NPC::registerHit()
+{
+	this->Object::registerHit();
+	
+	this->speak("audio\\npc\\npc_hit.mp3");
+}
+
+void NPC::speak(std::string audioFile)
+{
+	if (voice == nullptr)
+	{
+		voice = AudioManager::play3D(audioFile, this->getCenter(), AudioType::voice);
+	}
+	else if (voice->isFinished())
+	{
+		voice->drop();
+		voice = AudioManager::play3D(audioFile, this->getCenter(), AudioType::voice);
+	}
 }

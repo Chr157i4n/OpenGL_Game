@@ -117,7 +117,7 @@ bool  Object::intersectWithRay(glm::vec3 rayOrigin, glm::vec3 rayDirection)
 
 float Object::getDistance(std::shared_ptr<Object> object)
 {
-	return std::abs(glm::length(object->getPosition() - this->getPosition()));
+	return std::abs(glm::length(object->getCenter() - this->getCenter()));
 }
 
 void Object::markObject()
@@ -127,7 +127,7 @@ void Object::markObject()
 
 void Object::interact()
 {
-	this->registerHit();
+	if (!this->getEnabled()) return;
 }
 
 CollisionResult Object::checkCollision()

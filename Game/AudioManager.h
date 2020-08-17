@@ -5,6 +5,13 @@
 
 #include <string>
 
+enum AudioType {
+	soundeffect,
+	voice,
+	ambient,
+};
+
+
 static class AudioManager
 {
 public:
@@ -19,7 +26,7 @@ public:
 
 	static irrklang::ISound* play2D(std::string musicFile, bool playLooped = false);
 
-	static irrklang::ISound* play3D(std::string musicFile, glm::vec3 position, bool playLooped = false);
+	static irrklang::ISound* play3D(std::string musicFile, glm::vec3 position, AudioType audiotype= AudioType::soundeffect, bool playLooped = false);
 
 	static void updateAudioListener();
 

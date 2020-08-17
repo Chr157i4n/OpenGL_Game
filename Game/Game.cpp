@@ -79,6 +79,8 @@ void Game::init()
 	Renderer::initOpenGL();
 	Renderer::loadShader();
 
+	LuaManager::init();
+	LuaManager::loadScripts();
 	LuaManager::testLua();
 
 	AudioManager::init();
@@ -317,6 +319,7 @@ void Game::gameLoop()
 
 	AudioManager::deinit();
 	NetworkManager::deinit();
+	LuaManager::deinit();
 	ConfigManager::writeAllConfigs();
 }
 
@@ -619,7 +622,8 @@ void Game::keyPressed(SDL_Keycode key)
 						{
 							if (players[0]->getDistance(objectPlayerLookingAt) < 10)
 							{
-								objectPlayerLookingAt->markObject();
+								//objectPlayerLookingAt->markObject();
+								objectPlayerLookingAt->interact();
 							}
 						}
 						break;

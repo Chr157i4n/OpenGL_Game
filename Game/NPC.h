@@ -6,6 +6,8 @@
 
 #include "Character.h"
 
+#include <irrKlang.h>
+
 enum CurrentTask {
 	Idle = 0,
 	Follow_Character = 1,
@@ -44,6 +46,14 @@ public:
 
 	void attackCurrentTarget();
 
+	virtual void interact();
+
+	virtual void move();
+
+	virtual void registerHit();
+
+	virtual void speak(std::string audioFile);
+
 
 private:
 
@@ -52,5 +62,10 @@ private:
 	CurrentTask currentTask = CurrentTask::Idle;
 
 	std::shared_ptr<Character> currentTarget = nullptr;
+
+	irrklang::ISound* voice = nullptr;
+	std::vector<std::string> voicefiles;
+
+
 };
 

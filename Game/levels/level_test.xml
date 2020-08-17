@@ -24,14 +24,29 @@
       <scale>1;1;1</scale>
     </object>
     <object>
-      <name>Box</name>
+      <name>Wall</name>
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
-      <gravity>true</gravity>
-      <modelfile>box.bmf</modelfile>
-      <position>0;10;0</position>
+      <gravity>false</gravity>
+      <modelfile>wall.bmf</modelfile>
+      <position>0;0;0</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
+    </object>
+    <object>
+      <name>Button</name>
+      <type>Entity</type>
+      <collisionboxtype>cube</collisionboxtype>
+      <gravity>false</gravity>
+      <modelfile>button.bmf</modelfile>
+      <position>0.4;2;0</position>
+      <rotation>0;90;0</rotation>
+      <scale>1;1;1</scale>
+      <interactable>
+        <interactabletype>button</interactabletype>
+        <travel>-0.2;0;0</travel>
+        <script>button1.lua</script>
+      </interactable>
     </object>
   </objects>
   <bots>
