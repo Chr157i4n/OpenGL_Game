@@ -664,6 +664,9 @@ void Object::move()
 void Object::setPosition(glm::vec3 newPosition)
 {
 	position = newPosition;
+
+	center = position;
+	center.y += dimensions.y / 2;
 }
 
 glm::vec3 Object::getPosition()

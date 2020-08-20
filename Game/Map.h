@@ -5,6 +5,8 @@
 #include <memory>
 #include <string>
 
+#include <irrKlang.h>
+
 
 
 class Map
@@ -61,5 +63,7 @@ private:
 	static glm::vec2 mapSize;
 
 	static unsigned int skyboxTexture;
+
+	static std::vector<irrklang::ISound*> ambientSounds;
 };
 

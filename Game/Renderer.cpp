@@ -280,12 +280,18 @@ void Renderer::initFrameBuffer()
 	{
 		if (object->getType() & ObjectType::Object_Character) continue;
 
-		unsigned int textureid = object->getEnvCubeMap();
-		glDeleteTextures(1, &textureid);
+		unsigned int cubemap = object->getEnvCubeMap();
+		glDeleteTextures(1, &cubemap);
+		object->setEnvCubeMap(-1);
+
 		unsigned int framebufferid = object->getEnvCubeMapFrameBuffer();
 		glDeleteFramebuffers(1, &framebufferid);
+		object->setEnvCubeMapFrameBuffer(-1);
+
+		unsigned int depthbufferid = object->getEnvCubeMapDepthBuffer();
+		glDeleteRenderbuffers(1, &depthbufferid);
+		object->setEnvCubeMapDepthBuffer(-1);
 	}
-	//envMapBuffer.destroy();
 
 	//create them new
 	for (std::shared_ptr<Object> object : Game::objects)
@@ -323,6 +329,8 @@ void Renderer::initFrameBuffer()
 		glBindRenderbuffer(GL_RENDERBUFFER, 0);
 		// attach it
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthbuffer);
+
+		object->setEnvCubeMapDepthBuffer(depthbuffer);
 	}
 
 	frameBuffer.create(Renderer::getResolutionX(), Renderer::getResolutionY(), FrameBufferTextureType::colorMap | FrameBufferTextureType::stencilMap);

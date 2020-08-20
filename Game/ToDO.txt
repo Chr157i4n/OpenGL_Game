@@ -4,10 +4,15 @@
 - main menu background in options menu?
 - jump-climb walls should not be possible
 
+- player name input box in main menu
+
+- multiplayer connecting feedback
+- options save and then render env maps
+
 - Netcode optimisation 
 	- dont broadcast to the sender of the data
 
-- ambient sounds
+- ambient sounds	✓
 
 - push boxes
 
@@ -15,6 +20,9 @@
 	- dedicated Server	✓
 	- Client/Server
 	- chat
+	- name above players
+	- bots not moving (killed?)
+	- cant shoot sometimes
 
 - 3D Raypicking	✓
 
@@ -42,6 +50,7 @@
 	- slider	✓
 	- textedit
 	- numedit
+	- 3D text (text to texture -> texture in 3D world)
 
 - Menu mouse interaction	✓
 

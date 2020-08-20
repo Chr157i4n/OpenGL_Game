@@ -12,6 +12,16 @@
       <volume>0.8</volume>
       <soundfile>river.mp3</soundfile>
     </sound>
+    <sound>
+      <position>-40;0;50</position>
+      <volume>0.8</volume>
+      <soundfile>river.mp3</soundfile>
+    </sound>
+    <sound>
+      <position>40;0;50</position>
+      <volume>0.8</volume>
+      <soundfile>river.mp3</soundfile>
+    </sound>
   </sounds>
   <models>
     <model>character.bmf</model>

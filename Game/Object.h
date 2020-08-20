@@ -251,6 +251,16 @@ public:
 		return envCubeMapFrameBuffer;
 	}
 
+	void setEnvCubeMapDepthBuffer(unsigned int newEnvCubeMapDepthBuffer)
+	{
+		envCubeMapDepthBuffer = newEnvCubeMapDepthBuffer;
+	}
+
+	int getEnvCubeMapDepthBuffer()
+	{
+		return envCubeMapDepthBuffer;
+	}
+
 	void enable()
 	{
 		enabled = true;
@@ -325,7 +335,7 @@ protected:
 
 	std::chrono::system_clock::time_point lastHitTimestamp = std::chrono::system_clock::now() - std::chrono::hours(1);
 
-	int envCubeMap=-1, envCubeMapFrameBuffer=-1;
+	int envCubeMap=-1, envCubeMapFrameBuffer=-1, envCubeMapDepthBuffer = -1;
 
 	int networkID = -1;
 };

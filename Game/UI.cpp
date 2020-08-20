@@ -127,6 +127,7 @@ void UI::updateRot(std::shared_ptr<Player> object)
 void UI::drawString(float x, float y, std::string text, glm::vec4 color)
 {
 	fontShader->bind();
+
 	GLCALL(glUniform4fv(fontColorUniformIndex, 1, (float*)&color));
 
 	font->drawString(x, y, text.c_str(), fontShader);

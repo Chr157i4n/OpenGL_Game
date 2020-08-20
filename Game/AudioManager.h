@@ -9,6 +9,7 @@ enum AudioType {
 	soundeffect,
 	voice,
 	ambient,
+	music,
 };
 
 
@@ -24,7 +25,7 @@ public:
 
 	static irrklang::vec3df glmVec3toIrrklang(glm::vec3 vector);
 
-	static irrklang::ISound* play2D(std::string musicFile, bool playLooped = false);
+	static irrklang::ISound* play2D(std::string musicFile, AudioType audiotype = AudioType::soundeffect, bool playLooped = false);
 
 	static irrklang::ISound* play3D(std::string musicFile, glm::vec3 position, AudioType audiotype= AudioType::soundeffect, bool playLooped = false);
 

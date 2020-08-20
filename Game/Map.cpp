@@ -19,6 +19,8 @@ glm::vec2 Map::mapSize = glm::vec2(110,110);
 
 unsigned int Map::skyboxTexture;
 
+std::vector<irrklang::ISound*> Map::ambientSounds;
+
 void Map::load(std::string mapFileName)
 {
 	if (mapFileName.find(mapFileFolder) == std::string::npos) {

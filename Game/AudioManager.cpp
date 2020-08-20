@@ -18,7 +18,7 @@ void AudioManager::init()
 	}
 
 
-	music = play2D("audio/breakout.mp3", true);
+	music = play2D("audio/breakout.mp3", AudioType::music, true);
 
 	AudioManager::setVolume();
 }
@@ -41,7 +41,7 @@ irrklang::vec3df AudioManager::glmVec3toIrrklang(glm::vec3 vector)
 	return irrklang::vec3df(vector.x, vector.y, vector.z);
 }
 
-irrklang::ISound* AudioManager::play2D(std::string musicFile, bool playLooped)
+irrklang::ISound* AudioManager::play2D(std::string musicFile, AudioType audiotype, bool playLooped)
 {
 	irrklang::ISound* sound = SoundEngine->play2D(musicFile.c_str(), playLooped, false, true);
 	if (!sound)
@@ -49,7 +49,25 @@ irrklang::ISound* AudioManager::play2D(std::string musicFile, bool playLooped)
 		Logger::log("Error playing sound: " + musicFile);
 		return nullptr;
 	}
-	sound->setVolume(ConfigManager::music_volume);
+
+	switch (audiotype)
+	{
+		case AudioType::soundeffect:
+		{
+			sound->setVolume(ConfigManager::effect_volume);
+			break;
+		}
+		case AudioType::ambient:
+		{
+			sound->setVolume(ConfigManager::ambient_volume);
+			break;
+		}
+		case AudioType::voice:
+		{
+			sound->setVolume(ConfigManager::voice_volume);
+			break;
+		}
+	}
 
 	return sound;
 }

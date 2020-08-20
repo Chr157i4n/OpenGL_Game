@@ -76,7 +76,7 @@ Menu_Options::Menu_Options()
 
 	sL_envres = new UI_Element_Slider(500, Game::getWindowHeight() - 120, 200, 50, 0, "Reflektions-Aufloesung");
 	sL_envres->setMinValue(100);
-	sL_envres->setMaxValue(4000);
+	sL_envres->setMaxValue(1000);
 	sL_envres->setValue(ConfigManager::env_map_resolution);
 	sL_envres->setCallback([&] { changeEnvMapResolution(); return 0; });
 	addMenuElement(sL_envres);
@@ -168,6 +168,7 @@ void Menu_Options::changeShadowMapResolution()
 	Logger::log("changed Shadow Map Resolution to: " + std::to_string(newResolution) + " px");
 	ConfigManager::shadow_map_resolution = newResolution;
 	Renderer::initFrameBuffer();
+	Renderer::resetFrameCount();
 }
 
 void Menu_Options::changeEnvMapResolution()

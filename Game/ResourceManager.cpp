@@ -226,8 +226,6 @@ void ResourceManager::loadMap(std::string mapFileName)
 	}
 
 
-
-
 	//Player(s)
 	float fov = std::stof(ConfigManager::readConfig("fov"));
 	std::shared_ptr<Player> player = std::make_shared<Player>(Renderer::getShader(ShaderType::basic), glm::radians(fov), 1920, 1080);
@@ -419,6 +417,39 @@ void ResourceManager::loadMap(std::string mapFileName)
 		object->setNetworkID(id);
 		id++;
 	}
+
+
+
+
+
+	//ambient sounds
+	tinyxml2::XMLElement* xmlNodesounds = mapNode->FirstChildElement("sounds");
+	if (xmlNodesounds != NULL)
+	{
+		for (tinyxml2::XMLElement* xmlNodesound = xmlNodesounds->FirstChildElement("sound"); xmlNodesound != NULL; xmlNodesound = xmlNodesound->NextSiblingElement())
+		{
+			xmlNode = xmlNodesound->FirstChildElement("soundfile");
+			if (xmlNode)
+			{
+				std::string soundfilename = "audio\\";
+				soundfilename += xmlNode->GetText();
+
+				xmlNode = xmlNodesound->FirstChildElement("position");
+				if (xmlNode)
+				{
+					glm::vec3 position = glm::vec3(Helper::string_to_glmVec3(xmlNode->GetText()));
+					irrklang::ISound* sound = AudioManager::play3D(soundfilename, position, AudioType::ambient, true);
+				}
+				else
+				{
+					irrklang::ISound* sound = AudioManager::play2D(soundfilename, AudioType::ambient, true);
+				}
+			}
+			
+		}
+	}
+
+
 
 	Logger::log("Loading Map - finished");
 }
