@@ -12,6 +12,23 @@ static int lua_toggleFlashlight(lua_State* L)
 	return 0;
 }
 
+static int lua_togglePointlight(lua_State* L)
+{
+	int lightNumber = (int)lua_tonumber(L,1);
+
+	glm::vec3 newLightColor = glm::vec3(0, 0, 0);
+
+	if (!Map::pointLights[lightNumber].active)
+	{
+		newLightColor = Map::pointLights[lightNumber].color;
+	}
+	Renderer::getShader(ShaderType::basic)->bind();
+	glUniform3fv(Map::pointLights[lightNumber].colorUniformIndex, 1, (float*)&newLightColor);
+
+	Map::pointLights[lightNumber].active = !Map::pointLights[lightNumber].active;
+	return 0;
+}
+
 
 void LuaManager::init()
 {
@@ -19,6 +36,7 @@ void LuaManager::init()
 	luaL_openlibs(L);
 
 	registerFunction("ToggleFlashlight", lua_toggleFlashlight);
+	registerFunction("TogglePointlight", lua_togglePointlight);
 }
 
 void LuaManager::deinit()
@@ -47,9 +65,9 @@ void LuaManager::loadScripts()
 	checkLua(L, luaL_dofile(L, "scripts/button1.lua"));
 }
 
-void LuaManager::runFunction()
+void LuaManager::runFunction(std::string lua_function)
 {
-	lua_getglobal(L, "interact");
+	lua_getglobal(L, lua_function.c_str());
 	if (lua_isfunction(L, -1))
 	{
 		//lua_pushnumber(L, 3.5f);

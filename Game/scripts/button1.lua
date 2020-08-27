@@ -1,9 +1,10 @@
-function interact()
+function interact_button1()
 	print("[LUA] Button1 Interact called")
 
 	a = "Test"
 
-	ToggleFlashlight()
+	--ToggleFlashlight()
+	TogglePointlight(0)
 
 	return a
 end

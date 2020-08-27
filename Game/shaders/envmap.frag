@@ -10,9 +10,7 @@ struct Material {
 struct DirectionalLight {
     vec3 direction;
 
-    vec3 diffuse;
-    vec3 specular;
-    vec3 ambient;
+    vec3 color;
 };
 
 //Input from VRAM
@@ -56,9 +54,9 @@ void main()
     //DirectionalLight
     vec3 light = normalize(-u_directional_light.direction);
     vec3 reflection = reflect(u_directional_light.direction, normal);
-    vec3 ambient = u_directional_light.ambient * diffuseColor.xyz;
-    vec3 diffuse = u_directional_light.diffuse * max(dot(normal, light), 0.0) * diffuseColor.xyz;
-    vec3 specular = u_directional_light.specular * pow(max(dot(reflection, view), 0.000001), u_material.shininess) * u_material.specular;
+    vec3 ambient = u_directional_light.color * 0.3 * diffuseColor.xyz;
+    vec3 diffuse = u_directional_light.color * max(dot(normal, light), 0.0) * diffuseColor.xyz;
+    vec3 specular = u_directional_light.color * pow(max(dot(reflection, view), 0.000001), u_material.shininess) * u_material.specular;
 
 
     //sum phong elements

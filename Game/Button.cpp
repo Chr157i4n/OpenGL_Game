@@ -13,5 +13,5 @@ void Button::interact()
 	if (!this->getEnabled()) return;
 
 	this->markObject();
-	LuaManager::runFunction();
+	LuaManager::runFunction(interactLuaFunction);
 }

@@ -15,6 +15,8 @@
 #include "Object.h"
 #include "ConfigManager.h"
 
+#define NR_POINT_LIGHTS 10
+
 enum ShaderType {
 	basic,
 	skybox,
@@ -188,7 +190,6 @@ private:
 	static int skyboxProjUniformIndex;
 	static int lightdirectionBasicUniformIndex;
 	static int lightdirectionEnvUniformIndex;
-	static int lightpositionUniformIndex;
 	static int envmapBasicUniformIndex;
 	static int envmapEnvUniformIndex;
 	static int lightspacematrixUniformIndex;
@@ -199,7 +200,6 @@ private:
 	static glm::mat4 modelViewProj;
 
 	static glm::vec3 spotLightPosition;
-	static glm::vec4 pointLightPosition;
 
 	static bool wireframeMode;
 	static bool showNormalMode;

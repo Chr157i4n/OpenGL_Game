@@ -7,20 +7,17 @@ struct Material {
     float shininess;
 };
 
-struct DirectionalLight {
+struct DirLight {
     vec3 direction;
 
-    vec3 diffuse;
-    vec3 specular;
-    vec3 ambient;
+    vec3 color;
 };
 
+#define NR_POINT_LIGHTS 10  
 struct PointLight {
     vec3 position;
 
-    vec3 diffuse;
-    vec3 specular;
-    vec3 ambient;
+    vec3 color;
 
     float linear;
     float quadratic;
@@ -34,9 +31,7 @@ struct SpotLight {
     float innerCone;
     float outerCone;
 
-    vec3 diffuse;
-    vec3 specular;
-    vec3 ambient;
+    vec3 color;
 };
 
 //Input from VRAM
@@ -49,8 +44,8 @@ in vec3 v_normal_world_space;
 
 //Input from CPU
 uniform Material u_material;
-uniform DirectionalLight u_directional_light;
-uniform PointLight u_point_light;
+uniform DirLight u_directional_light;
+uniform PointLight u_point_lights[NR_POINT_LIGHTS];
 uniform SpotLight u_spot_light;
 
 uniform sampler2D u_diffuse_map;    //textureslot 0
@@ -73,9 +68,18 @@ layout(location = 0) out vec4 f_color;
 
 
 
-float ShadowCalculation(vec3 position_light_space, vec3 normal)
+
+//global variables
+float shadow=0;
+vec3 normal;
+vec2 tex_coord;
+vec3 tex_color;
+vec3 viewDir;
+
+
+float calcShadows(vec3 position_light_space)
 {
-    float shadow = 0.0;
+    shadow = 0.0;
     //float bias = 0.0002;
     float bias = max(0.00001 * (1.0 - dot(normal, u_directional_light.direction)), 0.0003);  
 
@@ -112,84 +116,135 @@ float ShadowCalculation(vec3 position_light_space, vec3 normal)
     return shadow;
 }
 
+
+vec3 calcDirLight(DirLight light)
+{
+    vec3 ambient, diffuse, specular;
+    
+    vec3 lightDir = normalize(-light.direction);
+    // diffuse shading
+    float diff = max(dot(normal, lightDir), 0.0);
+    // specular shading
+    vec3 reflectDir = reflect(-lightDir, normal);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.00001), u_material.shininess);
+    // combine results
+    ambient  = light.color * 0.3  * tex_color;
+    diffuse  = light.color * diff * tex_color * (1 - shadow);
+    specular = light.color * spec * tex_color * (1 - shadow);
+
+    vec3 sum = ambient + diffuse + specular;
+    return sum;
+}
+
+
+vec3 calcPointLight(PointLight light)
+{
+    vec3 ambient, diffuse, specular;
+
+    if(light.color == vec3(0,0,0))
+        return vec3(0,0,0);
+    
+    vec3 lightDir = normalize(light.position - v_position_view_space);
+    // diffuse shading
+    float diff = max(dot(normal, lightDir), 0.00001);
+    // specular shading
+    vec3 reflectDir = reflect(-lightDir, normal);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.00001), u_material.shininess);
+    // attenuation
+    float distance_light    = length(light.position - v_position_view_space);
+    float attenuation = 1.0 / (light.linear * distance_light + light.quadratic * (distance_light * distance_light));    
+    // combine results
+    ambient  = light.color * 0.3  * tex_color;
+    diffuse  = light.color * diff * tex_color;
+    specular = light.color * spec * tex_color;
+
+    ambient  *= attenuation;
+    diffuse  *= attenuation;
+    specular *= attenuation;
+
+    vec3 sum = ambient + diffuse + specular;
+    return sum;
+}
+
+
+vec3 calcSpotLight(SpotLight light)
+{
+    vec3 ambient, diffuse, specular;
+    
+    vec3 lightDir = normalize(light.position - v_position_view_space);
+    vec3 reflection = reflect(-lightDir, normal);
+    float theta = dot(lightDir, light.direction);
+    float epsilon = light.innerCone - light.outerCone;
+    float intensity = clamp((theta - light.outerCone) / epsilon, 0.0f, 1.0f);
+
+    ambient = light.color * 0.3 * tex_color;
+
+    if(theta > light.outerCone) 
+    {  
+        diffuse = light.color * intensity * max(dot(normal, light.direction), 0.0) * tex_color;
+        specular = light.color * intensity * pow(max(dot(reflection, viewDir), 0.000001), u_material.shininess) * u_material.specular;
+    }
+
+    vec3 sum = ambient + diffuse + specular;
+    return sum;
+}
+
+
 void main()
 {
-    vec2 tex_coord = v_tex_coord + u_textureflow;
-    
+    tex_coord = v_tex_coord + u_textureflow;
+    tex_color = vec3(texture(u_diffuse_map, tex_coord));
+
     // Vector from fragment to camera (camera always at 0,0,0)
-    vec3 view = normalize(-v_position_view_space);
+    viewDir = normalize(-v_position_view_space);
 
     // Normal from normal map
     vec3 normaltex = texture(u_normal_map, tex_coord).rgb;
-    vec3 normal = normalize(normaltex * 2.0 - 1.0f);
+    normal = normalize(normaltex * 2.0 - 1.0f);
     normal = normalize(v_tbn * normal);
 
     vec4 diffuseColor = texture(u_diffuse_map, tex_coord);
     if(diffuseColor.a < 0.1) {
         discard;
     }
-    float alpha = diffuseColor.a ;
+    float alpha = diffuseColor.a;
 
     if(u_showNormalMode == 1) {
         f_color = vec4(normal, 1.0);
         return;
     }
 
+    calcShadows(v_position_light_space); 
 
 
-    //DirectionalLight
-    vec3 light = normalize(-u_directional_light.direction);
-    vec3 reflection = reflect(u_directional_light.direction, normal);
-    vec3 ambient = u_directional_light.ambient * diffuseColor.xyz;
-    vec3 diffuse = u_directional_light.diffuse * max(dot(normal, light), 0.0) * diffuseColor.xyz;
-    vec3 specular = u_directional_light.specular * pow(max(dot(reflection, view), 0.000001), u_material.shininess) * u_material.specular;
-
-    //PointLight
-    light = normalize(u_point_light.position - v_position_view_space);
-    reflection = reflect(-light, normal);
-    float distance = length(u_point_light.position - v_position_view_space);
-    float attentuation = 1.0 / ((1.0) + (u_point_light.linear*distance) + (u_point_light.quadratic*distance*distance));
-    ambient += attentuation * u_point_light.ambient * diffuseColor.xyz;
-    diffuse += attentuation * u_point_light.diffuse * max(dot(normal, light), 0.0) * diffuseColor.xyz;
-    specular += attentuation * u_point_light.specular * pow(max(dot(reflection, view), 0.000001), u_material.shininess) * u_material.specular;
-
-    //SpotLight
-    light = normalize(u_spot_light.position - v_position_view_space);
-    reflection = reflect(-light, normal);
-    float theta = dot(light, u_spot_light.direction);
-    float epsilon = u_spot_light.innerCone - u_spot_light.outerCone;
-    float intensity = clamp((theta - u_spot_light.outerCone) / epsilon, 0.0f, 1.0f);
-    if(theta > u_spot_light.outerCone) {
-        ambient += u_spot_light.ambient * diffuseColor.xyz;
-        diffuse += intensity * u_spot_light.diffuse * max(dot(normal, light), 0.0) * diffuseColor.xyz;
-        specular += intensity * u_spot_light.specular * pow(max(dot(reflection, view), 0.000001), u_material.shininess) * u_material.specular;
-    } else {
-        ambient += u_spot_light.ambient * diffuseColor.xyz;
+    // phase 1: Directional lighting
+    vec3 resultColor = calcDirLight(u_directional_light);
+    // phase 2: Point lights
+    for(int i = 0; i < NR_POINT_LIGHTS; i++)
+    {
+        resultColor += calcPointLight(u_point_lights[i]);  
     }
-
-    float shadow = ShadowCalculation(v_position_light_space, normal); 
-
-    //sum phong elements
-    f_color = vec4( ambient + (1.0 - shadow) * (diffuse + specular + u_material.emissive), alpha);
-    f_color = clamp( f_color, 0, 1);
-
-
+    // phase 3: Spot light
+    resultColor += calcSpotLight(u_spot_light);    
 
     if(u_isgettingdamaged==1)
     {
-        f_color.r += 0.5;
+        resultColor.r += 0.5;
     }
 
     vec3 I = normalize(v_position_world_space - u_camerapos);
-    vec3 R = reflect(I, v_normal_world_space);
-    //float ratio = 1.00 / 1.52;
-    //vec3 R = refract(I, v_normal_world_space, ratio);
+    vec3 R = reflect(I, v_normal_world_space) * normaltex;
 
-    R = R*normaltex;
-
-    vec4 envmapcolor = vec4(texture(u_env_map, R).rgb, 1.0);
-    f_color = mix(f_color, envmapcolor, u_material.specular.x/2);
+    vec3 envmapcolor = texture(u_env_map, R).rgb;
+    resultColor = mix(resultColor, envmapcolor, u_material.specular.x/2);
 
     float gamma=1;
-    f_color.rgb = clamp( pow(f_color.rgb, vec3(1.0/gamma)), 0, 1);
+    resultColor.rgb = pow(resultColor.rgb, vec3(1.0/gamma));
+
+    //if(resultColor.r < 0.1 && resultColor.g < 0.1 && resultColor.b < 0.1)
+    //{
+    //    resultColor = vec3(0,0,1); 
+    //}
+
+    f_color = vec4(resultColor, alpha);
 }

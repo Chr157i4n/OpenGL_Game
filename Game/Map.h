@@ -1,5 +1,6 @@
 #pragma once
 #include "defines.h"
+#include "Renderer.h"
 
 #include <vector>
 #include <memory>
@@ -7,6 +8,19 @@
 
 #include <irrKlang.h>
 
+
+struct PointLight {
+	glm::vec3 position = glm::vec3(0,0,0);
+	int positionUniformIndex = -1;
+
+	glm::vec3 color = glm::vec3(0, 0, 0);
+	int colorUniformIndex = -1;
+
+	float linear = 0.1;
+	float quadratic = 0.01;
+
+	bool active = true;
+};
 
 
 class Map
@@ -50,6 +64,8 @@ public:
 	static glm::vec3 sun_direction;
 	static glm::vec3 sun_color;
 	static std::string skyboxName;
+
+	static std::vector<PointLight> pointLights;
 
 private:
 

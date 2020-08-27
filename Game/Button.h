@@ -8,7 +8,18 @@ public:
 
 	virtual void interact();
 
+	void setInteractLuaFunction(std::string newInteractLuaFunction)
+	{
+		interactLuaFunction = newInteractLuaFunction;
+	}
+
+	std::string getInteractLuaFunction()
+	{
+		return interactLuaFunction;
+	}
+
 private:
+	std::string interactLuaFunction = "interact";
 
 };
 

@@ -23,7 +23,7 @@ public:
 
 	static void loadScripts();
 
-	static void runFunction();
+	static void runFunction(std::string lua_function);
 
 
 	static int lua_Hostfunction(lua_State* L);

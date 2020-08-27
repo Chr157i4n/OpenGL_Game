@@ -8,6 +8,7 @@
 #include "Object.h"
 #include "Game.h"
 #include "Button.h"
+#include "Map.h"
 
 std::string ResourceManager::modelFolder = "models";
 float ResourceManager::percentageLoading = 0;
@@ -255,7 +256,16 @@ void ResourceManager::loadMap(std::string mapFileName)
 
 		if (xmlNodeObject->FirstChildElement("interactable"))
 		{
-			newObject = std::make_shared<Button>(Renderer::getShader(ShaderType::basic), xmlNodeText);
+			tinyxml2::XMLElement* xmlNodeInteract = xmlNodeObject->FirstChildElement("interactable");
+
+			std::shared_ptr<Button> newButton = std::make_shared<Button>(Renderer::getShader(ShaderType::basic), xmlNodeText);
+			newObject = newButton;
+			//todo: movement, script
+			if (xmlNodeInteract->FirstChildElement("scriptfunction"))
+			{
+				xmlNodeText = xmlNodeInteract->FirstChildElement("scriptfunction")->GetText();
+				newButton->setInteractLuaFunction(xmlNodeText);
+			}
 		}
 		else
 		{
@@ -292,6 +302,45 @@ void ResourceManager::loadMap(std::string mapFileName)
 			xmlNodeText = xmlNodeObject->FirstChildElement("textureflow")->GetText();
 			Helper::split(xmlNodeText, params, ';');
 			newObject->setTextureFlow( glm::vec2(stof(params[0]), stof(params[1])) );
+		}
+
+		if (xmlNodeObject->FirstChildElement("light"))
+		{
+			tinyxml2::XMLElement* xmlNodelight = xmlNodeObject->FirstChildElement("light");
+			PointLight newPointlight;
+
+			if (xmlNodelight->FirstChildElement("offset"))
+			{
+				xmlNodeText = xmlNodelight->FirstChildElement("offset")->GetText();
+				Helper::split(xmlNodeText, params, ';');
+				newPointlight.position = newObject->getPosition() + glm::vec3(stof(params[0]), stof(params[1]), stof(params[2]));
+			}
+
+			if (xmlNodelight->FirstChildElement("color"))
+			{
+				xmlNodeText = xmlNodelight->FirstChildElement("color")->GetText();
+				Helper::split(xmlNodeText, params, ';');
+				newPointlight.color = glm::vec3(stof(params[0]), stof(params[1]), stof(params[2]));
+			}
+
+			if (xmlNodelight->FirstChildElement("linear"))
+			{
+				xmlNodeText = xmlNodelight->FirstChildElement("linear")->GetText();
+				newPointlight.linear = stof(xmlNodeText);
+			}
+
+			if (xmlNodelight->FirstChildElement("quadratic"))
+			{
+				xmlNodeText = xmlNodelight->FirstChildElement("quadratic")->GetText();
+				newPointlight.quadratic = stof(xmlNodeText);
+			}
+
+			Map::pointLights.push_back(newPointlight);
+		}
+
+		if (xmlNodeObject->FirstChildElement("sound"))
+		{
+			//todo
 		}
 
 		newObject->setNumber(numObject);

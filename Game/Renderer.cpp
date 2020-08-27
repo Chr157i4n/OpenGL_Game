@@ -135,7 +135,6 @@ int Renderer::viewUniformIndex;
 int Renderer::projUniformIndex;
 int Renderer::lightdirectionBasicUniformIndex;
 int Renderer::lightdirectionEnvUniformIndex;
-int Renderer::lightpositionUniformIndex;
 int Renderer::envmapBasicUniformIndex;
 int Renderer::envmapEnvUniformIndex;
 int Renderer::lightspacematrixUniformIndex;
@@ -143,7 +142,6 @@ int Renderer::shadowmapUniformIndex;
 int Renderer::shadowmodeUniformIndex;
 
 glm::vec3 Renderer::spotLightPosition;
-glm::vec4 Renderer::pointLightPosition;
 
 glm::mat4 Renderer::modelViewProj;
 
@@ -344,31 +342,35 @@ void Renderer::initLight()
 
 	shaderBasic->bind();
 
+	//Directional Light
 	lightdirectionBasicUniformIndex = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_directional_light.direction"));
-	lightpositionUniformIndex = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_point_light.position"));
+	GLCALL(glUniform3fv(glGetUniformLocation(shaderBasic->getShaderId(), "u_directional_light.color"), 1, (float*)&Map::sun_color));
 
-	//glm::vec3 sunColor = glm::vec3(0.98f, 0.83f, 0.30f);
-	glm::vec3 sunColor = Map::sun_color;
-	glm::vec3 sunColorAmbient = Map::sun_color * glm::vec3(0.3);
-	GLCALL(glUniform3fv(glGetUniformLocation(shaderBasic->getShaderId(), "u_directional_light.diffuse"), 1, (float*)&sunColor));
-	GLCALL(glUniform3fv(glGetUniformLocation(shaderBasic->getShaderId(), "u_directional_light.specular"), 1, (float*)&sunColor));
-	
-	GLCALL(glUniform3fv(glGetUniformLocation(shaderBasic->getShaderId(), "u_directional_light.ambient"), 1, (float*)&sunColorAmbient));
 
-	glm::vec3 pointLightColor = glm::vec3(0, 0, 0);
-	GLCALL(glUniform3fv(glGetUniformLocation(shaderBasic->getShaderId(), "u_point_light.diffuse"), 1, (float*)&pointLightColor));
-	GLCALL(glUniform3fv(glGetUniformLocation(shaderBasic->getShaderId(), "u_point_light.specular"), 1, (float*)&pointLightColor));
-	pointLightColor *= 0.2f;
-	GLCALL(glUniform3fv(glGetUniformLocation(shaderBasic->getShaderId(), "u_point_light.ambient"), 1, (float*)&pointLightColor));
-	GLCALL(glUniform1f(glGetUniformLocation(shaderBasic->getShaderId(), "u_point_light.linear"), 0.007f));
-	GLCALL(glUniform1f(glGetUniformLocation(shaderBasic->getShaderId(), "u_point_light.quadratic"), 0.0002));
-	pointLightPosition = glm::vec4(80, 2.5, 10, 1.0f);
+	for (int i = 0; i < 10; i++)
+	{
+		glm::vec3 zero = glm::vec3(0, 0, 0);
+		GLCALL(glUniform3fv(glGetUniformLocation(shaderBasic->getShaderId(), ("u_point_lights[" + std::to_string(i) + "].position").c_str()), 1, (float*) &zero));
+		GLCALL(glUniform3fv(glGetUniformLocation(shaderBasic->getShaderId(), ("u_point_lights[" + std::to_string(i) + "].color").c_str()), 1, (float*)&zero));
+		GLCALL(glUniform1f(glGetUniformLocation(shaderBasic->getShaderId(), ("u_point_lights[" + std::to_string(i) + "].linear").c_str()), 0));
+		GLCALL(glUniform1f(glGetUniformLocation(shaderBasic->getShaderId(), ("u_point_lights[" + std::to_string(i) + "].quadratic").c_str()), 0));
+	}
+
+	//Point Light
+	for (int i = 0; i < Map::pointLights.size(); i++)
+	{
+		Map::pointLights[i].positionUniformIndex = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), ("u_point_lights[" + std::to_string(i) + "].position").c_str()));
+
+		Map::pointLights[i].colorUniformIndex = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), ("u_point_lights[" + std::to_string(i) + "].color").c_str()));
+
+		GLCALL(glUniform3fv(Map::pointLights[i].colorUniformIndex, 1, (float*)&Map::pointLights[i].color));
+		GLCALL(glUniform1f(glGetUniformLocation(shaderBasic->getShaderId(), ("u_point_lights[" + std::to_string(i) + "].linear").c_str()), Map::pointLights[i].linear));
+		GLCALL(glUniform1f(glGetUniformLocation(shaderBasic->getShaderId(), ("u_point_lights[" + std::to_string(i) + "].quadratic").c_str()), Map::pointLights[i].quadratic));
+	}
+
 
 	glm::vec3 spotLightColor = glm::vec3(0);
-	GLCALL(glUniform3fv(glGetUniformLocation(shaderBasic->getShaderId(), "u_spot_light.diffuse"), 1, (float*)&spotLightColor));
-	GLCALL(glUniform3fv(glGetUniformLocation(shaderBasic->getShaderId(), "u_spot_light.specular"), 1, (float*)&spotLightColor));
-	spotLightColor *= 0.2f;
-	GLCALL(glUniform3fv(glGetUniformLocation(shaderBasic->getShaderId(), "u_spot_light.ambient"), 1, (float*)&spotLightColor));
+	GLCALL(glUniform3fv(glGetUniformLocation(shaderBasic->getShaderId(), "u_spot_light.color"), 1, (float*)&spotLightColor));
 	spotLightPosition = glm::vec3(0.0f);
 	GLCALL(glUniform3fv(glGetUniformLocation(shaderBasic->getShaderId(), "u_spot_light.position"), 1, (float*)&spotLightPosition));
 	spotLightPosition.z = 1.0f;
@@ -385,9 +387,7 @@ void Renderer::initLight()
 	shaderEnvMap->bind();
 
 	lightdirectionEnvUniformIndex = GLCALL(glGetUniformLocation(shaderEnvMap->getShaderId(), "u_directional_light.direction"));
-	GLCALL(glUniform3fv(glGetUniformLocation(shaderEnvMap->getShaderId(), "u_directional_light.diffuse"), 1, (float*)&sunColor));
-	GLCALL(glUniform3fv(glGetUniformLocation(shaderEnvMap->getShaderId(), "u_directional_light.specular"), 1, (float*)&sunColor));
-	GLCALL(glUniform3fv(glGetUniformLocation(shaderEnvMap->getShaderId(), "u_directional_light.ambient"), 1, (float*)&sunColorAmbient));
+	GLCALL(glUniform3fv(glGetUniformLocation(shaderEnvMap->getShaderId(), "u_directional_light.color"), 1, (float*)&Map::sun_color));
 	GLCALL(glUniform3fv(lightdirectionEnvUniformIndex, 1, (float*)&Map::sun_direction));
 #pragma endregion
 }
@@ -432,10 +432,11 @@ void Renderer::calcLight()
 	glUniform3fv(lightdirectionBasicUniformIndex, 1, (float*)&transformedSunDirection);
 
 	//Pointlight
-	glm::mat4 pointLightMatrix = glm::mat4(1.0f);
-	pointLightPosition = pointLightMatrix * pointLightPosition;
-	glm::vec3 transformedPointLightPosition = (glm::vec3) (Game::players[0]->getView() * pointLightPosition);
-	glUniform3fv(lightpositionUniformIndex, 1, (float*)&transformedPointLightPosition);
+	for (int i = 0; i < Map::pointLights.size(); i++)
+	{
+		glm::vec3 transformedPointLightPosition = (glm::vec3) (Game::players[0]->getView() * glm::vec4(Map::pointLights[i].position,1));
+		glUniform3fv(Map::pointLights[i].positionUniformIndex, 1, (float*)&transformedPointLightPosition);
+	}
 
 	shaderBasic->unbind();
 }

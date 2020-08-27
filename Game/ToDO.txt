@@ -12,6 +12,8 @@
 - Netcode optimisation 
 	- dont broadcast to the sender of the data
 
+- array of light sources in map file	✓
+
 - ambient sounds	✓
 
 - push boxes
