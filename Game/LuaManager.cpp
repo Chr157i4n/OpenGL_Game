@@ -62,7 +62,13 @@ void LuaManager::registerFunction(std::string luafunctionIndentifierer, lua_CFun
 void LuaManager::loadScripts()
 {
 	Logger::log("Loading LUA Scripts");
-	checkLua(L, luaL_dofile(L, "scripts/button1.lua"));
+	//checkLua(L, luaL_dofile(L, "scripts/button1.lua"));
+	std::vector<std::string> scripts = readAllScripts();
+
+	for (std::string script : scripts)
+	{
+		checkLua(L, luaL_dofile(L, script.c_str()));
+	}
 }
 
 void LuaManager::runFunction(std::string lua_function)
@@ -80,55 +86,19 @@ void LuaManager::runFunction(std::string lua_function)
 	}
 }
 
-
-int LuaManager::lua_Hostfunction(lua_State* L)
+std::vector<std::string> LuaManager::readAllScripts()
 {
-	float a = (float)lua_tonumber(L, 1);
-	float b = (float)lua_tonumber(L, 2);
+	std::vector<std::string> scripts;
+	std::string path = "scripts";
+	if (!std::filesystem::exists(path)) return scripts;
 
-	Logger::log("[C++] HostFunction called");
-	float c = a * b;
-
-	lua_pushnumber(L, c);
-
-	return 1;
-}
-
-void LuaManager::testLua()
-{	
-	registerFunction("HostFunction", LuaManager::lua_Hostfunction);
-
-	checkLua(L, luaL_dofile(L, "scripts/test.lua"));
-
-	StopWatch stopwatchlua;
-	stopwatchlua.start();
-
-	lua_getglobal(L, "AddStuff");
-	if (lua_isfunction(L, -1))
+	for (const auto& entry : std::filesystem::directory_iterator(path))
 	{
-		lua_pushnumber(L, 3.5f);
-		lua_pushnumber(L, 7.1f);
-
-		if (checkLua(L, lua_pcall(L, 2, 1, 0)))
-		{
-			float returnValue = (float)lua_tonumber(L, -1);
-			Logger::log("[C++] called in Lua: " + std::to_string(returnValue));
+		if (entry.path().string().find(".lua") != std::string::npos) {
+			scripts.push_back(entry.path().string());
 		}
+		
 	}
 
-	lua_getglobal(L, "DoAThing");
-	if (lua_isfunction(L, -1))
-	{
-		lua_pushnumber(L, 2.0f);
-		lua_pushnumber(L, 3.0f);
-
-		if (checkLua(L, lua_pcall(L, 2, 1, 0)))
-		{
-			float returnValue = (float)lua_tonumber(L, -1);
-			Logger::log("[C++] called in Lua: " + std::to_string(returnValue));
-		}
-	}
-
-	float64 time = stopwatchlua.stop();
-	Logger::log("Lua took " + std::to_string(time) + " ms");
+	return scripts;
 }

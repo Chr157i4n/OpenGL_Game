@@ -285,7 +285,7 @@ void ResourceManager::loadMap(std::string mapFileName)
 		newObject->setScale(glm::vec3(stof(params[0]), stof(params[1]), stof(params[2])));
 
 		xmlNodeText = xmlNodeObject->FirstChildElement("type")->GetText();
-		newObject->setType(Object::convertStringToType(xmlNodeText));
+		newObject->setType(newObject->getType() | Object::convertStringToType(xmlNodeText));
 
 		xmlNodeText = xmlNodeObject->FirstChildElement("collisionboxtype")->GetText();
 		newObject->setCollisionBoxType(Object::convertStringToCollisionBoxType(xmlNodeText));
@@ -351,7 +351,7 @@ void ResourceManager::loadMap(std::string mapFileName)
 		Renderer::drawLoadingScreen();
 		objects->push_back(newObject);
 
-		if (newObject->getType() == ObjectType::Object_Environment)
+		if (newObject->getType() & ObjectType::Object_Environment)
 		{
 			map->push_back(newObject);
 		}

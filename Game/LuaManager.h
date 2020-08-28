@@ -26,11 +26,9 @@ public:
 	static void runFunction(std::string lua_function);
 
 
-	static int lua_Hostfunction(lua_State* L);
-	
-	static void testLua();
-
 private:
+	static std::vector<std::string> readAllScripts();
+
 	static lua_State* L;
 
 };

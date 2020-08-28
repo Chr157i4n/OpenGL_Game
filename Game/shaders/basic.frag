@@ -58,6 +58,7 @@ uniform vec2 u_textureflow;
 
 uniform int u_showNormalMode;
 uniform int u_isgettingdamaged;
+uniform vec3 u_mark_color;
 uniform int u_isusingfullenvmap;
 uniform int u_shadow_mode;           //0 is off, 1 is hard, 2 is soft
 
@@ -232,6 +233,8 @@ void main()
         resultColor.r += 0.5;
     }
 
+    resultColor += u_mark_color;
+
     vec3 I = normalize(v_position_world_space - u_camerapos);
     vec3 R = reflect(I, v_normal_world_space) * normaltex;
 
@@ -240,11 +243,6 @@ void main()
 
     float gamma=1;
     resultColor.rgb = pow(resultColor.rgb, vec3(1.0/gamma));
-
-    //if(resultColor.r < 0.1 && resultColor.g < 0.1 && resultColor.b < 0.1)
-    //{
-    //    resultColor = vec3(0,0,1); 
-    //}
 
     f_color = vec4(resultColor, alpha);
 }

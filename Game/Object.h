@@ -25,8 +25,9 @@ enum ObjectType {
 	Object_NPC			= 2,
 	Object_Character	= 4,
 	Object_Entity		= 8,
-	Object_Environment	= 16,
-	Object_Bullet		= 32,
+	Object_Interactable	= 16,
+	Object_Environment	= 32,
+	Object_Bullet		= 64,
 };
 
 /// <summary>
@@ -117,6 +118,8 @@ public:
 	float getDistance(std::shared_ptr<Object> object);
 
 	void markObject();
+
+	bool isMarked();
 
 	virtual void interact();
 
@@ -306,6 +309,11 @@ public:
 		networkID = newNetworkID;
 	}
 
+	glm::vec3 getMarkColor()
+	{
+		return markColor;
+	}
+
 protected:
 
 	glm::vec3 position;						//x, y, z
@@ -334,6 +342,8 @@ protected:
 	glm::vec2 textureFlow = glm::vec2(0, 0);
 
 	std::chrono::system_clock::time_point lastHitTimestamp = std::chrono::system_clock::now() - std::chrono::hours(1);
+	std::chrono::system_clock::time_point lastMarkTimestamp = std::chrono::system_clock::now() - std::chrono::hours(1);
+	glm::vec3 markColor = glm::vec3(0.1, 0.1, 0);
 
 	int envCubeMap=-1, envCubeMapFrameBuffer=-1, envCubeMapDepthBuffer = -1;
 

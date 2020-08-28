@@ -81,7 +81,6 @@ void Game::init()
 
 	LuaManager::init();
 	LuaManager::loadScripts();
-	LuaManager::testLua();
 
 	AudioManager::init();
 
@@ -259,18 +258,21 @@ void Game::gameLoop()
 				gameState = GameState::GAME_GAME_OVER;
 			}
 
-			/*stopwatch1.start();
+			stopwatch1.start();
 			//testing - Raypicking
 			std::shared_ptr<Object> objectPlayerLookingAt = players[0]->getObjectLookingAt();
 			if (objectPlayerLookingAt != nullptr)
 			{
 				if (players[0]->getDistance(objectPlayerLookingAt) < 10)
 				{
-					objectPlayerLookingAt->markObject();
+					if (objectPlayerLookingAt->getType() & ObjectType::Object_Interactable)
+					{
+						objectPlayerLookingAt->markObject();
+					}
 				}
 			}
 			double stopwatch5duration = stopwatch1.stop();
-			lbl_stopwatch5->setText("Raypicking: " + std::to_string(stopwatch5duration));*/
+			lbl_stopwatch5->setText("Raypicking: " + std::to_string(stopwatch5duration));
 
 		}
 		

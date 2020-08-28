@@ -122,7 +122,21 @@ float Object::getDistance(std::shared_ptr<Object> object)
 
 void Object::markObject()
 {
-	lastHitTimestamp = std::chrono::system_clock::now();
+	lastMarkTimestamp = std::chrono::system_clock::now();
+}
+
+bool Object::isMarked()
+{
+	std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+	std::chrono::duration<double, std::milli> notGettigHitDuration = now - lastMarkTimestamp;
+	if (notGettigHitDuration.count() > 10)
+	{
+		return false;
+	}
+	else
+	{
+		return true;
+	}
 }
 
 void Object::interact()

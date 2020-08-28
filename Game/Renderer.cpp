@@ -981,6 +981,14 @@ void Renderer::renderObjects(bool transparent)
 			GLCALL(glUniform1i(isGettingDamagedUniformLocation, 0));
 		}
 
+		int markcolorUniformLocation = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_mark_color"));
+		glm::vec3 markColor = glm::vec3(0,0,0);
+		if (object->isMarked()) {
+			markColor = object->getMarkColor();
+		}
+		GLCALL(glUniform3fv(markcolorUniformLocation, 1, (float*) &markColor));
+
+
 		int modelUniformLocation = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_model"));
 		GLCALL(glUniformMatrix4fv(modelUniformLocation, 1, GL_FALSE, &model[0][0]));
 

@@ -5,7 +5,7 @@
 
 Button::Button(Shader* shader, std::string modelFileName) : Object(shader, modelFileName)
 {
-
+	this->setType(ObjectType::Object_Interactable | ObjectType::Object_Entity);
 }
 
 void Button::interact()

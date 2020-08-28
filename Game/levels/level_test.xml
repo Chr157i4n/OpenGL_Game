@@ -49,12 +49,28 @@
       <scale>1;1;1</scale>
     </object>
     <object>
-      <name>Lamp</name>
+      <name>Lamp1</name>
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
       <modelfile>lamp.bmf</modelfile>
       <position>5;0;5</position>
+      <rotation>0;0;0</rotation>
+      <scale>1;1;1</scale>
+      <light>
+        <offset>0;6.2;0</offset>
+        <color>1;1;0</color>
+        <linear>0.1</linear>
+        <quadratic>0.01</quadratic>
+      </light>
+    </object>
+    <object>
+      <name>Lamp2</name>
+      <type>Entity</type>
+      <collisionboxtype>cube</collisionboxtype>
+      <gravity>false</gravity>
+      <modelfile>lamp.bmf</modelfile>
+      <position>5;0;-5</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
       <light>
@@ -65,18 +81,33 @@
       </light>
     </object>
     <object>
-      <name>Button</name>
+      <name>Button1</name>
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
       <modelfile>button.bmf</modelfile>
-      <position>0.2;2;0</position>
+      <position>0.2;2;1</position>
       <rotation>0;90;0</rotation>
       <scale>1;1;1</scale>
       <interactable>
         <interactabletype>button</interactabletype>
         <travel>-0.2;0;0</travel>
         <scriptfunction>interact_button1</scriptfunction>
+      </interactable>
+    </object>
+    <object>
+      <name>Button2</name>
+      <type>Entity</type>
+      <collisionboxtype>cube</collisionboxtype>
+      <gravity>false</gravity>
+      <modelfile>button.bmf</modelfile>
+      <position>0.2;2;-1</position>
+      <rotation>0;90;0</rotation>
+      <scale>1;1;1</scale>
+      <interactable>
+        <interactabletype>button</interactabletype>
+        <travel>-0.2;0;0</travel>
+        <scriptfunction>interact_button2</scriptfunction>
       </interactable>
     </object>
   </objects>
