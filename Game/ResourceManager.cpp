@@ -260,11 +260,26 @@ void ResourceManager::loadMap(std::string mapFileName)
 
 			std::shared_ptr<Button> newButton = std::make_shared<Button>(Renderer::getShader(ShaderType::basic), xmlNodeText);
 			newObject = newButton;
-			//todo: movement, script
-			if (xmlNodeInteract->FirstChildElement("scriptfunction"))
+			//todo: movement
+			if (xmlNodeInteract->FirstChildElement("scriptfunction_click"))
 			{
-				xmlNodeText = xmlNodeInteract->FirstChildElement("scriptfunction")->GetText();
-				newButton->setInteractLuaFunction(xmlNodeText);
+				xmlNodeText = xmlNodeInteract->FirstChildElement("scriptfunction_click")->GetText();
+				newButton->setInteractLuaFunction_click(xmlNodeText);
+			}
+			if (xmlNodeInteract->FirstChildElement("scriptfunction_hold"))
+			{
+				xmlNodeText = xmlNodeInteract->FirstChildElement("scriptfunction_hold")->GetText();
+				newButton->setInteractLuaFunction_hold(xmlNodeText);
+			}
+			if (xmlNodeInteract->FirstChildElement("travel"))
+			{
+				xmlNodeText = xmlNodeInteract->FirstChildElement("travel")->GetText();
+				newButton->travel = Helper::string_to_glmVec3(xmlNodeText);
+			}
+			if (xmlNodeInteract->FirstChildElement("travelduration"))
+			{
+				xmlNodeText = xmlNodeInteract->FirstChildElement("travelduration")->GetText();
+				newButton->travel_duration = std::stof(xmlNodeText);
 			}
 		}
 		else

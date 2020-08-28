@@ -32,7 +32,7 @@ void Character::interactWithObject()
 	{
 		if (this->getDistance(objectPlayerLookingAt) < 10)
 		{
-			objectPlayerLookingAt->interact();
+			objectPlayerLookingAt->interact_click();
 		}
 	}
 }
@@ -120,7 +120,7 @@ void Character::run(bool run)
 	}
 }
 
-std::shared_ptr<Object> Character::getObjectLookingAt()
+std::shared_ptr<Object> Character::calculateObjectLookingAt()
 {
 	std::vector< std::shared_ptr<Object> > objectsLookingAt;
 	
@@ -155,6 +155,7 @@ std::shared_ptr<Object> Character::getObjectLookingAt()
 		}
 	}
 
+	ObjectLookingAt = objectMinDistance;
 	return objectMinDistance;
 }
 

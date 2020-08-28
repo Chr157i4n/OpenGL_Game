@@ -14,18 +14,56 @@ static int lua_toggleFlashlight(lua_State* L)
 
 static int lua_togglePointlight(lua_State* L)
 {
-	int lightNumber = (int)lua_tonumber(L,1);
+	int id = (int)lua_tonumber(L,1);
 
 	glm::vec3 newLightColor = glm::vec3(0, 0, 0);
 
-	if (!Map::pointLights[lightNumber].active)
+	if (!Map::pointLights[id].active)
 	{
-		newLightColor = Map::pointLights[lightNumber].color;
+		newLightColor = Map::pointLights[id].color;
 	}
 	Renderer::getShader(ShaderType::basic)->bind();
-	glUniform3fv(Map::pointLights[lightNumber].colorUniformIndex, 1, (float*)&newLightColor);
+	glUniform3fv(Map::pointLights[id].colorUniformIndex, 1, (float*)&newLightColor);
 
-	Map::pointLights[lightNumber].active = !Map::pointLights[lightNumber].active;
+	Map::pointLights[id].active = !Map::pointLights[id].active;
+	return 0;
+}
+
+static int lua_getObjectPosition(lua_State* L)
+{
+	int id = (int)lua_tonumber(L, 1);
+
+	lua_pushnumber(L, Game::objects[id]->getPosition().x);
+	lua_pushnumber(L, Game::objects[id]->getPosition().y);
+	lua_pushnumber(L, Game::objects[id]->getPosition().z);
+	return 3;
+}
+
+static int lua_setObjectPosition(lua_State* L)
+{
+	int id = (int)lua_tonumber(L, 1);
+	float x = (float)lua_tonumber(L, 2);
+	float y = (float)lua_tonumber(L, 3);
+	float z = (float)lua_tonumber(L, 4);
+
+	Game::objects[id]->setPosition(glm::vec3(x, y, z));
+	return 0;
+}
+
+static int lua_getObjectHealth(lua_State* L)
+{
+	int id = (int)lua_tonumber(L, 1);
+
+	lua_pushnumber(L, Game::objects[id]->getHealth());
+	return 1;
+}
+
+static int lua_addToObjectHealth(lua_State* L)
+{
+	int id = (int)lua_tonumber(L, 1);
+	float health = (float)lua_tonumber(L, 2);
+
+	Game::objects[id]->addToHealth(health);
 	return 0;
 }
 
@@ -35,8 +73,12 @@ void LuaManager::init()
 	L = luaL_newstate();
 	luaL_openlibs(L);
 
-	registerFunction("ToggleFlashlight", lua_toggleFlashlight);
-	registerFunction("TogglePointlight", lua_togglePointlight);
+	registerFunction("toggleFlashlight", lua_toggleFlashlight);
+	registerFunction("togglePointlight", lua_togglePointlight);
+	registerFunction("getObjectPosition", lua_getObjectPosition);
+	registerFunction("setObjectPosition", lua_setObjectPosition);
+	registerFunction("getObjectHealth", lua_getObjectHealth);
+	registerFunction("addToObjectHealth", lua_addToObjectHealth);
 }
 
 void LuaManager::deinit()

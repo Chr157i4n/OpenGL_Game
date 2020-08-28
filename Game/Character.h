@@ -38,7 +38,12 @@ public:
 
 	void run(bool run = true);
 
-	std::shared_ptr<Object> getObjectLookingAt();
+	std::shared_ptr<Object> getObjectLookingAt()
+	{
+		return ObjectLookingAt;
+	}
+
+	std::shared_ptr<Object> calculateObjectLookingAt();
 
 	virtual std::shared_ptr<Bullet> shoot();
 
@@ -70,5 +75,7 @@ protected:
 	glm::vec3 up;
 
 	int team = 0;
+
+	std::shared_ptr<Object> ObjectLookingAt;
 };
 

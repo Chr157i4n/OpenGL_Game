@@ -121,7 +121,9 @@ public:
 
 	bool isMarked();
 
-	virtual void interact();
+	virtual void interact_click();
+
+	virtual void interact_hold();
 
 	CollisionResult checkCollision();
 

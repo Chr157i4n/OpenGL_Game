@@ -260,6 +260,8 @@ void Game::gameLoop()
 
 			stopwatch1.start();
 			//testing - Raypicking
+			players[0]->calculateObjectLookingAt();
+
 			std::shared_ptr<Object> objectPlayerLookingAt = players[0]->getObjectLookingAt();
 			if (objectPlayerLookingAt != nullptr)
 			{
@@ -495,6 +497,8 @@ void Game::processInput()
 		}
 	}
 
+	//continious Action Keys, mulitple times per pressing
+
 	if (pressedMouseButtons[SDL_BUTTON_LEFT])
 	{
 		if (gameState == GameState::GAME_ACTIVE)
@@ -590,6 +594,17 @@ void Game::processInput()
 			players[0]->crouch(false);
 		}
 	}
+	if (pressedKeys[PlayerAction::interact])
+	{
+		std::shared_ptr<Object> objectPlayerLookingAt = players[0]->getObjectLookingAt();
+		if (objectPlayerLookingAt != nullptr)
+		{
+			if (players[0]->getDistance(objectPlayerLookingAt) < 10)
+			{
+				objectPlayerLookingAt->interact_hold();
+			}
+		}
+	}
 }
 
 /// <summary>
@@ -625,7 +640,7 @@ void Game::keyPressed(SDL_Keycode key)
 							if (players[0]->getDistance(objectPlayerLookingAt) < 10)
 							{
 								//objectPlayerLookingAt->markObject();
-								objectPlayerLookingAt->interact();
+								objectPlayerLookingAt->interact_click();
 							}
 						}
 						break;

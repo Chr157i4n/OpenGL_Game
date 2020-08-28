@@ -83,31 +83,49 @@
     <object>
       <name>Button1</name>
       <type>Entity</type>
-      <collisionboxtype>cube</collisionboxtype>
+      <collisionboxtype>none</collisionboxtype>
       <gravity>false</gravity>
       <modelfile>button.bmf</modelfile>
-      <position>0.2;2;1</position>
+      <position>0.3;2;1</position>
       <rotation>0;90;0</rotation>
       <scale>1;1;1</scale>
       <interactable>
         <interactabletype>button</interactabletype>
         <travel>-0.2;0;0</travel>
-        <scriptfunction>interact_button1</scriptfunction>
+        <travelduration>1000</travelduration>
+        <scriptfunction_click>interact_button1</scriptfunction_click>
       </interactable>
     </object>
     <object>
       <name>Button2</name>
       <type>Entity</type>
-      <collisionboxtype>cube</collisionboxtype>
+      <collisionboxtype>none</collisionboxtype>
       <gravity>false</gravity>
       <modelfile>button.bmf</modelfile>
-      <position>0.2;2;-1</position>
+      <position>0.3;2;-1</position>
       <rotation>0;90;0</rotation>
       <scale>1;1;1</scale>
       <interactable>
         <interactabletype>button</interactabletype>
         <travel>-0.2;0;0</travel>
-        <scriptfunction>interact_button2</scriptfunction>
+        <travelduration>4000</travelduration>
+        <scriptfunction_click>interact_button2</scriptfunction_click>
+      </interactable>
+    </object>
+    <object>
+      <name>Button3</name>
+      <type>Entity</type>
+      <collisionboxtype>none</collisionboxtype>
+      <gravity>false</gravity>
+      <modelfile>button.bmf</modelfile>
+      <position>0.3;2;0</position>
+      <rotation>0;90;0</rotation>
+      <scale>1;1;1</scale>
+      <interactable>
+        <interactabletype>button</interactabletype>
+        <travel>-0.2;0;0</travel>
+        <travelduration>1000</travelduration>
+        <scriptfunction_hold>interact_button3</scriptfunction_hold>
       </interactable>
     </object>
   </objects>

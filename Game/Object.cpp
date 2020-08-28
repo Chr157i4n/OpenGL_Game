@@ -139,7 +139,12 @@ bool Object::isMarked()
 	}
 }
 
-void Object::interact()
+void Object::interact_click()
+{
+	if (!this->getEnabled()) return;
+}
+
+void Object::interact_hold()
 {
 	if (!this->getEnabled()) return;
 }
