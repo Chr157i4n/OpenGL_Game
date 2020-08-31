@@ -22,10 +22,13 @@ void UI::init()
 
 	fontShader = new Shader("shaders/font.vert", "shaders/font.frag");
 
-	glm::mat4 ortho = glm::ortho(0.0f, (float)Game::getWindowWidth(), (float)Game::getWindowHeight(), 0.0f);
-
 	fontShader->bind();
-	GLCALL(glUniformMatrix4fv(glGetUniformLocation(fontShader->getShaderId(), "u_modelViewProj"), 1, GL_FALSE, &ortho[0][0]));
+
+	glm::mat4 ortho = glm::ortho(0.0f, (float)Game::getWindowWidth(), (float)Game::getWindowHeight(), 0.0f);
+	GLCALL(glUniformMatrix4fv(glGetUniformLocation(fontShader->getShaderId(), "u_viewProj"), 1, GL_FALSE, &ortho[0][0]));
+
+	glm::mat4 model = glm::mat4(1);
+	GLCALL(glUniformMatrix4fv(glGetUniformLocation(fontShader->getShaderId(), "u_model"), 1, GL_FALSE, &model[0][0]));
 
 
 	fontColorUniformIndex = GLCALL(glGetUniformLocation(fontShader->getShaderId(), "u_color"));
@@ -124,11 +127,15 @@ void UI::updateRot(std::shared_ptr<Player> object)
 	rotLabel[3]->setText(text);
 }
 
-void UI::drawString(float x, float y, std::string text, glm::vec4 color)
+void UI::drawString(float x, float y, std::string text, glm::vec4 color)//, glm::vec3 scale)
 {
 	fontShader->bind();
 
 	GLCALL(glUniform4fv(fontColorUniformIndex, 1, (float*)&color));
+
+	//glm::mat4 model = glm::mat4(1);
+	//model = glm::scale(model, scale);
+	//GLCALL(glUniformMatrix4fv(glGetUniformLocation(fontShader->getShaderId(), "u_model"), 1, GL_FALSE, &model[0][0]));
 
 	font->drawString(x, y, text.c_str(), fontShader);
 	fontShader->unbind();

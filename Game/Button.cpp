@@ -22,7 +22,7 @@ void Button::interact_click()
 	LuaManager::runFunction(interactLuaFunction_click);
 
 	lastInteractTimestamp = std::chrono::system_clock::now();
-	//originalPosition = this->getPosition();
+	originalPosition = this->getPosition();
 	AudioManager::play3D("audio/interact.wav", this->getPosition());
 }
 
@@ -58,8 +58,9 @@ void Button::move()
 		}
 
 	}
-	else
+	else if(movement != glm::vec3(0))
 	{
+		this->setPosition(originalPosition);
 		movement = glm::vec3(0);
 	}
 	

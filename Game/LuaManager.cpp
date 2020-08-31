@@ -67,6 +67,22 @@ static int lua_addToObjectHealth(lua_State* L)
 	return 0;
 }
 
+static int lua_getGameDelta(lua_State* L)
+{
+	int id = (int)lua_tonumber(L, 1);
+
+	lua_pushnumber(L, Game::getDelta());
+	return 1;
+}
+
+static int lua_getGameTimeStamp(lua_State* L)
+{
+	int id = (int)lua_tonumber(L, 1);
+
+	lua_pushnumber(L, Game::getTimeStamp());
+	return 1;
+}
+
 
 void LuaManager::init()
 {
@@ -79,6 +95,8 @@ void LuaManager::init()
 	registerFunction("setObjectPosition", lua_setObjectPosition);
 	registerFunction("getObjectHealth", lua_getObjectHealth);
 	registerFunction("addToObjectHealth", lua_addToObjectHealth);
+	registerFunction("getGameDelta", lua_getGameDelta);
+	registerFunction("getGameTimeStamp", lua_getGameTimeStamp);
 }
 
 void LuaManager::deinit()

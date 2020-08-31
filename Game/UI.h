@@ -27,7 +27,7 @@ public:
 
 	static void updateRot(std::shared_ptr<Player> object);
 
-	static void drawString(float x, float y, std::string text, glm::vec4 color);
+	static void drawString(float x, float y, std::string text, glm::vec4 color);// , glm::vec3 scale = glm::vec3(1, 1, 1));
 
 	static void drawVec3(glm::vec3 vector, int precision, std::string text, float x, float y);
 

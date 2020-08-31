@@ -28,14 +28,37 @@ public:
 
 	static Model* getModelByName(std::string modelFileName);
 
+
+
+
 	static std::vector<std::string> readAllMaps();
 
 	static void loadMap(std::string mapFileName);
 
+	//parts of map loading
+	//
+	static void loadMapProperties(tinyxml2::XMLElement* xmlNode);
 
+	static void loadPlayer(tinyxml2::XMLElement* xmlNode);
+
+	static void loadObject(tinyxml2::XMLElement* xmlNode, int objectCount);
+
+	static void loadNpc(tinyxml2::XMLElement* xmlNode, int npcCount);
+
+	static void loadSound(tinyxml2::XMLElement* xmlNode);
+
+	static void loadLight(tinyxml2::XMLElement* xmlNode);
+
+	static void loadText(tinyxml2::XMLElement* xmlNode);
+
+
+	
+	//
+	//
 	static int loadCubemap(std::vector<std::string> faces);
 
 	static int loadImage(std::string fileName);
+
 
 
 private:

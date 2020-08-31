@@ -49,6 +49,8 @@ StopWatch Game::gameStopWatch;
 
 StopWatch  Game::frametimeStopWatch;
 
+std::vector<Font3D*> Game::texts;
+
 
 /// <summary>
 /// this methods starts the game
@@ -125,9 +127,7 @@ void Game::init()
 	menu_current = menu_Main;
 	gameState = GameState::GAME_MENU;
 
-	Renderer::init();
-
-	
+	Renderer::init();	
 
 
 	gameLoop();
@@ -286,6 +286,7 @@ void Game::gameLoop()
 		double stopwatch4duration = stopwatch1.stop();
 		lbl_stopwatch4->setText("Render: " + std::to_string(stopwatch4duration));
 
+
 		if (!NetworkManager::getIsConnected())
 		{
 			if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
@@ -385,6 +386,12 @@ void Game::render()
 				Renderer::renderOpaqueObjects();
 				Renderer::renderSkybox(glm::mat4(glm::mat3(players[0]->getView())), players[0]->getProj());
 				Renderer::renderTransparentObjects();
+
+				for (Font3D* text : Game::texts)
+				{
+					text->renderTexture();
+				}
+
 				Renderer::frameBuffer.unbind();
 			}
 			else
@@ -394,6 +401,7 @@ void Game::render()
 				Renderer::renderMap();
 				Renderer::frameBuffer.unbind();
 			}
+
 			//Postprocessing
 			Renderer::postProcessing();
 
@@ -402,14 +410,14 @@ void Game::render()
 
 
 			if (showInfo)
-		{
-			Renderer::renderAxis(players[0]->getLookDirection(), 8, 5);
-			Renderer::renderAxis(Renderer::transformedSunDirection3, 8, 3);
+			{
+				Renderer::renderAxis(players[0]->getLookDirection(), 8, 5);
+				Renderer::renderAxis(Renderer::transformedSunDirection3, 8, 3);
 
-			UI::updateFPS();
-			UI::updatePos(players[0]);
-			UI::updateRot(players[0]);
-		}
+				UI::updateFPS();
+				UI::updatePos(players[0]);
+				UI::updateRot(players[0]);
+			}
 
 			UI::drawUI();
 

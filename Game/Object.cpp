@@ -125,11 +125,17 @@ void Object::markObject()
 	lastMarkTimestamp = std::chrono::system_clock::now();
 }
 
+void Object::markObject(float duration)
+{
+	this->markDuration = duration;
+	lastMarkTimestamp = std::chrono::system_clock::now();
+}
+
 bool Object::isMarked()
 {
 	std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
 	std::chrono::duration<double, std::milli> notGettigHitDuration = now - lastMarkTimestamp;
-	if (notGettigHitDuration.count() > 10)
+	if (notGettigHitDuration.count() > markDuration)
 	{
 		return false;
 	}

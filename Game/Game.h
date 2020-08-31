@@ -36,6 +36,7 @@
 //Game Graphics
 #include "Renderer.h"
 #include "Shader.h"
+#include "Font3D.h"
 
 //Game Logic
 #include "Object.h"
@@ -262,6 +263,8 @@ public:
 
 	static Menu* menu_current;
 	static Menu* menu_last;
+
+	static std::vector<Font3D*> texts;
 
 private:
 

@@ -31,6 +31,24 @@ void Helper::eraseSubStr(std::string& mainStr, const std::string& toErase)
 	}
 }
 
+std::string Helper::glmVec4_to_string(glm::vec4 vector)
+{
+	std::string data = "";
+	data += std::to_string(vector.x) + ";";
+	data += std::to_string(vector.y) + ";";
+	data += std::to_string(vector.z) + ";";
+	data += std::to_string(vector.w);
+
+	return data;
+}
+
+glm::vec4 Helper::string_to_glmVec4(std::string string)
+{
+	std::vector<std::string> params;
+	Helper::split(string, params, ';');
+	return glm::vec4(std::stof(params[0]), std::stof(params[1]), std::stof(params[2]), std::stof(params[3]));
+}
+
 std::string Helper::glmVec3_to_string(glm::vec3 vector)
 {
 	std::string data = "";
@@ -46,4 +64,20 @@ glm::vec3 Helper::string_to_glmVec3(std::string string)
 	std::vector<std::string> params;
 	Helper::split(string, params, ';');
 	return glm::vec3(std::stof(params[0]), std::stof(params[1]), std::stof(params[2]));
+}
+
+std::string Helper::glmVec2_to_string(glm::vec2 vector)
+{
+	std::string data = "";
+	data += std::to_string(vector.x) + ";";
+	data += std::to_string(vector.y);
+
+	return data;
+}
+
+glm::vec2 Helper::string_to_glmVec2(std::string string)
+{
+	std::vector<std::string> params;
+	Helper::split(string, params, ';');
+	return glm::vec2(std::stof(params[0]), std::stof(params[1]));
 }

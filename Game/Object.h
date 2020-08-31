@@ -119,6 +119,8 @@ public:
 
 	void markObject();
 
+	void markObject(float duration);
+
 	bool isMarked();
 
 	virtual void interact_click();
@@ -346,6 +348,7 @@ protected:
 	std::chrono::system_clock::time_point lastHitTimestamp = std::chrono::system_clock::now() - std::chrono::hours(1);
 	std::chrono::system_clock::time_point lastMarkTimestamp = std::chrono::system_clock::now() - std::chrono::hours(1);
 	glm::vec3 markColor = glm::vec3(0.1, 0.1, 0);
+	float markDuration = 10;
 
 	int envCubeMap=-1, envCubeMapFrameBuffer=-1, envCubeMapDepthBuffer = -1;
 

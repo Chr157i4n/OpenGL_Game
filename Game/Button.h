@@ -36,7 +36,7 @@ private:
 	std::string interactLuaFunction_click = "";
 	std::string interactLuaFunction_hold = "";
 
-	//glm::vec3 originalPosition;
+	glm::vec3 originalPosition;
 public:
 	glm::vec3 travel = glm::vec3(0, 0, 0);
 	float travel_duration = 0;

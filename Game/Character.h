@@ -45,6 +45,11 @@ public:
 
 	std::shared_ptr<Object> calculateObjectLookingAt();
 
+	glm::vec3 getRotationInv()
+	{
+		return rotation + glm::vec3(0, 180, 0);
+	}
+
 	virtual std::shared_ptr<Bullet> shoot();
 
 	int getTeam() {

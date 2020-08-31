@@ -62,6 +62,8 @@ public:
 
 	static void DrawFilledCircle(float cx, float cy, float r, int num_segments);
 
+	static void render3DString(glm::vec3 position, glm::vec3 rotation, std::string text, glm::vec4 color);
+
 	static void renderMap();
 
 	static void drawMapOverlay();
@@ -71,6 +73,8 @@ public:
 	static void renderSkybox(glm::mat4 view, glm::mat4 proj);
 
 	static void renderImage(VertexBuffer* imageVertexBuffer, int imageIndex);
+
+	static void renderImage(VertexBuffer* imageVertexBuffer, glm::vec3 position, glm::vec3 rotation, int imageIndex, glm::vec3 scale=glm::vec3(1));
 
 	static void renderObjects(bool transparent = false);
 

@@ -196,7 +196,7 @@ void NPC::attackCurrentTarget()
 
 }
 
-void NPC::interact()
+void NPC::interact_click()
 {
 	if (!this->getEnabled()) return;
 

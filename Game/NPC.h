@@ -46,7 +46,7 @@ public:
 
 	void attackCurrentTarget();
 
-	virtual void interact();
+	virtual void interact_click();
 
 	virtual void move();
 

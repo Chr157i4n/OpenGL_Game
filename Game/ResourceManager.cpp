@@ -160,6 +160,7 @@ std::vector<std::string> ResourceManager::readAllMaps()
 	return maps;
 }
 
+
 void ResourceManager::loadMap(std::string mapFileName)
 {
 	Game::map.clear();
@@ -180,7 +181,6 @@ void ResourceManager::loadMap(std::string mapFileName)
 	int32 numObject = 0;
 	tinyxml2::XMLDocument doc;
 	std::string xmlNodeText;
-	std::vector<std::string> params;
 
 	Logger::log("Loading Map");
 	doc.LoadFile(mapFileNameC);
@@ -207,173 +207,26 @@ void ResourceManager::loadMap(std::string mapFileName)
 	tinyxml2::XMLElement* xmlNodeMapProperties = mapNode->FirstChildElement("map_properties");
 	if (xmlNodeMapProperties != NULL)
 	{
-		xmlNode = xmlNodeMapProperties->FirstChildElement("sun_direction");
-		if (xmlNode)
-		{
-			Map::sun_direction = glm::normalize( glm::vec3(Helper::string_to_glmVec3(xmlNode->GetText())));
-		}
-
-		xmlNode = xmlNodeMapProperties->FirstChildElement("sun_color");
-		if (xmlNode)
-		{
-			Map::sun_color = glm::vec3(Helper::string_to_glmVec3(xmlNode->GetText()));
-		}
-
-		xmlNode = xmlNodeMapProperties->FirstChildElement("skybox");
-		if (xmlNode)
-		{
-			Map::skyboxName = xmlNode->GetText();
-		}
+		loadMapProperties(xmlNodeMapProperties);
 	}
 
 
 	//Player(s)
-	float fov = std::stof(ConfigManager::readConfig("fov"));
-	std::shared_ptr<Player> player = std::make_shared<Player>(Renderer::getShader(ShaderType::basic), glm::radians(fov), 1920, 1080);
-	player->setCollisionBoxType(CollisionBoxType::cube);
-	player->setName("Player");
-	player->setNumber(numObject);
-	objects->push_back(player);
-	players->push_back(player);
-	characters->push_back(player);
-	numObject++;
+	loadPlayer(mapNode);
 
 
 
 	Logger::log("Loading all Objects");
 	float objectCount = 0;
-	for (tinyxml2::XMLElement* xmlNodeObject = doc.FirstChildElement("map")->FirstChildElement("objects")->FirstChildElement("object"); xmlNodeObject != NULL; xmlNodeObject = xmlNodeObject->NextSiblingElement())
+	for (tinyxml2::XMLElement* xmlNodeObject = mapNode->FirstChildElement("objects")->FirstChildElement("object"); xmlNodeObject != NULL; xmlNodeObject = xmlNodeObject->NextSiblingElement())
 	{
 		objectCount++;
 	}
 
 
-	for (tinyxml2::XMLElement* xmlNodeObject = doc.FirstChildElement("map")->FirstChildElement("objects")->FirstChildElement("object"); xmlNodeObject != NULL; xmlNodeObject = xmlNodeObject->NextSiblingElement())
+	for (tinyxml2::XMLElement* xmlNodeObject = mapNode->FirstChildElement("objects")->FirstChildElement("object"); xmlNodeObject != NULL; xmlNodeObject = xmlNodeObject->NextSiblingElement())
 	{
-		std::shared_ptr<Object> newObject;
-
-		xmlNodeText = xmlNodeObject->FirstChildElement("modelfile")->GetText();
-
-		if (xmlNodeObject->FirstChildElement("interactable"))
-		{
-			tinyxml2::XMLElement* xmlNodeInteract = xmlNodeObject->FirstChildElement("interactable");
-
-			std::shared_ptr<Button> newButton = std::make_shared<Button>(Renderer::getShader(ShaderType::basic), xmlNodeText);
-			newObject = newButton;
-			//todo: movement
-			if (xmlNodeInteract->FirstChildElement("scriptfunction_click"))
-			{
-				xmlNodeText = xmlNodeInteract->FirstChildElement("scriptfunction_click")->GetText();
-				newButton->setInteractLuaFunction_click(xmlNodeText);
-			}
-			if (xmlNodeInteract->FirstChildElement("scriptfunction_hold"))
-			{
-				xmlNodeText = xmlNodeInteract->FirstChildElement("scriptfunction_hold")->GetText();
-				newButton->setInteractLuaFunction_hold(xmlNodeText);
-			}
-			if (xmlNodeInteract->FirstChildElement("travel"))
-			{
-				xmlNodeText = xmlNodeInteract->FirstChildElement("travel")->GetText();
-				newButton->travel = Helper::string_to_glmVec3(xmlNodeText);
-			}
-			if (xmlNodeInteract->FirstChildElement("travelduration"))
-			{
-				xmlNodeText = xmlNodeInteract->FirstChildElement("travelduration")->GetText();
-				newButton->travel_duration = std::stof(xmlNodeText);
-			}
-		}
-		else
-		{
-			newObject = std::make_shared<Object>(Renderer::getShader(ShaderType::basic), xmlNodeText);
-		}
-
-		xmlNodeText = xmlNodeObject->FirstChildElement("position")->GetText();
-		Helper::split(xmlNodeText, params, ';');
-		newObject->setPosition(glm::vec3(stof(params[0]), stof(params[1]), stof(params[2])));
-
-		xmlNodeText = xmlNodeObject->FirstChildElement("rotation")->GetText();
-		Helper::split(xmlNodeText, params, ';');
-		newObject->setRotation(glm::vec3(stof(params[0]), stof(params[1]), stof(params[2])));
-
-		xmlNodeText = xmlNodeObject->FirstChildElement("scale")->GetText();
-		Helper::split(xmlNodeText, params, ';');
-		newObject->setScale(glm::vec3(stof(params[0]), stof(params[1]), stof(params[2])));
-
-		xmlNodeText = xmlNodeObject->FirstChildElement("type")->GetText();
-		newObject->setType(newObject->getType() | Object::convertStringToType(xmlNodeText));
-
-		xmlNodeText = xmlNodeObject->FirstChildElement("collisionboxtype")->GetText();
-		newObject->setCollisionBoxType(Object::convertStringToCollisionBoxType(xmlNodeText));
-
-		xmlNodeText = xmlNodeObject->FirstChildElement("gravity")->GetText();
-		if (xmlNodeText == "true") { newObject->setGravity(true); }
-		else { newObject->setGravity(false); }
-
-		xmlNodeText = xmlNodeObject->FirstChildElement("name")->GetText();
-		newObject->setName(xmlNodeText);
-
-		if (xmlNodeObject->FirstChildElement("textureflow"))
-		{
-			xmlNodeText = xmlNodeObject->FirstChildElement("textureflow")->GetText();
-			Helper::split(xmlNodeText, params, ';');
-			newObject->setTextureFlow( glm::vec2(stof(params[0]), stof(params[1])) );
-		}
-
-		if (xmlNodeObject->FirstChildElement("light"))
-		{
-			tinyxml2::XMLElement* xmlNodelight = xmlNodeObject->FirstChildElement("light");
-			PointLight newPointlight;
-
-			if (xmlNodelight->FirstChildElement("offset"))
-			{
-				xmlNodeText = xmlNodelight->FirstChildElement("offset")->GetText();
-				Helper::split(xmlNodeText, params, ';');
-				newPointlight.position = newObject->getPosition() + glm::vec3(stof(params[0]), stof(params[1]), stof(params[2]));
-			}
-
-			if (xmlNodelight->FirstChildElement("color"))
-			{
-				xmlNodeText = xmlNodelight->FirstChildElement("color")->GetText();
-				Helper::split(xmlNodeText, params, ';');
-				newPointlight.color = glm::vec3(stof(params[0]), stof(params[1]), stof(params[2]));
-			}
-
-			if (xmlNodelight->FirstChildElement("linear"))
-			{
-				xmlNodeText = xmlNodelight->FirstChildElement("linear")->GetText();
-				newPointlight.linear = stof(xmlNodeText);
-			}
-
-			if (xmlNodelight->FirstChildElement("quadratic"))
-			{
-				xmlNodeText = xmlNodelight->FirstChildElement("quadratic")->GetText();
-				newPointlight.quadratic = stof(xmlNodeText);
-			}
-
-			Map::pointLights.push_back(newPointlight);
-		}
-
-		if (xmlNodeObject->FirstChildElement("sound"))
-		{
-			//todo
-		}
-
-		newObject->setNumber(numObject);
-
-		percentageLoading += 10 / objectCount;
-		Logger::log("loaded Object:" + newObject->printObject() + " - " + Helper::to_string_with_precision(percentageLoading, 0) + "%");
-		Renderer::loadingProgressBar->setValue(percentageLoading);
-		Renderer::drawLoadingScreen();
-		objects->push_back(newObject);
-
-		if (newObject->getType() & ObjectType::Object_Environment)
-		{
-			map->push_back(newObject);
-		}
-
-
-
-		numObject++;
+		loadObject(xmlNodeObject, objectCount);
 	}
 	Logger::log("Loading all Objects - finished");
 
@@ -381,76 +234,14 @@ void ResourceManager::loadMap(std::string mapFileName)
 
 	Logger::log("Loading all NPCs");
 	float npcCount = 0;
-	for (tinyxml2::XMLElement* xmlNodeBot = doc.FirstChildElement("map")->FirstChildElement("bots")->FirstChildElement("bot"); xmlNodeBot != NULL; xmlNodeBot = xmlNodeBot->NextSiblingElement())
+	for (tinyxml2::XMLElement* xmlNodeBot = mapNode->FirstChildElement("bots")->FirstChildElement("bot"); xmlNodeBot != NULL; xmlNodeBot = xmlNodeBot->NextSiblingElement())
 	{
 		npcCount++;
 	}
 
-	for (tinyxml2::XMLElement* xmlNodeBot = doc.FirstChildElement("map")->FirstChildElement("bots")->FirstChildElement("bot"); xmlNodeBot != NULL; xmlNodeBot = xmlNodeBot->NextSiblingElement())
+	for (tinyxml2::XMLElement* xmlNodeBot = mapNode->FirstChildElement("bots")->FirstChildElement("bot"); xmlNodeBot != NULL; xmlNodeBot = xmlNodeBot->NextSiblingElement())
 	{
-
-
-		std::shared_ptr<NPC> newNPC = std::make_shared<NPC>(Renderer::getShader(ShaderType::basic));
-
-		xmlNodeText = xmlNodeBot->FirstChildElement("modelfile")->GetText();
-		newNPC->setModel(xmlNodeText);
-
-		xmlNodeText = xmlNodeBot->FirstChildElement("position")->GetText();
-		Helper::split(xmlNodeText, params, ';');
-		newNPC->setPosition(glm::vec3(stof(params[0]), stof(params[1]), stof(params[2])));
-
-		xmlNodeText = xmlNodeBot->FirstChildElement("rotation")->GetText();
-		Helper::split(xmlNodeText, params, ';');
-		newNPC->setRotation(glm::vec3(stof(params[0]), stof(params[1]), stof(params[2])));
-
-		xmlNodeText = xmlNodeBot->FirstChildElement("scale")->GetText();
-		Helper::split(xmlNodeText, params, ';');
-		newNPC->setScale(glm::vec3(stof(params[0]), stof(params[1]), stof(params[2])));
-
-
-		xmlNodeText = xmlNodeBot->FirstChildElement("name")->GetText();
-		newNPC->setName(xmlNodeText);
-
-		xmlNodeText = xmlNodeBot->FirstChildElement("team")->GetText();
-		newNPC->setTeam(std::stoi(xmlNodeText));
-
-		if (xmlNodeBot->FirstChildElement("navpoints"))
-		{
-			if (xmlNodeBot->FirstChildElement("navpoints")->FirstChildElement("navpoint"))
-			{
-				newNPC->setCurrentTask(CurrentTask::Follow_NavPoint);
-			}
-			else if (newNPC->getTeam() == 0)
-			{
-				newNPC->setCurrentTask(CurrentTask::Follow_Character);
-			}
-			else
-			{
-				newNPC->setCurrentTask(CurrentTask::Attack);
-			}
-
-
-			for (tinyxml2::XMLElement* xmlNodeNavPoint = xmlNodeBot->FirstChildElement("navpoints")->FirstChildElement("navpoint"); xmlNodeNavPoint != NULL; xmlNodeNavPoint = xmlNodeNavPoint->NextSiblingElement())
-			{
-				xmlNodeText = xmlNodeNavPoint->GetText();
-				Helper::split(xmlNodeText, params, ';');
-				newNPC->addNavPoint(glm::vec3(stof(params[0]), stof(params[1]), stof(params[2])));
-			}
-		}
-
-
-		newNPC->setNumber(numObject);
-
-		percentageLoading += 10 / npcCount;
-		Logger::log("loaded NPC:" + newNPC->printObject() + " - " + Helper::to_string_with_precision(percentageLoading, 0) + "%");
-		Renderer::loadingProgressBar->setValue(percentageLoading);
-		Renderer::drawLoadingScreen();
-
-		objects->push_back(newNPC);
-		npcs->push_back(newNPC);
-		characters->push_back(newNPC);
-
-		numObject++;
+		loadNpc(xmlNodeBot, npcCount);
 	}
 
 
@@ -474,6 +265,8 @@ void ResourceManager::loadMap(std::string mapFileName)
 	}
 	Logger::log("Loading all NPCs - finished");
 
+
+
 	int id = 100;
 	for (std::shared_ptr<Object> object : Game::objects)
 	{
@@ -492,24 +285,27 @@ void ResourceManager::loadMap(std::string mapFileName)
 	{
 		for (tinyxml2::XMLElement* xmlNodesound = xmlNodesounds->FirstChildElement("sound"); xmlNodesound != NULL; xmlNodesound = xmlNodesound->NextSiblingElement())
 		{
-			xmlNode = xmlNodesound->FirstChildElement("soundfile");
-			if (xmlNode)
-			{
-				std::string soundfilename = "audio\\";
-				soundfilename += xmlNode->GetText();
+			loadSound(xmlNodesound);
+		}
+	}
 
-				xmlNode = xmlNodesound->FirstChildElement("position");
-				if (xmlNode)
-				{
-					glm::vec3 position = glm::vec3(Helper::string_to_glmVec3(xmlNode->GetText()));
-					irrklang::ISound* sound = AudioManager::play3D(soundfilename, position, AudioType::ambient, true);
-				}
-				else
-				{
-					irrklang::ISound* sound = AudioManager::play2D(soundfilename, AudioType::ambient, true);
-				}
-			}
-			
+	//lights
+	tinyxml2::XMLElement* xmlNodelights = mapNode->FirstChildElement("lights");
+	if (xmlNodelights != NULL)
+	{
+		for (tinyxml2::XMLElement* xmlNodelight = xmlNodelights->FirstChildElement("light"); xmlNodelight != NULL; xmlNodelight = xmlNodelight->NextSiblingElement())
+		{
+			loadLight(xmlNodelight);
+		}
+	}
+
+	//texts
+	tinyxml2::XMLElement* xmlNodetexts = mapNode->FirstChildElement("texts");
+	if (xmlNodetexts != NULL)
+	{
+		for (tinyxml2::XMLElement* xmlNodetext = xmlNodetexts->FirstChildElement("text"); xmlNodetext != NULL; xmlNodetext = xmlNodetext->NextSiblingElement())
+		{
+			loadText(xmlNodetext);
 		}
 	}
 
@@ -517,6 +313,336 @@ void ResourceManager::loadMap(std::string mapFileName)
 
 	Logger::log("Loading Map - finished");
 }
+
+void ResourceManager::loadMapProperties(tinyxml2::XMLElement* xmlNode)
+{
+	tinyxml2::XMLElement* xmlNodeSub = xmlNode->FirstChildElement("sun_direction");
+	if (xmlNodeSub)
+	{
+		Map::sun_direction = glm::normalize(glm::vec3(Helper::string_to_glmVec3(xmlNodeSub->GetText())));
+	}
+
+	xmlNodeSub = xmlNode->FirstChildElement("sun_color");
+	if (xmlNodeSub)
+	{
+		Map::sun_color = glm::vec3(Helper::string_to_glmVec3(xmlNodeSub->GetText()));
+	}
+
+	xmlNodeSub = xmlNode->FirstChildElement("skybox");
+	if (xmlNodeSub)
+	{
+		Map::skyboxName = xmlNodeSub->GetText();
+	}
+}
+
+void ResourceManager::loadPlayer(tinyxml2::XMLElement* xmlNode)
+{
+	std::shared_ptr<Player> player = std::make_shared<Player>(Renderer::getShader(ShaderType::basic), glm::radians((float)ConfigManager::fov), Game::getWindowWidth(), Game::getWindowHeight());
+	player->setCollisionBoxType(CollisionBoxType::cube);
+	player->setName("Player");
+	player->setNumber(Game::objects.size());
+
+	tinyxml2::XMLElement* xmlNodePlayer = xmlNode->FirstChildElement("player");
+	if (xmlNodePlayer != NULL)
+	{
+		tinyxml2::XMLElement* xmlNodeSub = xmlNodePlayer->FirstChildElement("position");
+		if (xmlNodeSub)
+		{
+			player->setPosition(Helper::string_to_glmVec3(xmlNodeSub->GetText()));
+		}
+	}
+
+
+
+	Game::objects.push_back(player);
+	Game::players.push_back(player);
+	Game::characters.push_back(player);
+}
+
+void ResourceManager::loadObject(tinyxml2::XMLElement* xmlNode, int objectCount)
+{
+	std::string xmlNodeText;
+	
+	std::shared_ptr<Object> newObject;
+
+	xmlNodeText = xmlNode->FirstChildElement("modelfile")->GetText();
+
+	if (xmlNode->FirstChildElement("interactable"))
+	{
+		tinyxml2::XMLElement* xmlNodeInteract = xmlNode->FirstChildElement("interactable");
+
+		std::shared_ptr<Button> newButton = std::make_shared<Button>(Renderer::getShader(ShaderType::basic), xmlNodeText);
+		newObject = newButton;
+
+		if (xmlNodeInteract->FirstChildElement("scriptfunction_click"))
+		{
+			xmlNodeText = xmlNodeInteract->FirstChildElement("scriptfunction_click")->GetText();
+			newButton->setInteractLuaFunction_click(xmlNodeText);
+		}
+		if (xmlNodeInteract->FirstChildElement("scriptfunction_hold"))
+		{
+			xmlNodeText = xmlNodeInteract->FirstChildElement("scriptfunction_hold")->GetText();
+			newButton->setInteractLuaFunction_hold(xmlNodeText);
+		}
+		if (xmlNodeInteract->FirstChildElement("travel"))
+		{
+			xmlNodeText = xmlNodeInteract->FirstChildElement("travel")->GetText();
+			newButton->travel = Helper::string_to_glmVec3(xmlNodeText);
+		}
+		if (xmlNodeInteract->FirstChildElement("travelduration"))
+		{
+			xmlNodeText = xmlNodeInteract->FirstChildElement("travelduration")->GetText();
+			newButton->travel_duration = std::stof(xmlNodeText);
+		}
+	}
+	else
+	{
+		newObject = std::make_shared<Object>(Renderer::getShader(ShaderType::basic), xmlNodeText);
+	}
+
+	xmlNodeText = xmlNode->FirstChildElement("position")->GetText();
+	newObject->setPosition(Helper::string_to_glmVec3(xmlNodeText));
+
+	xmlNodeText = xmlNode->FirstChildElement("rotation")->GetText();
+	newObject->setRotation(Helper::string_to_glmVec3(xmlNodeText));
+
+	xmlNodeText = xmlNode->FirstChildElement("scale")->GetText();
+	newObject->setScale(Helper::string_to_glmVec3(xmlNodeText));
+
+	xmlNodeText = xmlNode->FirstChildElement("type")->GetText();
+	newObject->setType(newObject->getType() | Object::convertStringToType(xmlNodeText));
+
+	xmlNodeText = xmlNode->FirstChildElement("collisionboxtype")->GetText();
+	newObject->setCollisionBoxType(Object::convertStringToCollisionBoxType(xmlNodeText));
+
+	xmlNodeText = xmlNode->FirstChildElement("gravity")->GetText();
+	if (xmlNodeText == "true") { newObject->setGravity(true); }
+	else { newObject->setGravity(false); }
+
+	xmlNodeText = xmlNode->FirstChildElement("name")->GetText();
+	newObject->setName(xmlNodeText);
+
+	if (xmlNode->FirstChildElement("textureflow"))
+	{
+		xmlNodeText = xmlNode->FirstChildElement("textureflow")->GetText();
+		newObject->setTextureFlow(Helper::string_to_glmVec2(xmlNodeText));
+	}
+
+	if (xmlNode->FirstChildElement("light"))
+	{
+		tinyxml2::XMLElement* xmlNodelight = xmlNode->FirstChildElement("light");
+		PointLight newPointlight;
+
+		if (xmlNodelight->FirstChildElement("offset"))
+		{
+			xmlNodeText = xmlNodelight->FirstChildElement("offset")->GetText();
+			newPointlight.position = newObject->getPosition() + Helper::string_to_glmVec3(xmlNodeText);
+		}
+
+		if (xmlNodelight->FirstChildElement("color"))
+		{
+			xmlNodeText = xmlNodelight->FirstChildElement("color")->GetText();
+			newPointlight.color = Helper::string_to_glmVec3(xmlNodeText);
+		}
+
+		if (xmlNodelight->FirstChildElement("linear"))
+		{
+			xmlNodeText = xmlNodelight->FirstChildElement("linear")->GetText();
+			newPointlight.linear = stof(xmlNodeText);
+		}
+
+		if (xmlNodelight->FirstChildElement("quadratic"))
+		{
+			xmlNodeText = xmlNodelight->FirstChildElement("quadratic")->GetText();
+			newPointlight.quadratic = stof(xmlNodeText);
+		}
+
+		Map::pointLights.push_back(newPointlight);
+	}
+
+	if (xmlNode->FirstChildElement("sound"))
+	{
+		//todo
+	}
+
+	newObject->setNumber(Game::objects.size());
+
+	percentageLoading += 10 / objectCount;
+	Logger::log("loaded Object:" + newObject->printObject() + " - " + Helper::to_string_with_precision(percentageLoading, 0) + "%");
+	Renderer::loadingProgressBar->setValue(percentageLoading);
+	Renderer::drawLoadingScreen();
+	Game::objects.push_back(newObject);
+
+	if (newObject->getType() & ObjectType::Object_Environment)
+	{
+		Game::map.push_back(newObject);
+	}
+}
+
+void ResourceManager::loadNpc(tinyxml2::XMLElement* xmlNode, int npcCount)
+{
+	std::string xmlNodeText;
+
+	std::shared_ptr<NPC> newNPC = std::make_shared<NPC>(Renderer::getShader(ShaderType::basic));
+
+	xmlNodeText = xmlNode->FirstChildElement("modelfile")->GetText();
+	newNPC->setModel(xmlNodeText);
+
+	xmlNodeText = xmlNode->FirstChildElement("position")->GetText();
+	newNPC->setPosition(Helper::string_to_glmVec3(xmlNodeText));
+
+	xmlNodeText = xmlNode->FirstChildElement("rotation")->GetText();
+	newNPC->setRotation(Helper::string_to_glmVec3(xmlNodeText));
+
+	xmlNodeText = xmlNode->FirstChildElement("scale")->GetText();
+	newNPC->setScale(Helper::string_to_glmVec3(xmlNodeText));
+
+
+	xmlNodeText = xmlNode->FirstChildElement("name")->GetText();
+	newNPC->setName(xmlNodeText);
+
+	xmlNodeText = xmlNode->FirstChildElement("team")->GetText();
+	newNPC->setTeam(std::stoi(xmlNodeText));
+
+	if (xmlNode->FirstChildElement("navpoints"))
+	{
+		if (xmlNode->FirstChildElement("navpoints")->FirstChildElement("navpoint"))
+		{
+			newNPC->setCurrentTask(CurrentTask::Follow_NavPoint);
+		}
+		else if (newNPC->getTeam() == 0)
+		{
+			newNPC->setCurrentTask(CurrentTask::Follow_Character);
+		}
+		else
+		{
+			newNPC->setCurrentTask(CurrentTask::Attack);
+		}
+
+
+		for (tinyxml2::XMLElement* xmlNodeNavPoint = xmlNode->FirstChildElement("navpoints")->FirstChildElement("navpoint"); xmlNodeNavPoint != NULL; xmlNodeNavPoint = xmlNodeNavPoint->NextSiblingElement())
+		{
+			xmlNodeText = xmlNodeNavPoint->GetText();
+			newNPC->addNavPoint(Helper::string_to_glmVec3(xmlNodeText));
+		}
+	}
+
+
+	newNPC->setNumber(Game::objects.size());
+
+	percentageLoading += 10 / npcCount;
+	Logger::log("loaded NPC:" + newNPC->printObject() + " - " + Helper::to_string_with_precision(percentageLoading, 0) + "%");
+	Renderer::loadingProgressBar->setValue(percentageLoading);
+	Renderer::drawLoadingScreen();
+
+	Game::objects.push_back(newNPC);
+	Game::npcs.push_back(newNPC);
+	Game::characters.push_back(newNPC);
+}
+
+void ResourceManager::loadSound(tinyxml2::XMLElement* xmlNode)
+{
+	if (xmlNode->FirstChildElement("soundfile"))
+	{
+		std::string soundfilename = "audio\\";
+		soundfilename += xmlNode->FirstChildElement("soundfile")->GetText();
+
+		tinyxml2::XMLElement* xmlNodeSub = xmlNode->FirstChildElement("position");
+		if (xmlNodeSub)
+		{
+			glm::vec3 position = glm::vec3(Helper::string_to_glmVec3(xmlNodeSub->GetText()));
+			irrklang::ISound* sound = AudioManager::play3D(soundfilename, position, AudioType::ambient, true);
+		}
+		else
+		{
+			irrklang::ISound* sound = AudioManager::play2D(soundfilename, AudioType::ambient, true);
+		}
+	}
+}
+
+void ResourceManager::loadLight(tinyxml2::XMLElement* xmlNode)
+{
+	if (!xmlNode) return;
+
+	std::string xmlNodeText = "";
+
+	if (xmlNode->FirstChildElement("type")->GetText() == "pointlight")
+	{
+		PointLight newPointlight;
+
+		if (xmlNode->FirstChildElement("position"))
+		{
+			xmlNodeText = xmlNode->FirstChildElement("position")->GetText();
+			newPointlight.position =Helper::string_to_glmVec3(xmlNodeText);
+		}
+
+		if (xmlNode->FirstChildElement("color"))
+		{
+			xmlNodeText = xmlNode->FirstChildElement("color")->GetText();
+			newPointlight.color = Helper::string_to_glmVec3(xmlNodeText);
+		}
+
+		if (xmlNode->FirstChildElement("linear"))
+		{
+			xmlNodeText = xmlNode->FirstChildElement("linear")->GetText();
+			newPointlight.linear = stof(xmlNodeText);
+		}
+
+		if (xmlNode->FirstChildElement("quadratic"))
+		{
+			xmlNodeText = xmlNode->FirstChildElement("quadratic")->GetText();
+			newPointlight.quadratic = stof(xmlNodeText);
+		}
+
+		Map::pointLights.push_back(newPointlight);
+	}
+
+}
+
+void ResourceManager::loadText(tinyxml2::XMLElement* xmlNode)
+{
+	if (!xmlNode) return;
+
+	std::string xmlNodeText = "";
+	
+	Font3D* newText = new Font3D();
+
+	if (xmlNode->FirstChildElement("text"))
+	{
+		xmlNodeText = xmlNode->FirstChildElement("text")->GetText();
+		newText->text = xmlNodeText;
+	}
+
+	if (xmlNode->FirstChildElement("position"))
+	{
+		xmlNodeText = xmlNode->FirstChildElement("position")->GetText();
+		newText->position = Helper::string_to_glmVec3(xmlNodeText);
+	}
+
+	if (xmlNode->FirstChildElement("rotation"))
+	{
+		xmlNodeText = xmlNode->FirstChildElement("rotation")->GetText();
+		newText->rotation = Helper::string_to_glmVec3(xmlNodeText);
+	}
+
+	if (xmlNode->FirstChildElement("color"))
+	{
+		xmlNodeText = xmlNode->FirstChildElement("color")->GetText();
+		newText->color = Helper::string_to_glmVec4(xmlNodeText);
+	}
+
+	if (xmlNode->FirstChildElement("scale"))
+	{
+		xmlNodeText = xmlNode->FirstChildElement("scale")->GetText();
+		newText->scale = std::stof(xmlNodeText);
+	}
+
+	newText->createTexture();
+	Game::texts.push_back(newText);
+
+}
+
+
 
 int ResourceManager::loadCubemap(std::vector<std::string> faces)
 {

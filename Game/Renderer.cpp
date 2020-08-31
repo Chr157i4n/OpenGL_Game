@@ -877,7 +877,13 @@ void Renderer::renderImage(VertexBuffer* imageVertexBuffer, int imageIndex)
 	shaderImage->bind();
 	imageVertexBuffer->bind();
 
+	glm::mat4 model = glm::mat4(1.0f);
+	glm::mat4 view = glm::mat4(1.0f);
+	glm::mat4 proj = glm::mat4(1.0f);
 
+	GLCALL(glUniformMatrix4fv(glGetUniformLocation(shaderImage->getShaderId(), "u_model"), 1, GL_FALSE, &model[0][0]));
+	GLCALL(glUniformMatrix4fv(glGetUniformLocation(shaderImage->getShaderId(), "u_view"), 1, GL_FALSE, &view[0][0]));
+	GLCALL(glUniformMatrix4fv(glGetUniformLocation(shaderImage->getShaderId(), "u_proj"), 1, GL_FALSE, &proj[0][0]));
 
 	GLCALL(glDisable(GL_CULL_FACE));
 	GLCALL(glDisable(GL_DEPTH_TEST));
@@ -888,6 +894,56 @@ void Renderer::renderImage(VertexBuffer* imageVertexBuffer, int imageIndex)
 
 	GLCALL(glEnable(GL_CULL_FACE));
 	GLCALL(glEnable(GL_DEPTH_TEST));
+
+
+	imageVertexBuffer->unbind();
+	shaderImage->unbind();
+}
+
+void Renderer::renderImage(VertexBuffer* imageVertexBuffer, glm::vec3 position, glm::vec3 rotation, int imageIndex, glm::vec3 scale)
+{
+	shaderImage->bind();
+	imageVertexBuffer->bind();
+
+	glm::mat4 model = glm::mat4(1.0f);
+	model = glm::scale(model, scale);
+
+	//move to position of model
+	model = glm::translate(model, position);
+
+	//rotate model around X
+	float angle = rotation.x;
+	model = glm::rotate(model, glm::radians(angle), glm::vec3(1, 0, 0));
+
+	//rotate model around Y
+	angle = rotation.y;
+	model = glm::rotate(model, glm::radians(angle), glm::vec3(0, 1, 0));
+
+	//rotate model around z
+	angle = rotation.z;
+	model = glm::rotate(model, glm::radians(angle), glm::vec3(0, 0, 1));
+
+	//view and projection
+	modelViewProj = Game::players[0]->getViewProj() * model;
+	glm::mat4 modelView = Game::players[0]->getView() * model;
+	glm::mat4 invModelView = glm::transpose(glm::inverse(modelView));
+
+	glm::mat4 view = Game::players[0]->getView();
+	glm::mat4 proj = Game::players[0]->getProj();
+
+	GLCALL(glUniformMatrix4fv(glGetUniformLocation(shaderImage->getShaderId(), "u_model"), 1, GL_FALSE, &model[0][0]));
+	GLCALL(glUniformMatrix4fv(glGetUniformLocation(shaderImage->getShaderId(), "u_view"), 1, GL_FALSE, &view[0][0]));
+	GLCALL(glUniformMatrix4fv(glGetUniformLocation(shaderImage->getShaderId(), "u_proj"), 1, GL_FALSE, &proj[0][0]));
+
+	GLCALL(glDisable(GL_CULL_FACE));
+	//GLCALL(glDisable(GL_DEPTH_TEST));
+
+	GLCALL(glActiveTexture(GL_TEXTURE0));
+	GLCALL(glBindTexture(GL_TEXTURE_2D, imageIndex));
+	GLCALL(glDrawArrays(GL_TRIANGLES, 0, 6));
+
+	GLCALL(glEnable(GL_CULL_FACE));
+	//GLCALL(glEnable(GL_DEPTH_TEST));
 
 
 	imageVertexBuffer->unbind();
