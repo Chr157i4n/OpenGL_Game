@@ -13,8 +13,31 @@
 #include "UI_Element_Slider.h"
 #include "UI_Element_Boxed_Label.h"
 #include "UI_Element_Dropdown.h"
+#include "UI_Element_TextEdit.h"
+
 #include "Map.h"
 
+enum class MenuAction {
+	None,
+	Up,
+	Down,
+	Left,
+	Right,
+	Space,
+	Enter,
+	Esc,
+};
+
+std::unordered_map<SDL_Keycode, MenuAction> const menu_keybindings =
+{
+	{SDLK_w,		MenuAction::Up},
+	{SDLK_s,		MenuAction::Down},
+	{SDLK_a,		MenuAction::Left},
+	{SDLK_d,		MenuAction::Right},
+	{SDLK_SPACE,	MenuAction::Space},
+	{SDLK_RETURN,	MenuAction::Enter},
+	{SDLK_ESCAPE,	MenuAction::Esc},
+};
 
 class Menu
 {
@@ -45,6 +68,8 @@ public:
 	int onMouseDown(float x, float y, SDL_MouseButtonEvent buttonEvent);
 
 	int onMouseClick(float x, float y, SDL_MouseButtonEvent buttonEvent);
+
+	int onKeyDown(SDL_Keycode key);
 
 
 protected:

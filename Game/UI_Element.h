@@ -73,6 +73,8 @@ public:
 
     virtual int onMouseDrag(float mouseX, float mouseY, SDL_MouseButtonEvent* buttonEvent = nullptr);
 
+    virtual int onKeyDown(SDL_Keycode key);
+
     virtual int increase();
 
     virtual int decrease();

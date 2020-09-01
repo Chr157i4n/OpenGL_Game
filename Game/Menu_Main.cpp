@@ -46,6 +46,10 @@ Menu_Main::Menu_Main()
 		dD_maps->addItem(mapItem);
 	}
 	addMenuElement(dD_maps);
+
+	tE_playername = new UI_Element_TextEdit(500, 10, 200, 50, ConfigManager::player_name, 0);
+	//te_playername->setCallback([&] { Game::quit(); return 0; });
+	addMenuElement(tE_playername);
 }
 
 void Menu_Main::drawMenu()

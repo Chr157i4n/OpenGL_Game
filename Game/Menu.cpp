@@ -109,3 +109,40 @@ int Menu::onMouseClick(float x, float y, SDL_MouseButtonEvent buttonEvent)
 		}
 	}
 }
+
+int Menu::onKeyDown(SDL_Keycode key)
+{
+	MenuAction action = MenuAction::None;
+
+	int returnvalue = menuElementList[selectedItemIndex]->onKeyDown(key);
+	if (returnvalue != 0) return returnvalue;
+
+
+	auto it = menu_keybindings.find(key);
+	if (it != menu_keybindings.end()) {
+		action = it->second;
+	}
+	if (action == MenuAction::None) { Logger::log("Keybinding not found!"); return -1; }
+
+	switch (action)
+	{
+		case MenuAction::Up:
+			this->selectPreviousElement();
+			AudioManager::play2D("audio/select.wav");
+			break;
+		case MenuAction::Down:
+			this->selectNextElement();
+			AudioManager::play2D("audio/select.wav");
+			break;
+		case MenuAction::Enter:
+			this->enterSelectedMenuElement();
+			AudioManager::play2D("audio/select.wav");
+			break;
+		case MenuAction::Space:
+			this->enterSelectedMenuElement();
+			AudioManager::play2D("audio/select.wav");
+			break;
+	}
+
+	return 0;
+}

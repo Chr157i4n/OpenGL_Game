@@ -18,7 +18,7 @@ std::vector< std::shared_ptr<NPC> > Game::npcs;
 std::vector< std::shared_ptr<Bullet> > Game::bullets;
 
 
-bool Game::pressedKeys[40];
+bool Game::pressedKeys[300];
 bool Game::pressedMouseButtons[6];
 
 float32  Game::FPS = 0;
@@ -527,7 +527,7 @@ void Game::processInput()
 
 	}
 
-	if (pressedKeys[PlayerAction::moveForward])
+	if (pressedKeys[(int)PlayerAction::moveForward])
 	{
 		if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
 		{
@@ -535,7 +535,7 @@ void Game::processInput()
 			AudioManager::updateAudioListener();
 		}
 	}
-	if (pressedKeys[PlayerAction::moveBackward])
+	if (pressedKeys[(int)PlayerAction::moveBackward])
 	{
 		if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
 		{
@@ -543,7 +543,7 @@ void Game::processInput()
 			AudioManager::updateAudioListener();
 		}
 	}
-	if (pressedKeys[PlayerAction::moveLeft])
+	if (pressedKeys[(int)PlayerAction::moveLeft])
 	{
 		if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
 		{
@@ -555,7 +555,7 @@ void Game::processInput()
 			menu_current->leftOnSelectedMenuElement();
 		}
 	}
-	if (pressedKeys[PlayerAction::moveRight])
+	if (pressedKeys[(int)PlayerAction::moveRight])
 	{
 		if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
 		{
@@ -567,49 +567,52 @@ void Game::processInput()
 			menu_current->rightOnSelectedMenuElement();
 		}
 	}
-	if (pressedKeys[PlayerAction::jump])
+	if (pressedKeys[(int)PlayerAction::jump])
 	{
 		if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
 		{
 			players[0]->jump();
 		}
 	}
-	if (pressedKeys[PlayerAction::sprint])
+	if (pressedKeys[(int)PlayerAction::sprint])
 	{
 		if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
 		{
 			players[0]->run(true);
 		}
 	}
-	if (!pressedKeys[PlayerAction::sprint])
+	if (!pressedKeys[(int)PlayerAction::sprint])
 	{
 		if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
 		{
 			players[0]->run(false);
 		}
 	}
-	if (pressedKeys[PlayerAction::crouch])
+	if (pressedKeys[(int)PlayerAction::crouch])
 	{
 		if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
 		{
 			players[0]->crouch(true);
 		}
 	}
-	if (!pressedKeys[PlayerAction::crouch])
+	if (!pressedKeys[(int)PlayerAction::crouch])
 	{
 		if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
 		{
 			players[0]->crouch(false);
 		}
 	}
-	if (pressedKeys[PlayerAction::interact])
+	if (pressedKeys[(int)PlayerAction::interact])
 	{
-		std::shared_ptr<Object> objectPlayerLookingAt = players[0]->getObjectLookingAt();
-		if (objectPlayerLookingAt != nullptr)
+		if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
 		{
-			if (players[0]->getDistance(objectPlayerLookingAt) < 10)
+			std::shared_ptr<Object> objectPlayerLookingAt = players[0]->getObjectLookingAt();
+			if (objectPlayerLookingAt != nullptr)
 			{
-				objectPlayerLookingAt->interact_hold();
+				if (players[0]->getDistance(objectPlayerLookingAt) < 10)
+				{
+					objectPlayerLookingAt->interact_hold();
+				}
 			}
 		}
 	}
@@ -627,10 +630,10 @@ void Game::keyPressed(SDL_Keycode key)
 	if (it != keybindings.end()) {
 		action = it->second;
 	}
-	if (action == PlayerAction::None) { Logger::log("Keybinding not found!"); return; }
+	else { Logger::log("Keybinding not found!"); /*return;*/ }
 
 	//Single Action Keys, just one time per pressing
-	if (!pressedKeys[action])
+	if (!Game::isKeyPressed(key))
 	{
 		switch (gameState)
 		{
@@ -668,7 +671,9 @@ void Game::keyPressed(SDL_Keycode key)
 			}
 			case GameState::GAME_MENU:
 			{
-				switch (action)
+				menu_current->onKeyDown(key);
+
+				/*switch (action)
 				{
 					case PlayerAction::moveForward:
 						menu_current->selectPreviousElement();
@@ -686,7 +691,7 @@ void Game::keyPressed(SDL_Keycode key)
 						menu_current->enterSelectedMenuElement();
 						AudioManager::play2D("audio/select.wav");
 						break;
-				}
+				}*/
 				break;
 			}
 		}
@@ -703,10 +708,10 @@ void Game::keyPressed(SDL_Keycode key)
 		case PlayerAction::toggleShowNormals:
 			Renderer::toggleShowNormals();
 			break;
-		case toggleShowShadowMap:
+		case PlayerAction::toggleShowShadowMap:
 			showShadowMap = !showShadowMap;
 			break;
-		case togglePostprocess:
+		case PlayerAction::togglePostprocess:
 
 			break;
 		case PlayerAction::pause:
@@ -726,7 +731,7 @@ void Game::keyPressed(SDL_Keycode key)
 
 	}
 
-	pressedKeys[action] = true;
+	Game::setKeyPressed(key, true);
 }
 
 /// <summary>
@@ -741,10 +746,23 @@ void Game::keyReleased(SDL_Keycode key)
 	if (it != keybindings.end()) {
 		action = it->second;
 	}
-	if (action == PlayerAction::None) { Logger::log("Keybinding not found!"); return; }
+	if (action == PlayerAction::None) { Logger::log("Keybinding not found!"); /*return;*/ }
 
+	Game::setKeyPressed(key, false);
+}
 
-	pressedKeys[action] = false;
+bool Game::isKeyPressed(SDL_Keycode key)
+{
+	int keynumber = (int)key;
+	if (keynumber >= 1073741881) keynumber -= 1073741753;
+	 return pressedKeys[keynumber];
+}
+
+void Game::setKeyPressed(SDL_Keycode key, bool pressed)
+{
+	int keynumber = (int)key;
+	if (keynumber >= 1073741881) keynumber -= 1073741753;
+	pressedKeys[keynumber] = pressed;
 }
 
 void Game::resetKeys()
@@ -847,12 +865,19 @@ bool Game::toggleMenu()
 	}
 	else if (gameState == GameState::GAME_MENU)
 	{
-		if(players[0]->getEnabled())
-			gameState = GameState::GAME_ACTIVE;
+		if (players.size() > 0)
+		{
+			if (players[0]->getEnabled())
+				gameState = GameState::GAME_ACTIVE;
+			else
+				gameState = GameState::GAME_GAME_OVER;
+			SDL_SetRelativeMouseMode(SDL_TRUE);
+			return true;
+		}
 		else
-			gameState = GameState::GAME_GAME_OVER;
-		SDL_SetRelativeMouseMode(SDL_TRUE);
-		return true;
+		{
+			Game::quit();
+		}
 	}
 	return false;
 }

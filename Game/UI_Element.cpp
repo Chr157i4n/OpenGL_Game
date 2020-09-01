@@ -159,6 +159,11 @@ int UI_Element::onMouseDrag(float mouseX, float mouseY, SDL_MouseButtonEvent* bu
     return 0;
 }
 
+int UI_Element::onKeyDown(SDL_Keycode key)
+{
+    return 0;
+}
+
 int UI_Element::increase()
 {
     return 0;

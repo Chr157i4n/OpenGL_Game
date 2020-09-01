@@ -23,6 +23,7 @@ Shader* ResourceManager::loadShader(std::string vertexShaderFilename, std::strin
 
 std::vector<Model*> ResourceManager::loadAllModels(std::string modelFileName)
 {
+	Renderer::getModels().clear();
 	Logger::log("Loading all Models");
 
 	std::string newmodefilename;
@@ -170,12 +171,8 @@ void ResourceManager::loadMap(std::string mapFileName)
 	Game::npcs.clear();
 	Game::bullets.clear();
 
-
-	std::vector<std::shared_ptr<Object>>* map = &Game::map;
-	std::vector<std::shared_ptr<Object>>* objects = &Game::objects;
-	std::vector<std::shared_ptr<Character>>* characters = &Game::characters;
-	std::vector< std::shared_ptr<Player>>* players = &Game::players;
-	std::vector< std::shared_ptr<NPC>>* npcs = &Game::npcs;
+	Game::texts.clear();
+	Map::pointLights.clear();
 
 	const char* mapFileNameC = mapFileName.c_str();
 	int32 numObject = 0;
@@ -258,15 +255,15 @@ void ResourceManager::loadMap(std::string mapFileName)
 		newNpc->setCurrentTask(CurrentTask::Follow_Character);
 
 		Logger::log("created NPC:" + newNpc->printObject());
-		objects->push_back(newNpc);
-		npcs->push_back(newNpc);
-		characters->push_back(newNpc);
+		Game::objects.push_back(newNpc);
+		Game::npcs.push_back(newNpc);
+		Game::characters.push_back(newNpc);
 		numObject++;
 	}
 	Logger::log("Loading all NPCs - finished");
 
 
-
+	//set the ids
 	int id = 100;
 	for (std::shared_ptr<Object> object : Game::objects)
 	{

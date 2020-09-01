@@ -64,7 +64,7 @@
 //#define DEBUG_ENV_MAP
 #define DEBUG_RAYPICKING
 
-enum GameState {
+enum class GameState {
 	GAME_LOADING,
 	GAME_ACTIVE,
 	GAME_GAME_OVER,
@@ -72,19 +72,19 @@ enum GameState {
 	GAME_MENU,
 };
 
-enum GameStateOnline {
+enum class GameStateOnline {
 	Game_Online,
 	Game_Offline,
 };
 
 
-enum MenuType {
+enum class MenuType {
 	MENU_MAIN,
 	MENU_OPTIONS,
 	MENU_PAUSE,
 };
 
-enum PlayerAction {
+enum class PlayerAction {
 	None,
 	moveForward,
 	moveBackward,
@@ -110,29 +110,29 @@ enum PlayerAction {
 
 std::unordered_map<SDL_Keycode, PlayerAction> const keybindings =
 {
-	{SDLK_w,		moveForward},
-	{SDLK_s,		moveBackward},
-	{SDLK_a,		moveLeft},
-	{SDLK_d,		moveRight},
-	{SDLK_SPACE,	jump},
-	{SDLK_LSHIFT,	sprint},
-	{SDLK_LCTRL,	crouch},
-	{SDLK_e,		interact},
-	{SDLK_f,		toggleFlashlight},
-	{SDLK_F3,		toggleInfo},
-	{SDLK_F4,		toggleWireframe},
-	{SDLK_F5,		toggleShowNormals},
-	{SDLK_F6,		toggleShowShadowMap},
-	{SDLK_F7,		togglePostprocess},
-	{SDLK_p,		pause},
-	{SDLK_ESCAPE,	menu},
-	{SDLK_F11,		toggleFullscreen},	
-	{SDLK_RETURN,	enter},
-	{SDLK_CARET,	toggleConsole},
-	{SDLK_m,		toggleMap},
+	{SDLK_w,		PlayerAction::moveForward},
+	{SDLK_s,		PlayerAction::moveBackward},
+	{SDLK_a,		PlayerAction::moveLeft},
+	{SDLK_d,		PlayerAction::moveRight},
+	{SDLK_SPACE,	PlayerAction::jump},
+	{SDLK_LSHIFT,	PlayerAction::sprint},
+	{SDLK_LCTRL,	PlayerAction::crouch},
+	{SDLK_e,		PlayerAction::interact},
+	{SDLK_f,		PlayerAction::toggleFlashlight},
+	{SDLK_F3,		PlayerAction::toggleInfo},
+	{SDLK_F4,		PlayerAction::toggleWireframe},
+	{SDLK_F5,		PlayerAction::toggleShowNormals},
+	{SDLK_F6,		PlayerAction::toggleShowShadowMap},
+	{SDLK_F7,		PlayerAction::togglePostprocess},
+	{SDLK_p,		PlayerAction::pause},
+	{SDLK_ESCAPE,	PlayerAction::menu},
+	{SDLK_F11,		PlayerAction::toggleFullscreen},	
+	{SDLK_RETURN,	PlayerAction::enter},
+	{SDLK_CARET,	PlayerAction::toggleConsole},
+	{SDLK_m,		PlayerAction::toggleMap},
 };
 
-enum MouseAction {
+enum class MouseAction {
 	lmb,
 	mmb,
 	rmb,
@@ -142,11 +142,11 @@ enum MouseAction {
 
 std::unordered_map<Uint8, MouseAction> const mousebindings =
 {
-	{SDL_BUTTON_LEFT,		lmb},
-	{SDL_BUTTON_MIDDLE,		mmb},
-	{SDL_BUTTON_RIGHT,		rmb},
-	{SDL_BUTTON_X1,			x1mb},
-	{SDL_BUTTON_X2,			x2mb},
+	{SDL_BUTTON_LEFT,		MouseAction::lmb},
+	{SDL_BUTTON_MIDDLE,		MouseAction::mmb},
+	{SDL_BUTTON_RIGHT,		MouseAction::rmb},
+	{SDL_BUTTON_X1,			MouseAction::x1mb},
+	{SDL_BUTTON_X2,			MouseAction::x2mb},
 };
 
 static class Game
@@ -230,6 +230,8 @@ public:
 
 	static void sleep(int ms);
 
+	static bool isKeyPressed(SDL_Keycode key);
+
 
 	static std::vector< std::shared_ptr<Object> > map;
 	static std::vector< std::shared_ptr<Object> > objects;
@@ -241,7 +243,7 @@ public:
 
 	static SDL_Window* window;
 
-	static bool pressedKeys[40];
+	static bool pressedKeys[300];
 	static bool pressedMouseButtons[6];
 
 	static float32 FPS;
@@ -279,6 +281,8 @@ private:
 	static void keyPressed(SDL_Keycode key);
 
 	static void keyReleased(SDL_Keycode key);
+
+	static void setKeyPressed(SDL_Keycode key, bool pressed);
 
 	static void resetKeys();
 
