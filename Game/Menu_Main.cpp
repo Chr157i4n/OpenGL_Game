@@ -10,7 +10,7 @@ Menu_Main::Menu_Main()
 	addMenuElement(pB_start_singleplayer);
 
 	pB_start_multiplayer = new UI_Element_Button(10, 130, 200, 50, 0, "Mehrspieler");
-	pB_start_multiplayer->setCallback([&] { Game::initMultiplayer(); return 2; });
+	pB_start_multiplayer->setCallback([&] { Game::toggleSubMenu(MenuType::MENU_MULTIPLAYER); return 2; });
 	addMenuElement(pB_start_multiplayer);
 
 	pB_options = new UI_Element_Button(10, 70, 200, 50, 0, "Optionen");
@@ -48,7 +48,7 @@ Menu_Main::Menu_Main()
 	addMenuElement(dD_maps);
 
 	tE_playername = new UI_Element_TextEdit(500, 10, 200, 50, ConfigManager::player_name, 0);
-	//te_playername->setCallback([&] { Game::quit(); return 0; });
+	tE_playername->setCallback([&] { setPlayerName(); return 0; });
 	addMenuElement(tE_playername);
 }
 
@@ -66,5 +66,10 @@ void Menu_Main::loadMap(std::string mapname)
 
 	Map::load(mapname);
 	Game::startGame();
+}
+
+void Menu_Main::setPlayerName()
+{
+	ConfigManager::player_name = tE_playername->text;
 }
 

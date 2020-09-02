@@ -39,6 +39,7 @@ void NetworkManager::connect()
 	/* Connect to some.server.net:1234. */
 	enet_address_set_host(&address, ConfigManager::server_address.c_str());
 	address.port = ConfigManager::server_port;
+	Logger::log("Connecting to: "+ ConfigManager::server_address +":"+std::to_string(ConfigManager::server_port));
 	/* Initiate the connection, allocating the two channels 0 and 1. */
 	peer = enet_host_connect(client, &address, 2, 0);
 	if (peer == NULL)

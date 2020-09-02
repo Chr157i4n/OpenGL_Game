@@ -46,7 +46,7 @@ void UI_Element_TextEdit::drawUI_Element()
 	glEnd();
 
 	//box
-	glColor4f(backColor.r * 0.8, backColor.g * 0.8, backColor.b * 0.8, alpha*2);
+	glColor4f(backColor.r * 0.8, backColor.g * 0.8, backColor.b * 0.8, alpha*1.4);
 	glBegin(GL_QUADS);
 	glVertex2f(_x + outlineThickness,		_y + outlineThickness);
 	glVertex2f(_x + _w - outlineThickness,	_y + outlineThickness);
@@ -67,23 +67,41 @@ int UI_Element_TextEdit::onKeyDown(SDL_Keycode key)
 		return 1;
 	}
 
-	std::string key_s = SDL_GetKeyName(key);
+	std::string input = SDL_GetKeyName(key);
 
-	if(text.length() < 20)
-		if (key_s.length() == 1)
+
+	std::vector<std::string> toDeletes;
+	toDeletes.push_back("Keypad ");
+
+	for (std::string toDelete : toDeletes)
+	{
+		size_t pos = input.find(toDelete);
+		if (pos != std::string::npos)
 		{
-			if (Game::isKeyPressed(SDLK_LSHIFT))
-			{
-				std::transform(key_s.begin(), key_s.end(), key_s.begin(), [](unsigned char c) { return std::toupper(c); });
-			}
-			else
-			{
-				std::transform(key_s.begin(), key_s.end(), key_s.begin(), [](unsigned char c) { return std::tolower(c); });
-			}
+			// If found then erase it from string
+			input.erase(pos, toDelete.length());
+		}
+	}
 
-			text += key_s;
+	if(text.length() < maxLength)
+		if (input.length() == 1)
+		{
+			if (std::regex_match(input, *regExp))
+			{
+				if (Game::isKeyPressed(SDLK_LSHIFT))
+				{
+					std::transform(input.begin(), input.end(), input.begin(), [](unsigned char c) { return std::toupper(c); });
+				}
+				else
+				{
+					std::transform(input.begin(), input.end(), input.begin(), [](unsigned char c) { return std::tolower(c); });
+				}
+
+				text += input;
+			}
+						
 		}
 
-	ConfigManager::player_name = text;
+	callCallBack();
 	return 1;
 }

@@ -20,6 +20,21 @@ size_t Helper::split(const std::string& txt, std::vector<std::string>& strs, cha
 	return strs.size();
 }
 
+
+std::string Helper::trim(std::string& str)
+{
+	int first = -1;
+	int last = -1;
+	
+	first = str.find_first_not_of(' ');
+	last = str.find_last_not_of(' ');
+
+	if (first >= 0 && last >= 0)
+		return str.substr(first, (last - first + 1));
+	else
+		return "";
+}
+
 void Helper::eraseSubStr(std::string& mainStr, const std::string& toErase)
 {
 	// Search for the substring in string

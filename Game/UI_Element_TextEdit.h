@@ -1,5 +1,8 @@
 #pragma once
 #include "UI_Element.h"
+
+#include <regex>
+
 class UI_Element_TextEdit : public UI_Element
 {
 
@@ -10,9 +13,18 @@ public:
 
     virtual int onKeyDown(SDL_Keycode key);
 
+    void setFilter(std::string filter)
+    {
+        regExp->assign(filter);
+    }
+
+    std::regex* regExp = new std::regex(".");
+    int maxLength = 20;
+    std::string text;
+
 private:
     int labelOffsetX, labelOffsetY;
-    std::string text;
+    
 
 };
 

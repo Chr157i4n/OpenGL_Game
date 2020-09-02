@@ -26,6 +26,7 @@
 #include "Menu_Main.h"
 #include "Menu_Options.h"
 #include "Menu_Pause.h"
+#include "Menu_Multiplayer.h"
 
 //UI
 #include "UI.h"
@@ -82,6 +83,7 @@ enum class MenuType {
 	MENU_MAIN,
 	MENU_OPTIONS,
 	MENU_PAUSE,
+	MENU_MULTIPLAYER,
 };
 
 enum class PlayerAction {
@@ -262,6 +264,7 @@ public:
 	static Menu* menu_Main;
 	static Menu* menu_Pause;
 	static Menu* menu_Options;
+	static Menu* menu_Multiplayer;
 
 	static Menu* menu_current;
 	static Menu* menu_last;

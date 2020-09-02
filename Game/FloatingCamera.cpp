@@ -6,5 +6,5 @@ FloatingCamera::FloatingCamera(float fov, float width, float height) : FPSCamera
 }
 
 void FloatingCamera::moveUp(float amount) {
-    translate(up1 * amount);
+    translate(up * amount);
 }

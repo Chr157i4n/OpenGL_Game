@@ -37,6 +37,7 @@ bool Game::showMap = false;
 Menu* Game::menu_Main = nullptr;
 Menu* Game::menu_Pause = nullptr;
 Menu* Game::menu_Options = nullptr;
+Menu* Game::menu_Multiplayer = nullptr;
 
 Menu* Game::menu_current = menu_Main;
 Menu* Game::menu_last = menu_Main;
@@ -123,6 +124,7 @@ void Game::init()
 	menu_Main = new Menu_Main();
 	menu_Pause = new Menu_Pause();
 	menu_Options = new Menu_Options();
+	menu_Multiplayer = new Menu_Multiplayer();
 
 	menu_current = menu_Main;
 	gameState = GameState::GAME_MENU;
@@ -901,6 +903,9 @@ bool Game::toggleSubMenu(MenuType submenu)
 		break;
 	case MenuType::MENU_PAUSE:
 		newMenu = menu_Pause;
+		break;
+	case MenuType::MENU_MULTIPLAYER:
+		newMenu = menu_Multiplayer;
 		break;
 	}
 

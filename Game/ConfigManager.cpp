@@ -77,11 +77,13 @@ std::string ConfigManager::readConfig(std::string key)
 			continue;
 		}
 
-		split(line, param, '=');
+
+
+		Helper::split(line, param, '=');
 
 		for (int i = 0; i < param.size(); i++)
 		{
-			param[i] = trim(param[i]);
+			param[i] = Helper::trim(param[i]);
 		}
 
 		if (param[0] == key)
@@ -224,11 +226,11 @@ void ConfigManager::writeConfig(std::string key, std::string value)
 			continue;
 		}
 
-		split(linein, param, '=');
+		Helper::split(linein, param, '=');
 
 		for (int i = 0; i < param.size(); i++)
 		{
-			param[i] = trim(param[i]);
+			param[i] = Helper::trim(param[i]);
 		}
 
 		if (param[0] == key)
@@ -309,31 +311,4 @@ void ConfigManager::writeAllConfigs()
 	ConfigManager::writeConfig("fps_limit_ingame", std::to_string(ConfigManager::fps_limit_ingame));
 	ConfigManager::writeConfig("fps_limit_menu", std::to_string(ConfigManager::fps_limit_menu));
 	ConfigManager::writeConfig("v_sync", std::to_string(ConfigManager::v_sync));
-}
-
-size_t ConfigManager::split(const std::string& txt, std::vector<std::string>& strs, char ch)
-{
-	size_t pos = txt.find(ch);
-	size_t initialPos = 0;
-	strs.clear();
-
-	// Decompose statement
-	while (pos != std::string::npos) {
-		strs.push_back(txt.substr(initialPos, pos - initialPos));
-		initialPos = pos + 1;
-
-		pos = txt.find(ch, initialPos);
-	}
-
-	// Add the last one
-	strs.push_back(txt.substr(initialPos, (std::min)(pos, txt.size()) - initialPos + 1));
-
-	return strs.size();
-}
-
-std::string ConfigManager::trim(std::string& str)
-{
-	size_t first = str.find_first_not_of(' ');
-	size_t last = str.find_last_not_of(' ');
-	return str.substr(first, (last - first + 1));
 }

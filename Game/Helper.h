@@ -13,6 +13,8 @@ public:
 
 	static size_t split(const std::string& txt, std::vector<std::string>& strs, char ch);
 
+	static std::string trim(std::string& str);
+
 	static void eraseSubStr(std::string& mainStr, const std::string& toErase);
 
 	template <typename T>

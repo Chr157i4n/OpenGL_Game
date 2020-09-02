@@ -6,7 +6,7 @@
 
 FPSCamera::FPSCamera(float fov, float width, float height) : Camera(fov, width, height) 
 {
-    up1 = glm::vec3(0.0f, 1.0f, 0.0f);
+    up = glm::vec3(0.0f, 1.0f, 0.0f);
     yaw = -90.0f;
     pitch = 0.0f;
     onMouseMoved(0.0f, 0.0f);
@@ -34,7 +34,7 @@ void FPSCamera::onMouseMoved(float xRel, float yRel)
 
 void FPSCamera::update()
 {
-    view = glm::lookAt(cameraposition, cameraposition + lookAt, up1);
+    view = glm::lookAt(cameraposition, cameraposition + lookAt, up);
     viewProj = proj * view;
 }
 
@@ -46,12 +46,12 @@ void FPSCamera::moveFront(float amount)
 
 void FPSCamera::moveSideways(float amount) 
 {
-    translate(glm::normalize(glm::cross(lookAt, up1)) * amount);
+    translate(glm::normalize(glm::cross(lookAt, up)) * amount);
     update();
 }
 
 void FPSCamera::moveUp(float amount) 
 {
-    translate(up1 * amount);
+    translate(up * amount);
     update();
 }
