@@ -6,6 +6,9 @@
     <sun_color>0.2;0.2;0.2</sun_color>
     <skybox>skybox5</skybox>
   </map_properties>
+  <player>
+    <position>40;10;30</position>
+  </player>
   <models>
     <model>character.bmf</model>
     <model>arrow.bmf</model>

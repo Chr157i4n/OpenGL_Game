@@ -1,4 +1,4 @@
-#include "FPSCamera.h"
+#include "Camera_FPS.h"
 #include "Game.h"
 
 #include <string>     // std::string, std::stof

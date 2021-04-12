@@ -5,6 +5,7 @@
 #include "ResourceManager.h"
 #include "Game.h"
 #include "Logger.h"
+#include "Raypicker.h"
 
 float projectedOverlap(float minA, float maxA, float minB, float maxB) {
 	return (std::max)(0.0f, (std::min)(maxA, maxB) - (std::max)(minA, minB));
@@ -55,7 +56,7 @@ void Object::unbindShader()
 }
 
 
-bool  Object::intersectWithRay(glm::vec3 rayOrigin, glm::vec3 rayDirection)
+bool  Object::intersectWithRay(Ray ray)
 {
 	float minX = this->getPosition().x - this->getDimensions().x/2;
 	float maxX = this->getPosition().x + this->getDimensions().x/2;
@@ -67,13 +68,13 @@ bool  Object::intersectWithRay(glm::vec3 rayOrigin, glm::vec3 rayDirection)
 	float maxZ = this->getPosition().z + this->getDimensions().z/2;
 
 	
-	float tmin = (minX - rayOrigin.x) / rayDirection.x;
-	float tmax = (maxX - rayOrigin.x) / rayDirection.x;
+	float tmin = (minX - ray.origin.x) / ray.direction.x;
+	float tmax = (maxX - ray.origin.x) / ray.direction.x;
 
 	if (tmin > tmax) std::swap(tmin, tmax);
 
-	float tymin = (minY - rayOrigin.y) / rayDirection.y;
-	float tymax = (maxY - rayOrigin.y) / rayDirection.y;
+	float tymin = (minY - ray.origin.y) / ray.direction.y;
+	float tymax = (maxY - ray.origin.y) / ray.direction.y;
 
 	if (tymin > tymax) std::swap(tymin, tymax);
 
@@ -86,8 +87,8 @@ bool  Object::intersectWithRay(glm::vec3 rayOrigin, glm::vec3 rayDirection)
 	if (tymax < tmax)
 		tmax = tymax;
 
-	float tzmin = (minZ - rayOrigin.z) / rayDirection.z;
-	float tzmax = (maxZ - rayOrigin.z) / rayDirection.z;
+	float tzmin = (minZ - ray.origin.z) / ray.direction.z;
+	float tzmax = (maxZ - ray.origin.z) / ray.direction.z;
 
 	if (tzmin > tzmax) std::swap(tzmin, tzmax);
 
@@ -103,7 +104,7 @@ bool  Object::intersectWithRay(glm::vec3 rayOrigin, glm::vec3 rayDirection)
 	//Ray is intersecting with plane
 	//test for right direction
 
-	if (glm::dot(rayDirection, this->getPosition()-rayOrigin) < 0)
+	if (glm::dot(ray.direction, this->getPosition()- ray.origin) < 0)
 	{
 		//Logger::log("facing wrong direction");
 		return false;
@@ -118,6 +119,11 @@ bool  Object::intersectWithRay(glm::vec3 rayOrigin, glm::vec3 rayDirection)
 float Object::getDistance(std::shared_ptr<Object> object)
 {
 	return std::abs(glm::length(object->getCenter() - this->getCenter()));
+}
+
+float Object::getDistance(glm::vec3 location)
+{
+	return std::abs(glm::length(location - this->getCenter()));
 }
 
 void Object::markObject()
@@ -168,7 +174,7 @@ CollisionResult Object::checkCollision()
 	{
 		if (!object->getEnabled()) continue;
 		if (object->getNumber() == this->getNumber()) continue;		//dont check collision with yourself
-		if (object->getType() == ObjectType::Object_Bullet) continue;	//bullets move faster than everything else, so only bullets need to check collision wiht other objects
+		if (object->getType() & ObjectType::Object_Bullet) continue;	//bullets move faster than everything else, so only bullets need to check collision wiht other objects
 		if (object->getCollisionBoxType() == CollisionBoxType::none) continue;	//if the object has "none" collision box, no collision should be checked
 
 		if (checkCollision_AABB(object))
@@ -224,7 +230,9 @@ bool Object::checkCollision_AABB(std::shared_ptr < Object> object)
 	if (object1MinZ > object2MaxZ)
 		return false;
 
-	//Logger::log("AABB collision between: [MFN: " + getName() + ",OT: " + std::to_string(getType()) + ",ON: " + std::to_string(getNumber()) + "]  and  [MFN: " + object->getName() + ",OT: " + std::to_string(object->getType()) + ",ON: " + std::to_string(object->getNumber()) + "]");
+#ifdef DEBUG_COLLISION
+	Logger::log("AABB collision:"+ this->printObject() +" - "+ object->printObject());
+#endif
 	return true;
 }
 
@@ -235,8 +243,8 @@ bool Object::checkCollision_SAT(std::shared_ptr < Object> object, CollisionResul
 	glm::vec3 minOverlapAxis = glm::vec3(0, 0, 0);
 	//Logger::log("SAT calculation");
 
-	collisionPoints.push_back(this->calculateCollisionPoints());
-	collisionPoints.push_back(object->calculateCollisionPoints());
+	collisionPoints.push_back(this->getCollisionPoints());
+	collisionPoints.push_back(object->getCollisionPoints());
 
 
 	std::vector<glm::vec3> axes;
@@ -300,7 +308,7 @@ bool Object::checkCollision_SAT(std::shared_ptr < Object> object, CollisionResul
 	// at this point, we have checked all axis but found no separating axis
 	// which means that the polygons must intersect.
 #ifdef DEBUG_COLLISION
-	Logger::log("SAT collision between: " + this->printObject() + this->printPosition() + " and  " + object->printObject() + object->printPosition());
+	Logger::log("SAT collision: " + this->printObject() + this->printPosition() + " - " + object->printObject() + object->printPosition());
 	Logger::log("minOverlapAxis:" + std::to_string(minOverlapAxis.x) + "," + std::to_string(minOverlapAxis.y) + "," + std::to_string(minOverlapAxis.z));
 	Logger::log("minOverlap:" + std::to_string(minOverlap));
 #endif
@@ -360,7 +368,7 @@ void Object::reactToCollision(CollisionResult collisionResult)
 
 void Object::calculationBeforeFrame()
 {
-
+	this->calculateCollisionPoints();
 }
 
 void Object::calculationAfterFrame()
@@ -437,10 +445,7 @@ std::vector<glm::vec3> Object::calculateCollisionPoints()
 	glm::vec3 newRotatedPoint;
 	cubePoints.clear();
 
-
-
-
-	if (this->getCollisionBoxType() == CollisionBoxType::cube)
+	if (this->getCollisionBoxType() == CollisionBoxType::cube || this->getCollisionBoxType() == CollisionBoxType::none)
 	{
 		float cosW = cos(-rotation.y * 3.14 / 180);
 		float sinW = sin(-rotation.y * 3.14 / 180);
@@ -545,6 +550,30 @@ std::vector<glm::vec3> Object::calculateCollisionPoints()
 		cubePoints.push_back(newRotatedPoint);
 	}
 
+	#pragma region orientedBoundingBox
+	orientedBoundingBox.minX =  std::numeric_limits<float>::infinity();
+	orientedBoundingBox.maxX = -std::numeric_limits<float>::infinity();
+	orientedBoundingBox.minY =  std::numeric_limits<float>::infinity();
+	orientedBoundingBox.maxY = -std::numeric_limits<float>::infinity();
+	orientedBoundingBox.minZ =  std::numeric_limits<float>::infinity();
+	orientedBoundingBox.maxZ = -std::numeric_limits<float>::infinity();
+	for (glm::vec3 point : cubePoints)
+	{
+		if (point.x < orientedBoundingBox.minX)
+			orientedBoundingBox.minX = point.x;
+		if (point.x > orientedBoundingBox.maxX)
+			orientedBoundingBox.maxX = point.x;
+		if (point.y < orientedBoundingBox.minY)
+			orientedBoundingBox.minY = point.y;
+		if (point.y > orientedBoundingBox.maxY)
+			orientedBoundingBox.maxY = point.y;
+		if (point.z < orientedBoundingBox.minZ)
+			orientedBoundingBox.minZ = point.z;
+		if (point.z > orientedBoundingBox.maxZ)
+			orientedBoundingBox.maxZ = point.z;
+	}
+
+	#pragma endregion
 
 	return cubePoints;
 }
@@ -843,7 +872,9 @@ void Object::addToHealth(float32 addHealth)
 
 std::string Object::printObject()
 {
-	return "[" + std::to_string(getNumber()) + "|" + getName() + "|" + std::to_string(getType()) + "]";
+	if (!this) return "NA";
+
+	return "[" + std::to_string(getNumber()) + "|" + getName() + "|" + std::to_string(getType()) + "]";	
 }
 
 std::string Object::printPosition()

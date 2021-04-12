@@ -1,3 +1,7 @@
+# UML
+*.uxf
+/UML
+
 # Prerequisites
 *.d
 

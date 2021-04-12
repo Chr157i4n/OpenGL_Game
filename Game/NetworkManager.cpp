@@ -201,7 +201,7 @@ void NetworkManager::parseData(std::string data)
 		{
 			Logger::log("Server changes map: "+param_string);
 			Map::load(param_string);
-			Game::startGame();
+			Game::startGame(Game_Mode::GameMode_MultiPlayer);
 			sendPlayerPosition();
 			sendPlayerRotation();
 			break;

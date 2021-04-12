@@ -40,7 +40,7 @@ public:
 
 	std::shared_ptr<Object> getObjectLookingAt()
 	{
-		return ObjectLookingAt;
+		return objectLookingAt;
 	}
 
 	std::shared_ptr<Object> calculateObjectLookingAt();
@@ -81,6 +81,6 @@ protected:
 
 	int team = 0;
 
-	std::shared_ptr<Object> ObjectLookingAt;
+	std::shared_ptr<Object> objectLookingAt;
 };
 

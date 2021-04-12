@@ -138,7 +138,9 @@ void NPC::evade(CollisionResult collisionResult)
 		if (collidedObject->object->getDimensions().y < 3.5)
 		{
 			jump();
+			#ifdef DEBUG_MOVEMENT
 			Logger::log("NPC: " + printObject() + " wants to jump");
+			#endif
 		}
 		else
 		{
@@ -158,7 +160,7 @@ void NPC::reactToCollision(CollisionResult collisionResult)
 }
 
 void NPC::calculateNextTarget()
-{
+{	
 	std::shared_ptr<Character> nextTarget = nullptr;
 	float nextTargetdistance= (std::numeric_limits<float>::max)();
 

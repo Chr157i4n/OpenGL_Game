@@ -38,6 +38,7 @@ Menu* Game::menu_Main = nullptr;
 Menu* Game::menu_Pause = nullptr;
 Menu* Game::menu_Options = nullptr;
 Menu* Game::menu_Multiplayer = nullptr;
+Menu* Game::menu_MapEditor = nullptr;
 
 Menu* Game::menu_current = menu_Main;
 Menu* Game::menu_last = menu_Main;
@@ -45,32 +46,14 @@ Menu* Game::menu_last = menu_Main;
 UI_Element_Graph* Game::fpsGraph;
 UI_Element_Label* Game::lbl_stopwatch1, * Game::lbl_stopwatch2, * Game::lbl_stopwatch3, * Game::lbl_stopwatch4, * Game::lbl_stopwatch5, * Game::lbl_stopwatch6;
 UI_Element_Label* Game::lbl_ObjectCount;
-StopWatch Game::stopwatch1;
-StopWatch Game::gameStopWatch;
 
+StopWatch Game::gameStopWatch;
 StopWatch  Game::frametimeStopWatch;
 
 std::vector<Font3D*> Game::texts;
 
+GameMode* Game::gameMode;
 
-/// <summary>
-/// this methods starts the game
-/// </summary>
-void Game::startGame()
-{
-	delta = 0.0f;
-	gameState = GameState::GAME_ACTIVE;
-
-	Renderer::initFrameBuffer();
-
-	Game::resetKeys();
-	Renderer::resetFrameCount();
-
-
-	gameStopWatch.start();
-
-	SDL_SetRelativeMouseMode(SDL_TRUE);
-}
 
 
 /// <summary>
@@ -125,9 +108,11 @@ void Game::init()
 	menu_Pause = new Menu_Pause();
 	menu_Options = new Menu_Options();
 	menu_Multiplayer = new Menu_Multiplayer();
+	menu_MapEditor = new Menu_MapEditor();
 
 	menu_current = menu_Main;
 	gameState = GameState::GAME_MENU;
+	gameMode = new GameMode_Menu();
 
 	Renderer::init();	
 
@@ -136,11 +121,41 @@ void Game::init()
 }
 
 
-void Game::initMultiplayer()
+/// <summary>
+/// this methods starts the game
+/// </summary>
+void Game::startGame(Game_Mode game_Mode)
 {
-	NetworkManager::init();
-	NetworkManager::connect();
+	delta = 0.0f;
+	gameState = GameState::GAME_ACTIVE;
+
+	delete gameMode;
+	switch (game_Mode)
+	{
+	case Game_Mode::GameMode_SinglePlayer:
+		gameMode = new GameMode_SinglePlayer();
+		break;
+	case Game_Mode::GameMode_MultiPlayer:
+		gameMode = new GameMode_MultiPlayer();
+		break;
+	case Game_Mode::GameMode_MapEditor:
+		gameMode = new GameMode_MapEditor();
+		break;
+	}
+	gameMode->init();
+
+
+	Renderer::initFrameBuffer();
+
+	Game::resetKeys();
+	Renderer::resetFrameCount();
+
+
+	gameStopWatch.start();
+
+	SDL_SetRelativeMouseMode(SDL_TRUE);
 }
+
 
 /// <summary>
 /// main game loop
@@ -151,157 +166,12 @@ void Game::gameLoop()
 	while (!close)
 	{
 		frametimeStopWatch.start();
+		#ifdef DEBUG_LOOP
+		Logger::log("Debug New Frame");
+		#endif
 
-		#pragma region gameloop
-
-		stopwatch1.start();
-		NetworkManager::readData();
-
-		if (gameState == GameState::GAME_ACTIVE)
-		{
-			
-		}
-
-		double stopwatch6duration = stopwatch1.stop();
-		lbl_stopwatch6->setText("Network: " + std::to_string(stopwatch6duration));
-
-		lbl_ObjectCount->setText("Objects: " + std::to_string(Game::objects.size()));
-
-		stopwatch1.start();
-		processInput();
-		double stopwatch1duration = stopwatch1.stop();
-		lbl_stopwatch1->setText("Input: " + std::to_string(stopwatch1duration));
-
-		if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
-		{
-			GLCALL(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
-			GLCALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-
-			for (std::shared_ptr<Object> object : objects)
-			{
-				if (!object->getEnabled()) continue;
-				object->calculationBeforeFrame();
-			}
-
-
-			stopwatch1.start();
-			if (!NetworkManager::getIsConnected())
-			{
-				for (std::shared_ptr<NPC> npc : npcs)
-				{
-					if (!npc->getEnabled()) continue;
-					npc->doCurrentTask();
-				}
-			}
-			double stopwatch2duration = stopwatch1.stop();
-			lbl_stopwatch2->setText("NPCs: " + std::to_string(stopwatch2duration));
-
-			//Move every Object
-			for (std::shared_ptr<Object> object : objects)
-			{
-				if (NetworkManager::getIsConnected() && !(object->getType() & ObjectType::Object_Player)) continue;
-				if (!object->getEnabled()) continue;
-				if (object->getType() == ObjectType::Object_Environment) continue; //Environment doesnt move
-
-				object->fall();
-				object->move();
-
-			}
-
-			stopwatch1.start();
-			if (!NetworkManager::getIsConnected())
-			{
-				for (std::shared_ptr<Bullet> bullet : bullets)
-				{
-					if (!bullet->getEnabled()) continue;
-					bullet->checkHit();
-				}
-			}
-
-			//Check every Object for collision
-			processCollision();
-			double stopwatch3duration = stopwatch1.stop();
-			lbl_stopwatch3->setText("Col: " + std::to_string(stopwatch3duration));
-
-			for (std::shared_ptr<Player> player : players)
-			{
-				if (!player->getEnabled()) continue;
-				player->updateCameraPosition();
-				//player->update();
-				if (player->getPosition().x > 95 && player->getPosition().z > 95)
-				{
-					UI_Element* eastereggLabel = new UI_Element_Label(getWindowWidth() / 2 - 200, getWindowHeight() / 2 - 100, 10, 10, "Nice, du hast das Easter-Egg gefunden", 1000, 1, glm::vec4(1, 0, 0, 1), glm::vec4(0.2, 0.2, 0.2, 0.4), false);
-					UI::addElement(eastereggLabel);
-				}
-			}
-			if (!NetworkManager::getIsConnected())
-			{
-				for (std::shared_ptr<Character> character : characters)
-				{
-					if (!character->getEnabled()) continue;
-					character->resetVerticalMovement();
-				}
-			}
-			else
-			{
-				if (!players[0]->getEnabled()) continue;
-				players[0]->resetVerticalMovement();
-			}
-
-			if (!NetworkManager::getIsConnected())
-			{
-				deleteObjects();
-			}
-
-			if (npcs.size() <= 0 && gameState == GameState::GAME_ACTIVE) //todo npcs get disabled
-			{
-				UI_Element* victoryLabel = new UI_Element_Label(getWindowWidth() / 2 - 100, getWindowHeight() / 2, 10, 10, "Du hast alle Bots besiegt", 1000, 1, glm::vec4(0, 0, 1, 1), glm::vec4(0.2, 0.2, 0.2, 0.4), false);
-				UI::addElement(victoryLabel);
-				gameState = GameState::GAME_GAME_OVER;
-			}
-
-			stopwatch1.start();
-			//testing - Raypicking
-			players[0]->calculateObjectLookingAt();
-
-			std::shared_ptr<Object> objectPlayerLookingAt = players[0]->getObjectLookingAt();
-			if (objectPlayerLookingAt != nullptr)
-			{
-				if (players[0]->getDistance(objectPlayerLookingAt) < 10)
-				{
-					if (objectPlayerLookingAt->getType() & ObjectType::Object_Interactable)
-					{
-						objectPlayerLookingAt->markObject();
-					}
-				}
-			}
-			double stopwatch5duration = stopwatch1.stop();
-			lbl_stopwatch5->setText("Raypicking: " + std::to_string(stopwatch5duration));
-
-		}
-		
-		stopwatch1.start();
-		if (gameState != GameState::GAME_PAUSED)
-		{
-			render();
-		}
-		double stopwatch4duration = stopwatch1.stop();
-		lbl_stopwatch4->setText("Render: " + std::to_string(stopwatch4duration));
-
-
-		if (!NetworkManager::getIsConnected())
-		{
-			if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
-			{
-				for (std::shared_ptr<Object> object : objects)
-				{
-					if (!object->getEnabled()) continue;
-					object->calculationAfterFrame();
-				}
-			}
-		}
-
-		#pragma endregion
+		if(gameMode!=nullptr)
+			gameMode->gameLoop();
 
 		float64 frametime = frametimeStopWatch.stop();
 
@@ -324,8 +194,8 @@ void Game::gameLoop()
 
 	}
 
+	gameMode->deinit();
 	AudioManager::deinit();
-	NetworkManager::deinit();
 	LuaManager::deinit();
 	ConfigManager::writeAllConfigs();
 }
@@ -370,66 +240,70 @@ void Game::processCollision()
 /// </summary>
 void Game::render()
 {
-	switch (gameState)
-	{
-	case GameState::GAME_ACTIVE:
-	case GameState::GAME_GAME_OVER:
+
+		switch (gameState)
 		{
-			
-			if (!Game::showMap)
-			{
-				Renderer::calcLight();
+		case GameState::GAME_ACTIVE:
+		case GameState::GAME_GAME_OVER:
+		{
+			if (players.size() > 0) {
 
-				if (ConfigManager::shadow_option != ShadowOption::off)
-					Renderer::calcShadows();
-
-				Renderer::frameBuffer.bind();
-				Renderer::clearBuffer();
-				Renderer::renderOpaqueObjects();
-				Renderer::renderSkybox(glm::mat4(glm::mat3(players[0]->getView())), players[0]->getProj());
-				Renderer::renderTransparentObjects();
-
-				for (Font3D* text : Game::texts)
+				if (!Game::showMap)
 				{
-					text->renderTexture();
+					Renderer::calcLight();
+
+					if (ConfigManager::shadow_option != ShadowOption::off)
+						Renderer::calcShadows();
+
+					Renderer::frameBuffer.bind();
+					Renderer::clearBuffer();
+					Renderer::renderOpaqueObjects();
+					Renderer::renderSkybox(glm::mat4(glm::mat3(players[0]->getView())), players[0]->getProj());
+					Renderer::renderTransparentObjects();
+
+					for (Font3D* text : Game::texts)
+					{
+						text->renderTexture();
+					}
+
+					Renderer::frameBuffer.unbind();
+				}
+				else
+				{
+					Renderer::frameBuffer.bind();
+					Renderer::clearBuffer();
+					Renderer::renderMap();
+					Renderer::frameBuffer.unbind();
 				}
 
-				Renderer::frameBuffer.unbind();
-			}
-			else
-			{
-				Renderer::frameBuffer.bind();
-				Renderer::clearBuffer();
-				Renderer::renderMap();
-				Renderer::frameBuffer.unbind();
-			}
+				//Postprocessing
+				Renderer::postProcessing();
 
-			//Postprocessing
-			Renderer::postProcessing();
-
-			//show the Shadow map
-			if (showShadowMap) Renderer::showShadowMap();
+				//show the Shadow map
+				if (showShadowMap) Renderer::showShadowMap();
 
 
-			if (showInfo)
-			{
-				Renderer::renderAxis(players[0]->getLookDirection(), 8, 5);
-				Renderer::renderAxis(Renderer::transformedSunDirection3, 8, 3);
+				if (showInfo)
+				{
+					Renderer::renderAxis(players[0]->getLookDirection(), 8, 5);
+					Renderer::renderAxis(Renderer::transformedSunDirection3, 8, 3);
 
-				UI::updateFPS();
-				UI::updatePos(players[0]);
-				UI::updateRot(players[0]);
-			}
+					UI::updateFPS();
+					UI::updatePos(players[0]);
+					UI::updateRot(players[0]);
+				}
 
-			UI::drawUI();
+				UI::drawUI();
 
-			if (Game::showMap)
-			{
-				Renderer::drawMapOverlay();
+				if (Game::showMap)
+				{
+					Renderer::drawMapOverlay();
+				}
+
 			}
 		}
 		break;
-	case GameState::GAME_MENU:
+		case GameState::GAME_MENU:
 		{
 			if (menu_current == nullptr) break;
 
@@ -444,9 +318,9 @@ void Game::render()
 			GLCALL(glEnable(GL_CULL_FACE));
 		}
 		break;
-	}
+		}
 
-	Game::swapBuffer();
+		Game::swapBuffer();
 }
 
 /// <summary>
@@ -472,7 +346,7 @@ void Game::processInput()
 		else if (event.type == SDL_MOUSEMOTION) {
 			if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
 			{
-				if (SDL_GetRelativeMouseMode()) {
+				if (SDL_GetRelativeMouseMode() && players.size() > 0) {
 					players[0]->onMouseMove(event.motion.xrel, event.motion.yrel);
 					AudioManager::updateAudioListener();
 					NetworkManager::sendPlayerRotation();
@@ -506,16 +380,16 @@ void Game::processInput()
 			pressedMouseButtons[event.button.button] = false;
 		}
 	}
-
 	//continious Action Keys, mulitple times per pressing
-
 	if (pressedMouseButtons[SDL_BUTTON_LEFT])
 	{
 		if (gameState == GameState::GAME_ACTIVE)
 		{
 			if (!NetworkManager::getIsConnected())
 			{
-				players[0]->shoot();
+				if (players.size() > 0) {
+					players[0]->shoot();
+				}
 			}
 			else
 			{
@@ -529,91 +403,114 @@ void Game::processInput()
 
 	}
 
-	if (pressedKeys[(int)PlayerAction::moveForward])
+	if (isKeyPressed(PlayerAction::moveForward))
 	{
 		if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
 		{
-			players[0]->moveForward();
-			AudioManager::updateAudioListener();
+			if (players.size() > 0) {
+				players[0]->moveForward();
+				AudioManager::updateAudioListener();
+			}
 		}
 	}
-	if (pressedKeys[(int)PlayerAction::moveBackward])
+	if (isKeyPressed(PlayerAction::moveBackward))
 	{
 		if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
 		{
-			players[0]->moveBackward();
-			AudioManager::updateAudioListener();
+			if (players.size() > 0) {
+				players[0]->moveBackward();
+				AudioManager::updateAudioListener();
+			}
 		}
 	}
-	if (pressedKeys[(int)PlayerAction::moveLeft])
+	if (isKeyPressed(PlayerAction::moveLeft))
 	{
 		if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
 		{
-			players[0]->moveLeft();
-			AudioManager::updateAudioListener();
+			if (players.size() > 0) {
+				players[0]->moveLeft();
+				AudioManager::updateAudioListener();
+			}
 		}
 		else if (gameState == GameState::GAME_MENU)
 		{
 			menu_current->leftOnSelectedMenuElement();
 		}
 	}
-	if (pressedKeys[(int)PlayerAction::moveRight])
+	if (isKeyPressed(PlayerAction::moveRight))
 	{
 		if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
 		{
-			players[0]->moveRight();
-			AudioManager::updateAudioListener();
+			if (players.size() > 0) {
+				players[0]->moveRight();
+				AudioManager::updateAudioListener();
+			}
 		}
 		else if (gameState == GameState::GAME_MENU)
 		{
 			menu_current->rightOnSelectedMenuElement();
 		}
 	}
-	if (pressedKeys[(int)PlayerAction::jump])
+	if (isKeyPressed(PlayerAction::jump))
 	{
 		if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
 		{
-			players[0]->jump();
+			if (players.size() > 0) {
+				players[0]->jump();
+			}
 		}
 	}
-	if (pressedKeys[(int)PlayerAction::sprint])
+	if (isKeyPressed(PlayerAction::sprint))
 	{
 		if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
 		{
-			players[0]->run(true);
+			if (players.size() > 0) {
+				players[0]->run(true);
+			}
 		}
 	}
-	if (!pressedKeys[(int)PlayerAction::sprint])
+
+	if (!isKeyPressed(PlayerAction::sprint))
 	{
 		if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
 		{
-			players[0]->run(false);
+			if (players.size()>0) {
+				players[0]->run(false);
+			}
 		}
 	}
-	if (pressedKeys[(int)PlayerAction::crouch])
+	if (isKeyPressed(PlayerAction::crouch))
 	{
 		if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
 		{
-			players[0]->crouch(true);
+			if (players.size() > 0) {
+				players[0]->crouch(true);
+			}
 		}
 	}
-	if (!pressedKeys[(int)PlayerAction::crouch])
+	if (!isKeyPressed(PlayerAction::crouch))
 	{
 		if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
 		{
-			players[0]->crouch(false);
+			if (players.size() > 0) {
+				players[0]->crouch(false);
+			}
 		}
 	}
-	if (pressedKeys[(int)PlayerAction::interact])
+	if (isKeyPressed(PlayerAction::interact))
 	{
 		if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
 		{
-			std::shared_ptr<Object> objectPlayerLookingAt = players[0]->getObjectLookingAt();
-			if (objectPlayerLookingAt != nullptr)
-			{
-				if (players[0]->getDistance(objectPlayerLookingAt) < 10)
+			if (players.size() > 0) {
+				std::shared_ptr<Object> objectPlayerLookingAt = players[0]->getObjectLookingAt();
+				if (objectPlayerLookingAt != nullptr)
 				{
-					objectPlayerLookingAt->interact_hold();
+					if (players[0]->getDistance(objectPlayerLookingAt) < 10)
+					{
+						objectPlayerLookingAt->interact_hold();
+
+						objectPlayerLookingAt->markObject();
+					}
 				}
 			}
 		}
@@ -758,6 +655,22 @@ bool Game::isKeyPressed(SDL_Keycode key)
 	int keynumber = (int)key;
 	if (keynumber >= 1073741881) keynumber -= 1073741753;
 	 return pressedKeys[keynumber];
+}
+
+bool Game::isKeyPressed(PlayerAction playeraction)
+{
+	SDL_Keycode key;
+
+	for (auto it = keybindings.begin(); it != keybindings.end(); it++)
+	{
+		if (it->second == playeraction)
+		{
+			key = it->first;
+			break;
+		}
+	}
+
+	return isKeyPressed(key);
 }
 
 void Game::setKeyPressed(SDL_Keycode key, bool pressed)
@@ -906,6 +819,9 @@ bool Game::toggleSubMenu(MenuType submenu)
 		break;
 	case MenuType::MENU_MULTIPLAYER:
 		newMenu = menu_Multiplayer;
+		break;
+	case MenuType::MENU_MAPEDITOR:
+		newMenu = menu_MapEditor;
 		break;
 	}
 

@@ -5,7 +5,7 @@
 #include "libs/glm/ext/matrix_transform.hpp"
 #include "libs/glm/gtc/matrix_transform.hpp"
 
-#include "FPSCamera.h"
+#include "Camera_FPS.h"
 #include "UI_Element_ProgressBar.h"
 #include "Character.h"
 

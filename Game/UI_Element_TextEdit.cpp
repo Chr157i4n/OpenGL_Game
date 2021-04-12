@@ -64,6 +64,7 @@ int UI_Element_TextEdit::onKeyDown(SDL_Keycode key)
 	if (key == SDLK_BACKSPACE)
 	{
 		text = text.substr(0, text.size()-1);
+		callCallBack();
 		return 1;
 	}
 

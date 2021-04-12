@@ -46,10 +46,10 @@ void Bullet::checkHit()
 
 	for (CollidedObject* collidedObject : collisionresult.collidedObjectList)
 	{
-		if (collidedObject->object->getType() == ObjectType::Object_Bullet) return;
-		if (collidedObject->object->getType() == ObjectType::Object_Environment) return;
-		//if (collidedObject->object->getType() == ObjectType::Object_Player) return;
-		if (collidedObject->object->getType() == ObjectType::Object_Entity) return;
+		if (collidedObject->object->getType() & ObjectType::Object_Bullet) return;
+		if (collidedObject->object->getType() & ObjectType::Object_Environment) return;
+		//if (collidedObject->object->getType() & ObjectType::Object_Player) return;
+		if (collidedObject->object->getType() & ObjectType::Object_Entity) return;
 
 		this->registerHit();
 		collidedObject->object->registerHit();

@@ -5,13 +5,17 @@
 
 Menu_Main::Menu_Main()
 {
-	pB_start_singleplayer = new UI_Element_Button(10, 190, 200, 50, 0, "Einzelspieler");
-	pB_start_singleplayer->setCallback([&] { loadMap("level_test"); return 2; });
+	pB_start_singleplayer = new UI_Element_Button(10, 250, 200, 50, 0, "Einzelspieler");
+	pB_start_singleplayer->setCallback([&] { startSinglePlayer(ConfigManager::level); return 2; });
 	addMenuElement(pB_start_singleplayer);
 
-	pB_start_multiplayer = new UI_Element_Button(10, 130, 200, 50, 0, "Mehrspieler");
+	pB_start_multiplayer = new UI_Element_Button(10, 190, 200, 50, 0, "Mehrspieler");
 	pB_start_multiplayer->setCallback([&] { Game::toggleSubMenu(MenuType::MENU_MULTIPLAYER); return 2; });
 	addMenuElement(pB_start_multiplayer);
+
+	pB_start_mapeditor = new UI_Element_Button(10, 130, 200, 50, 0, "Mapeditor");
+	pB_start_mapeditor->setCallback([&] { Game::toggleSubMenu(MenuType::MENU_MAPEDITOR); return 2; });
+	addMenuElement(pB_start_mapeditor);
 
 	pB_options = new UI_Element_Button(10, 70, 200, 50, 0, "Optionen");
 	pB_options->setCallback([&] { Game::toggleSubMenu(MenuType::MENU_OPTIONS); return 0; });
@@ -42,7 +46,7 @@ Menu_Main::Menu_Main()
 			}
 		}
 		mapItem->label = map;
-		mapItem->callback = [&] { loadMap(); return 2; };
+		mapItem->callback = [&] { startSinglePlayer(); return 2; };
 		dD_maps->addItem(mapItem);
 	}
 	addMenuElement(dD_maps);
@@ -59,13 +63,13 @@ void Menu_Main::drawMenu()
 	this->Menu::drawMenu();
 }
 
-void Menu_Main::loadMap(std::string mapname)
+void Menu_Main::startSinglePlayer(std::string mapname)
 {
 	if(mapname=="")
 		mapname = dD_maps->getSelectedItem()->label;
 
 	Map::load(mapname);
-	Game::startGame();
+	Game::startGame(Game_Mode::GameMode_SinglePlayer);
 }
 
 void Menu_Main::setPlayerName()

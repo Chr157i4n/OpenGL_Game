@@ -15,6 +15,9 @@
 #include "Model.h"
 
 
+//forward declaration
+class Object;
+struct Ray;
 
 /// <summary>
 /// enum for different type of an object. It is used as flags, so the Player, has the flag "Object_Player" and "Object_Character".
@@ -72,8 +75,6 @@ std::unordered_map<std::string, CollisionBoxType> const CollisionBoxTypeTable =
 	{"prism",CollisionBoxType::prism},
 };
 
-//forward declaration of the class Object
-class Object;
 
 /// <summary>
 /// struct for each object the object collided
@@ -97,6 +98,11 @@ struct CollisionResult
 };
 
 
+struct Box {
+	float minX, maxX, minY, maxY, minZ, maxZ;
+};
+
+
 /// <summary>
 /// Base class for every object in the game world
 /// </summary>
@@ -113,9 +119,11 @@ public:
 
 	void unbindShader();
 
-	bool  intersectWithRay(glm::vec3 rayOrigin, glm::vec3 rayDirection);
+	bool  intersectWithRay(Ray ray);
 
 	float getDistance(std::shared_ptr<Object> object);
+
+	float getDistance(glm::vec3 location);
 
 	void markObject();
 
@@ -142,6 +150,11 @@ public:
 	glm::vec3 calculateDimensions();
 
 	std::vector<glm::vec2> calculateRectPoints();
+
+	std::vector<glm::vec3> getCollisionPoints()
+	{
+		return cubePoints;
+	}
 
 	std::vector<glm::vec3> calculateCollisionPoints();
 
@@ -183,6 +196,11 @@ public:
 	glm::vec3 getDimensions();
 
 	glm::vec3 getBoundingBoxDimensions();
+
+	Box getOrientedBoundingBox()
+	{
+		return orientedBoundingBox;
+	}
 
 	void setType(ObjectType newObjectType);
 
@@ -331,6 +349,8 @@ protected:
 	std::vector<glm::vec2> rectPoints;
 	std::vector<glm::vec3> cubePoints;
 	std::vector<glm::vec3> cubeNormals;
+
+	Box orientedBoundingBox;
 
 	int modelIndex = -1;
 	Shader* shader = nullptr;

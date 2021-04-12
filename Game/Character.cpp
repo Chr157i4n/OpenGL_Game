@@ -1,5 +1,7 @@
 #include "Character.h"
+
 #include "Game.h"
+#include "Raypicker.h"
 
 #include <cmath>
 
@@ -74,7 +76,9 @@ void Character::jump()
 {
 	if (canJump)
 	{
+#ifdef DEBUG_MOVEMENT
 		Logger::log("Character: " + printObject() + " jumped");
+#endif
 
 		AudioManager::play3D("audio/jump.wav", this->getPosition());
 
@@ -122,41 +126,16 @@ void Character::run(bool run)
 
 std::shared_ptr<Object> Character::calculateObjectLookingAt()
 {
-	std::vector< std::shared_ptr<Object> > objectsLookingAt;
-	
-	for (std::shared_ptr<Object> object : Game::objects)
-	{
-		if (object->getType() & ObjectType::Object_Player) continue;
-		if (object->getType() & ObjectType::Object_Environment) continue;
-		if (!object->getEnabled()) continue;
+	glm::vec3 rayOrigin = this->getLookOrigin();
+	glm::vec3 rayDirection = this->getLookDirection();
 
-		glm::vec3 rayOrigin = this->getLookOrigin();
+	RayPickingResult raypickingresult = Raypicker::doRayPicking(Ray(rayOrigin, rayDirection), Game::objects);
 
-		glm::vec3 rayDirection = this->getLookDirection();
-
-		if (object->intersectWithRay(rayOrigin, rayDirection))
-		{
-			objectsLookingAt.push_back(object);
-		}
-	}
-
-	//return the object with the minimum distance
-	float minDistance = (std::numeric_limits<float>::max)();
-	float currentDistance = 0;
-	std::shared_ptr<Object> objectMinDistance = nullptr;
-
-	for (std::shared_ptr<Object> object : objectsLookingAt)
-	{
-		currentDistance = this->getDistance(object);
-		if (currentDistance < minDistance)
-		{
-			minDistance = currentDistance;
-			objectMinDistance = object;
-		}
-	}
-
-	ObjectLookingAt = objectMinDistance;
-	return objectMinDistance;
+#ifdef DEBUG_RAYPICKING
+	Logger::log(this->printObject()+" is looking at "+ raypickingresult.intersectedObject_nearest.object->printObject());
+#endif
+	objectLookingAt = raypickingresult.intersectedObject_nearest.object;
+	return raypickingresult.intersectedObject_nearest.object;
 }
 
 /// <summary>
@@ -194,6 +173,7 @@ std::shared_ptr<Bullet> Character::shoot()
 
 		Game::bullets.push_back(newBullet);
 		Game::objects.push_back(newBullet);
+		newBullet->calculationBeforeFrame();
 
 
 		lastTimeShot = std::chrono::system_clock::now();

@@ -1,4 +1,4 @@
-﻿- switch level from ingame
+﻿- switch level from ingame	✓
 
 - dynamic environment mapping game settings
 - main menu background in options menu?
@@ -6,15 +6,21 @@
 
 - player name input box in main menu
 
-- multiplayer connecting feedback
 - options save and then render env maps
-
-- Netcode optimisation 
-	- dont broadcast to the sender of the data
 
 - array of light sources in map file	✓
 
 - ambient sounds	✓
+
+- Map Editor mode
+	- spot where ray hits object for placing
+	- distance from look vector for placing
+		- change distance with mouse wheel
+	- transparent object while moving
+	- rotation objects with Q/E
+	- object placement and removement
+	- model switching
+	- save objects in map xml file
 
 - push boxes
 
@@ -25,6 +31,11 @@
 	- name above players
 	- bots not moving (killed?)
 	- cant shoot sometimes
+	- multiplayer connecting feedback
+
+
+- Netcode optimisation 
+	- dont broadcast to the sender of the data
 
 - 3D Raypicking	✓
 
@@ -83,7 +94,7 @@
 
 - Vehicles
 
-- interactable objects in the world (buttons, levers)
+- interactable objects in the world (buttons, levers)	✓
 
 - collision detection with sweeping (now more running trough objects)
 
@@ -101,5 +112,5 @@
 - Map	✓
 	- skybox	✓
 	- sun direction	✓
-	- buttons with script
+	- buttons with script	✓
 	- sound sources connected to objects

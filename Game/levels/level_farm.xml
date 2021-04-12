@@ -6,6 +6,9 @@
     <sun_color>0.8;0.8;0.8</sun_color>
     <skybox>skybox4</skybox>
   </map_properties>
+  <player>
+    <position>40;10;30</position>
+  </player>
   <sounds>
     <sound>
       <position>0;0;50</position>
