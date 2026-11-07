@@ -13,6 +13,8 @@ public:
 
 	static size_t split(const std::string& txt, std::vector<std::string>& strs, char ch);
 
+	static std::string trim(std::string& str);
+
 	static void eraseSubStr(std::string& mainStr, const std::string& toErase);
 
 	template <typename T>
@@ -24,8 +26,18 @@ public:
 		return out.str();
 	}
 
+	static std::string glmVec4_to_string(glm::vec4 vector);
+
+	static glm::vec4 string_to_glmVec4(std::string string);
+
 	static std::string glmVec3_to_string(glm::vec3 vector);
 
-	static glm::vec3 string_to_glmVec3(std::string);
-};
+	static glm::vec3 string_to_glmVec3(std::string string);
 
+	static std::string glmVec2_to_string(glm::vec2 vector);
+
+	static glm::vec2 string_to_glmVec2(std::string string);
+
+	// Zero-pad a network id to three digits (shared by client and server).
+	static std::string networkIDToString(int networkID);
+};

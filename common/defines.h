@@ -16,23 +16,24 @@ typedef uint64_t uint64;
 typedef float float32;
 typedef double float64;
 
+// Renderer-related vertex structs (only used by the OpenGL client).
 struct VertexPos {
-	glm::vec3 position;
+    glm::vec3 position;
 };
 
 struct VertexPosCol {
-	glm::vec3 position;
-	glm::vec4 color;
+    glm::vec3 position;
+    glm::vec4 color;
 };
 
 struct VertexPosTex {
-	glm::vec3 position;
-	glm::vec2 textureCoord;
+    glm::vec3 position;
+    glm::vec2 textureCoord;
 };
 
 struct Vertex {
-	glm::vec3 position;
-	glm::vec3 normal;
-	glm::vec3 tangent;
-	glm::vec2 textureCoord;
+    glm::vec3 position;
+    glm::vec3 normal;
+    glm::vec3 tangent;
+    glm::vec2 textureCoord;
 };

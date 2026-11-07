@@ -28,6 +28,7 @@ option(OG_BUILD_MODELCONVERTER "Build the Assimp based BMF converter" OFF)
 option(OG_ENABLE_AUDIO "Enable SoLoud audio with 3D sound" ON)
 option(OG_USE_SYSTEM_DEPS "Prefer system/vcpkg packages over downloaded dependencies" OFF)
 option(OG_FETCH_DEPS "Download missing dependencies with FetchContent" ON)
+option(OG_BUILD_TESTS "Build Catch2 unit tests for the shared common code" ON)
 
 set(OG_DEPS_DIR "${CMAKE_SOURCE_DIR}/libs/_deps" CACHE PATH
     "Directory used for downloaded third-party dependencies")
@@ -39,6 +40,10 @@ set(FETCHCONTENT_QUIET OFF)
 include(FetchContent)
 
 include(cmake/Dependencies.cmake)
+
+# Shared, platform-independent code used by both the client and the server.
+file(GLOB OG_COMMON_SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/common/*.cpp")
+
 
 # ---------------------------------------------------------------------------
 # Helper: keep executables next to their assets for every configuration
@@ -58,7 +63,7 @@ endfunction()
 if(OG_BUILD_GAME)
     file(GLOB OG_GAME_SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/Game/*.cpp")
 
-    add_executable(OpenGL_Game ${OG_GAME_SOURCES})
+    add_executable(OpenGL_Game ${OG_GAME_SOURCES} ${OG_COMMON_SOURCES})
     target_include_directories(OpenGL_Game PRIVATE
         "${CMAKE_SOURCE_DIR}/Game"
         "${CMAKE_SOURCE_DIR}/common")
@@ -107,7 +112,7 @@ endif()
 if(OG_BUILD_SERVER)
     file(GLOB OG_SERVER_SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/GameServer/*.cpp")
 
-    add_executable(GameServer ${OG_SERVER_SOURCES})
+    add_executable(GameServer ${OG_SERVER_SOURCES} ${OG_COMMON_SOURCES})
     target_include_directories(GameServer PRIVATE
         "${CMAKE_SOURCE_DIR}/GameServer"
         "${CMAKE_SOURCE_DIR}/common")
@@ -129,6 +134,25 @@ if(OG_BUILD_SERVER)
         WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/GameServer"
         DEPENDS GameServer
         USES_TERMINAL)
+endif()
+
+# ---------------------------------------------------------------------------
+# Unit tests for the shared common code
+# ---------------------------------------------------------------------------
+if(OG_BUILD_TESTS)
+    file(GLOB OG_TEST_SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/tests/*.cpp")
+
+    add_executable(og_tests ${OG_COMMON_SOURCES} ${OG_TEST_SOURCES})
+    target_include_directories(og_tests PRIVATE
+        "${CMAKE_SOURCE_DIR}/common")
+    target_compile_definitions(og_tests PRIVATE GLM_ENABLE_EXPERIMENTAL)
+    target_link_libraries(og_tests PRIVATE
+        Catch2::Catch2WithMain
+        glm::glm)
+
+    list(APPEND CMAKE_MODULE_PATH "${catch2_SOURCE_DIR}/extras")
+    include(Catch)
+    catch_discover_tests(og_tests)
 endif()
 
 # ---------------------------------------------------------------------------

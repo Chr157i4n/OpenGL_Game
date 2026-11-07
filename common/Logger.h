@@ -2,7 +2,7 @@
 #include "defines.h"
 
 #include <chrono>
-#include <ctime> 
+#include <ctime>
 #include <iostream>
 #include <string>
 
@@ -14,4 +14,3 @@ public:
 	static void log(std::string message);
 
 };
-

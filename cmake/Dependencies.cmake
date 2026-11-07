@@ -54,6 +54,24 @@ if(NOT TARGET glm::glm)
 endif()
 
 # ---------------------------------------------------------------------------
+# Catch2 (unit tests for the shared common code)
+# ---------------------------------------------------------------------------
+if(OG_BUILD_TESTS)
+    if(OG_USE_SYSTEM_DEPS)
+        find_package(Catch2 3 CONFIG QUIET)
+    endif()
+
+    if(NOT TARGET Catch2::Catch2WithMain)
+        FetchContent_Declare(catch2
+            GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+            GIT_TAG v3.7.1
+            GIT_SHALLOW TRUE)
+        FetchContent_MakeAvailable(catch2)
+    endif()
+endif()
+
+
+# ---------------------------------------------------------------------------
 # stb (header only)
 # ---------------------------------------------------------------------------
 if(NOT TARGET og_stb)

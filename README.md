@@ -47,6 +47,7 @@ Useful CMake options:
 | `OG_ENABLE_AUDIO` | `ON` | Build SoLoud audio with 3D sound; `OFF` builds a silent client |
 | `OG_USE_SYSTEM_DEPS` | `OFF` | Prefer system/vcpkg packages |
 | `OG_FETCH_DEPS` | `ON` | Download missing dependencies |
+| `OG_BUILD_TESTS` | `ON` | Build the Catch2 unit tests for the shared `common/` code |
 | `OG_DEPS_DIR` | `libs/_deps` | Where downloaded dependencies are stored |
 
 For a server-only build (for example on a headless Linux machine without
@@ -128,3 +129,19 @@ https://github.com/jarikomppa/soloud
 
 used Textures from:
 https://3dtextures.me
+
+## Unit tests
+
+The shared, platform-independent code in `common/` (`Helper`, `Logger`,
+`StopWatch`, and the `Types` enums/structs) is covered by Catch2 unit tests in
+`tests/`. They build a small `og_tests` executable and are run through CTest.
+
+```bash
+cmake -S . -B build -DOG_BUILD_TESTS=ON
+cmake --build build
+ctest --test-dir build --output-on-failure
+```
+
+The tests only link `common/` sources, GLM and Catch2, so they run without a
+GPU or the OpenGL client. GitHub Actions (`.github/workflows/ci.yml`) builds
+the headless server and runs these tests on Linux and Windows.

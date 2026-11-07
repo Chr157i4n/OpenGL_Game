@@ -14,4 +14,3 @@ public:
 private:
 	std::chrono::system_clock::time_point startTimeStamp;
 };
-

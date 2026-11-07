@@ -93,3 +93,14 @@ glm::vec2 Helper::string_to_glmVec2(std::string string)
 	Helper::split(string, params, ';');
 	return glm::vec2(std::stof(params[0]), std::stof(params[1]));
 }
+
+std::string Helper::networkIDToString(int networkID)
+{
+	std::string answer = "";
+
+	if (networkID < 100) answer += "0";
+	if (networkID < 10) answer += "0";
+
+	answer += std::to_string(networkID);
+	return answer;
+}
