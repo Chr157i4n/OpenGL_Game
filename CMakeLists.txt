@@ -140,6 +140,8 @@ endif()
 # Unit tests for the shared common code
 # ---------------------------------------------------------------------------
 if(OG_BUILD_TESTS)
+    enable_testing()
+
     file(GLOB OG_TEST_SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/tests/*.cpp")
 
     add_executable(og_tests ${OG_COMMON_SOURCES} ${OG_TEST_SOURCES})
