@@ -1,5 +1,7 @@
 #include "Model.h"
 
+#include <algorithm>
+
 #include "Logger.h"
 #include "Game.h"
 #include "Renderer.h"
@@ -132,6 +134,7 @@ bool Model::init(const char* filename, Shader* shader) {
 		input.read((char*)&diffuseMapNameLength, sizeof(uint64));
 		std::string diffuseMapName(diffuseMapNameLength, '\0');
 		input.read((char*)&diffuseMapName[0], diffuseMapNameLength);
+		std::replace(diffuseMapName.begin(), diffuseMapName.end(), '\\', '/');
 
 
 		if (diffuseMapName.find(".png") != std::string::npos) {
@@ -142,6 +145,7 @@ bool Model::init(const char* filename, Shader* shader) {
 		input.read((char*)&normalMapNameLength, sizeof(uint64));
 		std::string normalMapName(normalMapNameLength, '\0');
 		input.read((char*)&normalMapName[0], normalMapNameLength);
+		std::replace(normalMapName.begin(), normalMapName.end(), '\\', '/');
 
 		assert(diffuseMapNameLength > 0);
 		assert(normalMapNameLength > 0);

@@ -7,7 +7,7 @@
 #include <string>
 
 
-static class Logger
+class Logger
 {
 public:
 

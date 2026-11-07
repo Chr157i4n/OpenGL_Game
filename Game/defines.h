@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstdint>
-#include "libs/glm/glm.hpp"
+#include <glm/glm.hpp>
 
 typedef int8_t int8;
 typedef int16_t int16;

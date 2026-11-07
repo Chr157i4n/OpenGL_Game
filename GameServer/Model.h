@@ -4,7 +4,7 @@
 #include <vector>
 #include <fstream>
 #include <iostream>
-#include "libs/glm/glm.hpp"
+#include <glm/glm.hpp>
 
 struct BMFMaterial {
     glm::vec3 diffuse;

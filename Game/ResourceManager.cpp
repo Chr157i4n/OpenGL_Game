@@ -541,18 +541,18 @@ void ResourceManager::loadSound(tinyxml2::XMLElement* xmlNode)
 {
 	if (xmlNode->FirstChildElement("soundfile"))
 	{
-		std::string soundfilename = "audio\\";
+		std::string soundfilename = "audio/";
 		soundfilename += xmlNode->FirstChildElement("soundfile")->GetText();
 
 		tinyxml2::XMLElement* xmlNodeSub = xmlNode->FirstChildElement("position");
 		if (xmlNodeSub)
 		{
 			glm::vec3 position = glm::vec3(Helper::string_to_glmVec3(xmlNodeSub->GetText()));
-			irrklang::ISound* sound = AudioManager::play3D(soundfilename, position, AudioType::ambient, true);
+			AudioManager::play3D(soundfilename, position, AudioType::ambient, true);
 		}
 		else
 		{
-			irrklang::ISound* sound = AudioManager::play2D(soundfilename, AudioType::ambient, true);
+			AudioManager::play2D(soundfilename, AudioType::ambient, true);
 		}
 	}
 }

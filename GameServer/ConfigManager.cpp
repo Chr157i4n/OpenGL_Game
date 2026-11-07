@@ -205,7 +205,11 @@ size_t ConfigManager::split(const std::string& txt, std::vector<std::string>& st
 
 std::string ConfigManager::trim(std::string& str)
 {
-	size_t first = str.find_first_not_of(' ');
-	size_t last = str.find_last_not_of(' ');
+	size_t first = str.find_first_not_of(" \t\r\n");
+	if (first == std::string::npos)
+	{
+		return "";
+	}
+	size_t last = str.find_last_not_of(" \t\r\n");
 	return str.substr(first, (last - first + 1));
 }

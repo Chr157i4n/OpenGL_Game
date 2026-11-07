@@ -1,4 +1,4 @@
-#include "shader.h"
+#include "Shader.h"
 #include <fstream>
 #include <iostream>
 
@@ -40,21 +40,20 @@ GLuint Shader::compile(std::string shaderSource, GLenum type) {
 }
 
 std::string Shader::parse(std::string filename) {
-    FILE* file;
-    if (fopen_s(&file,(char*) filename.c_str(), "rb") != 0) {
+    std::ifstream file(filename, std::ios::binary);
+    if (!file.is_open()) {
         std::cout << "File " << filename << " not found" << std::endl;
         return "";
     }
 
-
     std::string contents;
-    fseek(file, 0, SEEK_END);
-    size_t filesize = ftell(file);
-    rewind(file);
+    file.seekg(0, std::ios::end);
+    size_t filesize = static_cast<size_t>(file.tellg());
+    file.seekg(0, std::ios::beg);
     contents.resize(filesize);
 
-    fread(&contents[0], 1, filesize, file);
-    fclose(file);
+    file.read(&contents[0], filesize);
+    file.close();
 
     return contents;
 }

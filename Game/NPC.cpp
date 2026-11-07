@@ -12,7 +12,7 @@ NPC::NPC(Shader* shader) : Character(shader)
 	forwardSpeed = forwardSpeed * npc_speed_mult;
 	backwardSidewaySpeed = backwardSidewaySpeed * npc_speed_mult;
 
-	std::string path = "audio\\npc";
+	std::string path = "audio/npc";
 	if (std::filesystem::exists(path))
 	{
 		for (const auto& entry : std::filesystem::directory_iterator(path))
@@ -213,7 +213,7 @@ void NPC::move()
 
 	if (movement != glm::vec3(0, 0, 0) && voice != nullptr)
 	{
-		voice->setPosition(AudioManager::glmVec3toIrrklang(this->getCenter()));
+		voice->setPosition(this->getCenter());
 	}
 }
 
@@ -221,7 +221,7 @@ void NPC::registerHit()
 {
 	this->Object::registerHit();
 	
-	this->speak("audio\\npc\\npc_hit.mp3");
+	this->speak("audio/npc/npc_hit.mp3");
 }
 
 void NPC::speak(std::string audioFile)

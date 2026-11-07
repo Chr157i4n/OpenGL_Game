@@ -5,8 +5,7 @@
 #include <vector>
 
 #include "Character.h"
-
-#include <irrKlang.h>
+#include "AudioManager.h"
 
 enum CurrentTask {
 	Idle = 0,
@@ -63,7 +62,7 @@ private:
 
 	std::shared_ptr<Character> currentTarget = nullptr;
 
-	irrklang::ISound* voice = nullptr;
+	std::shared_ptr<AudioHandle> voice = nullptr;
 	std::vector<std::string> voicefiles;
 
 

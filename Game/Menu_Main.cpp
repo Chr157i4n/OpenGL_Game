@@ -33,7 +33,7 @@ Menu_Main::Menu_Main()
 		UI_Element_Dropdown_Item* mapItem = new UI_Element_Dropdown_Item();
 
 		std::vector<std::string> toDeletes;
-		toDeletes.push_back("levels\\");
+		toDeletes.push_back("levels/");
 		toDeletes.push_back(".xml");
 
 		for(std::string toDelete : toDeletes)

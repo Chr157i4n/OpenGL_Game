@@ -1,13 +1,13 @@
 #include <iostream>
 #include <vector>
 #include <cassert>
+#include <cstdint>
+#include <cstring>
 #include <string>
 #include <fstream>
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-
-#pragma comment(lib, "assimp.lib")
 
 struct Position {
     float x, y, z;
@@ -180,7 +180,7 @@ int main(int argc, char** argv) {
 
     Assimp::Importer importer;
     const aiScene* scene = importer.ReadFile(inputfilename, aiProcess_PreTransformVertices | aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_OptimizeMeshes | aiProcess_OptimizeGraph | aiProcess_JoinIdenticalVertices | aiProcess_ImproveCacheLocality | aiProcess_CalcTangentSpace);
-    if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE, !scene->mRootNode) {
+    if (!scene || (scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) || !scene->mRootNode) {
         std::cout << "Error while loading model with assimp: " << importer.GetErrorString() << std::endl;
         return 1;
     }
@@ -201,7 +201,7 @@ int main(int argc, char** argv) {
     output.write((char*)&numMaterials, sizeof(uint64_t));
     for (Material material : materials) {
         output.write((char*)&material, sizeof(BMFMaterial));
-        std::string pathPrefix = "textures\\";
+        std::string pathPrefix = "textures/";
 
         // Diffuse map
         std::string diffuseMapName = pathPrefix+getFilename((char*)&material.diffuseMapName.data);

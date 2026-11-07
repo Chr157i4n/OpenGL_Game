@@ -6,7 +6,7 @@
 
 std::string Map::mapName = "";
 std::string Map::mapFileName = "";
-std::string Map::mapFileFolder = "levels\\";
+std::string Map::mapFileFolder = "levels/";
 std::string Map::mapFileExtension = ".xml";
 
 glm::vec3 Map::sun_direction= glm::vec3(-0.8, +0.4, +0.4);
@@ -20,8 +20,6 @@ glm::vec3 Map::gravity = glm::vec3(0, -80, 0);
 glm::vec2 Map::mapSize = glm::vec2(110,110);
 
 unsigned int Map::skyboxTexture;
-
-std::vector<irrklang::ISound*> Map::ambientSounds;
 
 void Map::load(std::string mapFileName)
 {

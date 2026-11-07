@@ -4,10 +4,10 @@
 #include <vector>
 #include <fstream>
 #include <iostream>
-#include "libs/stb_image.h"
-#include "libs/glm/glm.hpp"
+#include <stb_image.h>
+#include <glm/glm.hpp>
 
-#include "shader.h"
+#include "Shader.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
 

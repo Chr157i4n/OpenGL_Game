@@ -11,7 +11,7 @@
 #include "Logger.h"
 
 
-static class ConfigManager
+class ConfigManager
 {
 
 public:

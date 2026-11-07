@@ -1,8 +1,8 @@
 #pragma once
 
-#include <irrKlang.h>
-#include "libs/glm/glm.hpp"
+#include <glm/glm.hpp>
 
+#include <memory>
 #include <string>
 
 enum AudioType {
@@ -12,8 +12,30 @@ enum AudioType {
 	music,
 };
 
+/// <summary>
+/// Lightweight handle for a sound started by AudioManager.  The handle is valid
+/// until the sound finishes or drop() is called.  It intentionally hides the
+/// audio backend (SoLoud) from the rest of the game.
+/// </summary>
+class AudioHandle
+{
+public:
+	AudioHandle() = default;
+	explicit AudioHandle(unsigned int voiceHandle) : voice(voiceHandle) {}
 
-static class AudioManager
+	void setVolume(float volume) const;
+	void setPosition(const glm::vec3& position) const;
+	bool isFinished() const;
+	void stop() const;
+	void drop();
+	bool isValid() const;
+
+private:
+	unsigned int voice = 0;
+};
+
+
+class AudioManager
 {
 public:
 
@@ -23,18 +45,9 @@ public:
 
 	static void setVolume();
 
-	static irrklang::vec3df glmVec3toIrrklang(glm::vec3 vector);
+	static std::shared_ptr<AudioHandle> play2D(const std::string& musicFile, AudioType audiotype = AudioType::soundeffect, bool playLooped = false);
 
-	static irrklang::ISound* play2D(std::string musicFile, AudioType audiotype = AudioType::soundeffect, bool playLooped = false);
-
-	static irrklang::ISound* play3D(std::string musicFile, glm::vec3 position, AudioType audiotype= AudioType::soundeffect, bool playLooped = false);
+	static std::shared_ptr<AudioHandle> play3D(const std::string& musicFile, const glm::vec3& position, AudioType audiotype = AudioType::soundeffect, bool playLooped = false);
 
 	static void updateAudioListener();
-
-
-private:
-	static irrklang::ISoundEngine* SoundEngine;
-
-	static irrklang::ISound* music;
 };
-

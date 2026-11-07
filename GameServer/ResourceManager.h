@@ -14,7 +14,7 @@
 #include "Model.h"
 
 
-static class ResourceManager
+class ResourceManager
 {
 public:
 

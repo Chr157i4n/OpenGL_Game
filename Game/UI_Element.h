@@ -1,7 +1,7 @@
 #pragma once
 #include "defines.h"
 
-#include "libs/glm/glm.hpp"
+#include <glm/glm.hpp>
 #include <functional>
 #include <chrono>
 #include <SDL.h>

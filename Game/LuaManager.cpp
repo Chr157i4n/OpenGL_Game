@@ -1,5 +1,7 @@
 #include "LuaManager.h"
 
+#include <filesystem>
+
 #include "Game.h"
 
 
@@ -112,6 +114,8 @@ bool LuaManager::checkLua(lua_State* L, int r)
 		Logger::log("[LUA Error]" + errormsg);
 		return false;
 	}
+
+	return true;
 }
 
 void LuaManager::registerFunction(std::string luafunctionIndentifierer, lua_CFunction function)

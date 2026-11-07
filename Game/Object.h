@@ -3,10 +3,10 @@
 
 #include <math.h>
 #include <unordered_map>
-#include "libs/glm/glm.hpp"
-#include "libs/glm/ext/matrix_transform.hpp"
-#include "libs/glm/gtc/matrix_transform.hpp"
-#include "libs/glm/gtx/rotate_vector.hpp"
+#include <glm/glm.hpp>
+#include <glm/ext/matrix_transform.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/rotate_vector.hpp>
 #include <algorithm>
 #include <memory>
 #include <chrono>

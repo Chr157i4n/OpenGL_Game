@@ -3,9 +3,9 @@
 
 #include <GL/glew.h>
 #include <SDL.h>
-#include "libs/glm/glm.hpp"
-#include "libs/glm/ext/matrix_transform.hpp"
-#include "libs/glm/gtc/matrix_transform.hpp"
+#include <glm/glm.hpp>
+#include <glm/ext/matrix_transform.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include "FrameBuffer.h"
 #include "Shader.h"
@@ -30,7 +30,7 @@ enum PostProcessingEffect {
 };
 
 
-static class Renderer
+class Renderer
 {
 public:
 	static void initOpenGL();

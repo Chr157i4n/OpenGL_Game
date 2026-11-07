@@ -1,7 +1,7 @@
 #include "Font.h"
 
 #define STB_TRUETYPE_IMPLEMENTATION
-#include "libs/stb_truetype.h"
+#include <stb_truetype.h>
 
 #include "Game.h"
 

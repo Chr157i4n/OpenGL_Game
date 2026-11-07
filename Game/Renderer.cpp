@@ -956,7 +956,8 @@ void Renderer::renderObjects(bool transparent)
 
 	shaderBasic->bind();
 	int cameraposUniformIndex = GLCALL(glGetUniformLocation(shaderBasic->getShaderId(), "u_camerapos"));
-	GLCALL(glUniform3fv(cameraposUniformIndex, 1, (float*)&Game::players[0]->getCameraPosition()));
+	glm::vec3 cameraPos = Game::players[0]->getCameraPosition();
+	GLCALL(glUniform3fv(cameraposUniformIndex, 1, &cameraPos[0]));
 
 
 	for (std::shared_ptr<Object> object : Game::objects)
@@ -1098,7 +1099,7 @@ void Renderer::renderAxis(glm::vec3 vector, int x, int y)
 	//rotate model around Y
 	//model = glm::rotate(model, (float)M_PI, glm::vec3(0, 1, 0));
 	angle = atan2(vector.x, vector.z);
-	model = glm::rotate(model, (float)(-angle + 1 * M_PI), glm::vec3(0, 1, 0));
+	model = glm::rotate(model, (float)(-angle + glm::pi<float>()), glm::vec3(0, 1, 0));
 
 
 	int modelUniformIndex = GLCALL(glGetUniformLocation(shaderGeometry->getShaderId(), "u_model"));

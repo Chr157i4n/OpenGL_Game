@@ -23,7 +23,7 @@ enum FullscreenOption {
 	windowed_borderless,
 };
 
-static class ConfigManager
+class ConfigManager
 {
 
 public:

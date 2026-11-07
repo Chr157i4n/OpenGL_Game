@@ -1,9 +1,9 @@
 #pragma once
 #include "defines.h"
 
-#include "libs/glm/glm.hpp"
-#include "libs/glm/ext/matrix_transform.hpp"
-#include "libs/glm/gtc/matrix_transform.hpp"
+#include <glm/glm.hpp>
+#include <glm/ext/matrix_transform.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 class Camera {
 public:

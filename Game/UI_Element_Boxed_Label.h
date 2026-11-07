@@ -4,7 +4,7 @@
 #include "defines.h"
 
 #include <string>
-#include "libs/glm/glm.hpp"
+#include <glm/glm.hpp>
 
 class UI_Element_Boxed_Label : public UI_Element_Label
 {

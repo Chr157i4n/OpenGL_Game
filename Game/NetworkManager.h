@@ -1,6 +1,6 @@
 #pragma once
 
-#include "libs/glm/glm.hpp"
+#include <glm/glm.hpp>
 #include <enet/enet.h>
 
 #include <string>

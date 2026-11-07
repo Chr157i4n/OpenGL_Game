@@ -1,115 +1,251 @@
 #include "AudioManager.h"
 
 #include "ConfigManager.h"
-#include "Player.h"
 #include "Game.h"
+#include "Logger.h"
+#include "Player.h"
 
-irrklang::ISoundEngine* AudioManager::SoundEngine;
-irrklang::ISound* AudioManager::music;
+#include <algorithm>
+#include <memory>
+#include <string>
+#include <unordered_map>
+
+#ifdef OG_AUDIO_ENABLED
+#include <soloud.h>
+#include <soloud_wav.h>
+#endif
+
+namespace
+{
+#ifdef OG_AUDIO_ENABLED
+	SoLoud::Soloud* g_engine = nullptr;
+	std::unordered_map<std::string, std::unique_ptr<SoLoud::Wav>> g_soundSources;
+	std::shared_ptr<AudioHandle> g_music;
+
+	std::string normalizePath(std::string path)
+	{
+		std::replace(path.begin(), path.end(), '\\', '/');
+		return path;
+	}
+
+	SoLoud::Wav* loadSoundSource(const std::string& fileName)
+	{
+		if (!g_engine) return nullptr;
+
+		const std::string path = normalizePath(fileName);
+		auto existing = g_soundSources.find(path);
+		if (existing != g_soundSources.end())
+		{
+			return existing->second.get();
+		}
+
+		auto source = std::make_unique<SoLoud::Wav>();
+		SoLoud::result result = source->load(path.c_str());
+		if (result != SoLoud::SO_NO_ERROR)
+		{
+			Logger::log("Error loading sound '" + path + "': " + g_engine->getErrorString(result));
+			return nullptr;
+		}
+
+		SoLoud::Wav* sourcePtr = source.get();
+		g_soundSources.emplace(path, std::move(source));
+		return sourcePtr;
+	}
+
+	float volumeForType(AudioType type)
+	{
+		switch (type)
+		{
+		case AudioType::music:       return ConfigManager::music_volume;
+		case AudioType::ambient:     return ConfigManager::ambient_volume;
+		case AudioType::voice:       return ConfigManager::voice_volume;
+		case AudioType::soundeffect:
+		default:                     return ConfigManager::effect_volume;
+		}
+	}
+#endif
+}
 
 void AudioManager::init()
 {
-	AudioManager::SoundEngine = irrklang::createIrrKlangDevice();
+#ifdef OG_AUDIO_ENABLED
+	g_engine = new SoLoud::Soloud();
 
-	if (!SoundEngine)
+	SoLoud::result result = g_engine->init(
+		SoLoud::Soloud::CLIP_ROUNDOFF | SoLoud::Soloud::LEFT_HANDED_3D,
+		SoLoud::Soloud::SDL2,
+		48000,
+		2048,
+		2);
+
+	if (result != SoLoud::SO_NO_ERROR)
 	{
-		Logger::log("Error while starting irrKlang SoundEngine");
-		return; // error starting up the engine
+		Logger::log(std::string("Error while starting SoLoud SoundEngine: ") + g_engine->getErrorString(result));
+		delete g_engine;
+		g_engine = nullptr;
+		return;
 	}
 
+	g_engine->set3dListenerParameters(0, 0, 0, 0, 0, 1, 0, 1, 0);
 
-	music = play2D("audio/breakout.mp3", AudioType::music, true);
-
-	AudioManager::setVolume();
+	g_music = play2D("audio/breakout.mp3", AudioType::music, true);
+	setVolume();
+#else
+	Logger::log("Audio support is disabled at build time.");
+#endif
 }
 
 void AudioManager::deinit()
 {
-	music->drop();
-	SoundEngine->drop();
+#ifdef OG_AUDIO_ENABLED
+	g_music.reset();
+
+	if (g_engine)
+	{
+		g_engine->stopAll();
+		g_soundSources.clear();
+		g_engine->deinit();
+		delete g_engine;
+		g_engine = nullptr;
+	}
+#endif
 }
 
 void AudioManager::setVolume()
 {
-	AudioManager::SoundEngine->setSoundVolume(ConfigManager::master_volume);
-	music->setVolume(ConfigManager::music_volume);
+#ifdef OG_AUDIO_ENABLED
+	if (!g_engine) return;
+
+	g_engine->setGlobalVolume(std::clamp(ConfigManager::master_volume, 0.0f, 1.0f));
+
+	if (g_music)
+	{
+		g_music->setVolume(ConfigManager::music_volume);
+	}
+#endif
 }
 
-
-irrklang::vec3df AudioManager::glmVec3toIrrklang(glm::vec3 vector)
+std::shared_ptr<AudioHandle> AudioManager::play2D(const std::string& musicFile, AudioType audiotype, bool playLooped)
 {
-	return irrklang::vec3df(vector.x, vector.y, vector.z);
-}
+#ifdef OG_AUDIO_ENABLED
+	if (!g_engine) return nullptr;
 
-irrklang::ISound* AudioManager::play2D(std::string musicFile, AudioType audiotype, bool playLooped)
-{
-	irrklang::ISound* sound = SoundEngine->play2D(musicFile.c_str(), playLooped, false, true);
-	if (!sound)
+	SoLoud::Wav* source = loadSoundSource(musicFile);
+	if (!source) return nullptr;
+
+	SoLoud::handle handle = g_engine->play(*source, volumeForType(audiotype));
+	if (handle == 0)
 	{
 		Logger::log("Error playing sound: " + musicFile);
 		return nullptr;
 	}
 
-	switch (audiotype)
-	{
-		case AudioType::soundeffect:
-		{
-			sound->setVolume(ConfigManager::effect_volume);
-			break;
-		}
-		case AudioType::ambient:
-		{
-			sound->setVolume(ConfigManager::ambient_volume);
-			break;
-		}
-		case AudioType::voice:
-		{
-			sound->setVolume(ConfigManager::voice_volume);
-			break;
-		}
-	}
-
-	return sound;
+	g_engine->setLooping(handle, playLooped);
+	return std::make_shared<AudioHandle>(handle);
+#else
+	(void)musicFile;
+	(void)audiotype;
+	(void)playLooped;
+	return nullptr;
+#endif
 }
 
-irrklang::ISound* AudioManager::play3D(std::string musicFile, glm::vec3 position, AudioType audiotype, bool playLooped)
+std::shared_ptr<AudioHandle> AudioManager::play3D(const std::string& musicFile, const glm::vec3& position, AudioType audiotype, bool playLooped)
 {
-	irrklang::ISound* sound = SoundEngine->play3D(musicFile.c_str(), glmVec3toIrrklang(position), playLooped, false, true);
-	if (!sound)
+#ifdef OG_AUDIO_ENABLED
+	if (!g_engine) return nullptr;
+
+	SoLoud::Wav* source = loadSoundSource(musicFile);
+	if (!source) return nullptr;
+
+	SoLoud::handle handle = g_engine->play3d(
+		*source,
+		position.x, position.y, position.z,
+		0.0f, 0.0f, 0.0f,
+		volumeForType(audiotype));
+
+	if (handle == 0)
 	{
 		Logger::log("Error playing sound: " + musicFile);
 		return nullptr;
 	}
-	
-	switch (audiotype)
-	{
-		case AudioType::soundeffect:
-		{
-			sound->setVolume(ConfigManager::effect_volume);
-			break;
-		}
-		case AudioType::ambient:
-		{
-			sound->setVolume(ConfigManager::ambient_volume);
-			break;
-		}
-		case AudioType::voice:
-		{
-			sound->setVolume(ConfigManager::voice_volume);
-			break;
-		}
-	}
 
-	return sound;
+	g_engine->setLooping(handle, playLooped);
+	return std::make_shared<AudioHandle>(handle);
+#else
+	(void)musicFile;
+	(void)position;
+	(void)audiotype;
+	(void)playLooped;
+	return nullptr;
+#endif
 }
 
 void AudioManager::updateAudioListener()
 {
-	irrklang::vec3df position = glmVec3toIrrklang(Game::players[0]->getPosition());
-	irrklang::vec3df lookAt = glmVec3toIrrklang(Game::players[0]->getLookDirection());
+#ifdef OG_AUDIO_ENABLED
+	if (!g_engine || Game::players.empty() || !Game::players[0]) return;
 
-	lookAt.X = -lookAt.X;
-	lookAt.Z = -lookAt.Z;
+	glm::vec3 position = Game::players[0]->getPosition();
+	glm::vec3 lookAt = Game::players[0]->getLookDirection();
 
-	SoundEngine->setListenerPosition(position, lookAt);
+	// Keep the same coordinate conversion the game used with irrKlang.
+	lookAt.x = -lookAt.x;
+	lookAt.z = -lookAt.z;
+
+	g_engine->set3dListenerParameters(
+		position.x, position.y, position.z,
+		lookAt.x, lookAt.y, lookAt.z,
+		0.0f, 1.0f, 0.0f);
+#endif
+}
+
+void AudioHandle::setVolume(float volume) const
+{
+#ifdef OG_AUDIO_ENABLED
+	if (!g_engine || voice == 0) return;
+	g_engine->setVolume(voice, std::clamp(volume, 0.0f, 1.0f));
+#else
+	(void)volume;
+#endif
+}
+
+void AudioHandle::setPosition(const glm::vec3& position) const
+{
+#ifdef OG_AUDIO_ENABLED
+	if (!g_engine || voice == 0) return;
+	g_engine->set3dSourcePosition(voice, position.x, position.y, position.z);
+#else
+	(void)position;
+#endif
+}
+
+bool AudioHandle::isFinished() const
+{
+#ifdef OG_AUDIO_ENABLED
+	return !g_engine || voice == 0 || !g_engine->isValidVoiceHandle(voice);
+#else
+	return true;
+#endif
+}
+
+void AudioHandle::stop() const
+{
+#ifdef OG_AUDIO_ENABLED
+	if (g_engine && voice != 0)
+	{
+		g_engine->stop(voice);
+	}
+#endif
+}
+
+void AudioHandle::drop()
+{
+	stop();
+	voice = 0;
+}
+
+bool AudioHandle::isValid() const
+{
+	return !isFinished();
 }

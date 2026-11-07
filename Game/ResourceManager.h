@@ -6,7 +6,7 @@
 #include <vector>
 #include <cmath>
 #include <algorithm>
-#include "libs/stb_image.h"
+#include <stb_image.h>
 #include <cmath>
 #include <sstream>
 #include <iostream>
@@ -16,7 +16,7 @@
 #include "Model.h"
 
 
-static class ResourceManager
+class ResourceManager
 {
 public:
 

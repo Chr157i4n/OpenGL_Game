@@ -1,6 +1,66 @@
 # OpenGL_Game
 a simple game in 3D programmed directly with OpenGL
 
+## Building
+
+Requirements: CMake 3.24 or newer, a C++17 compiler, and Git.  On Windows,
+Visual Studio 2022 (or MinGW-w64) is supported; on Linux you additionally need
+the OpenGL and X11 development packages.  On Debian/Ubuntu:
+
+```bash
+sudo apt install build-essential cmake git libgl1-mesa-dev libglx-dev \
+  libx11-dev libxext-dev libxrandr-dev libxi-dev libxcursor-dev \
+  libxinerama-dev libxfixes-dev libxss-dev
+```
+
+Configure and build:
+
+```bash
+cmake -S . -B build
+cmake --build build --config Release
+```
+
+Most dependencies are downloaded automatically into `libs/_deps/`.  The game and
+server change into their executable directory at startup, so both can be
+launched from anywhere.  The executables are written next to their assets:
+
+```bash
+./Game/OpenGL_Game
+./GameServer/GameServer
+```
+
+On Windows the names are `Game\OpenGL_Game.exe` and `GameServer\GameServer.exe`.
+The generated convenience targets pass the correct working directory:
+
+```bash
+cmake --build build --target run_game
+cmake --build build --target run_server
+```
+
+Useful CMake options:
+
+| Option | Default | Meaning |
+| --- | --- | --- |
+| `OG_BUILD_GAME` | `ON` | Build the game client |
+| `OG_BUILD_SERVER` | `ON` | Build the dedicated server |
+| `OG_BUILD_MODELCONVERTER` | `OFF` | Build the Assimp-based converter |
+| `OG_ENABLE_AUDIO` | `ON` | Build SoLoud audio with 3D sound; `OFF` builds a silent client |
+| `OG_USE_SYSTEM_DEPS` | `OFF` | Prefer system/vcpkg packages |
+| `OG_FETCH_DEPS` | `ON` | Download missing dependencies |
+| `OG_DEPS_DIR` | `libs/_deps` | Where downloaded dependencies are stored |
+
+For a server-only build (for example on a headless Linux machine without
+OpenGL/X11), configure with `-DOG_BUILD_GAME=OFF`.  The server does not need
+SDL2, GLEW, OpenGL, Lua, or SoLoud and builds with only a C++17 compiler and
+Git.
+
+To use a separate dependency cache for another compiler or platform, pass for
+example `-DOG_DEPS_DIR=libs/_deps-linux`.
+
+Audio uses the open-source [SoLoud](https://soloud-audio.com/) engine with its
+SDL2 backend.  It supports 2D and 3D positional audio, looping, and MP3/WAV/OGG
+playback.  SoLoud is downloaded automatically; no proprietary SDK is required.
+
 Models can be created with Blender and then exported as OBJ format for example. Also FBX format works great for me.
 The ModelConverter Tool import the Vertices, Indices and the Material from the file(s)(in case of OBJ an extra MTL file will be created and needed
 using the Open-Asset-Importer-Library. The tool then exports the data into a custom BMF file. where the data can be loaded by the game faster.
@@ -15,7 +75,7 @@ For importing Textures and Fonts i use the STB Library.
 
 As Mapfiles i use the XML format. To parse them i use the tinyxml2 Library.
 
-for playing audio the irrKlang-Library is used.
+for playing audio the open-source SoLoud-Library is used.
 
 The idea and the knowlegde for this project did i get from this german youtube OpenGL tutorial playlist:
 https://www.youtube.com/playlist?list=PLStQc0GqppuWBDuNWnkQ8rzmyx35AINyt
@@ -62,8 +122,9 @@ https://github.com/nothings/stb/blob/master/stb_truetype.h
 TinyXML2 for parsing the level-file
 https://github.com/leethomason/tinyxml2
 
-irrKlang for 2D and 3D audio
-https://www.ambiera.com/irrklang
+SoLoud for 2D and 3D audio (open source, zlib/libpng license)
+https://soloud-audio.com/
+https://github.com/jarikomppa/soloud
 
 used Textures from:
 https://3dtextures.me

@@ -4,7 +4,7 @@
 #include "Game.h"
 
 std::string Map::mapFileName = "";
-std::string Map::mapFileFolder = "levels\\";
+std::string Map::mapFileFolder = "levels/";
 std::string Map::mapFileExtension = ".xml";
 
 glm::vec3 Map::gravity = glm::vec3(0, -80, 0);

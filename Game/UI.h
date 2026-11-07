@@ -2,6 +2,7 @@
 #include "defines.h"
 
 #include <iomanip>
+#include <list>
 #include <sstream>
 #include <SDL.h>
 #include <cstring>
@@ -15,7 +16,7 @@
 #include "Menu.h"
 #include "Game.h"
 
-static class UI
+class UI
 {
 public:
 

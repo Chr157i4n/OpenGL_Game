@@ -1,7 +1,7 @@
 #pragma once
 #include "defines.h"
 
-#include "libs/stb_truetype.h"
+#include <stb_truetype.h>
 #include <cstdio>
 #include <GL/glew.h>
 

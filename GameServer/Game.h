@@ -13,9 +13,9 @@
 #include <thread>
 
 
-#include "libs/glm/glm.hpp"
-#include "libs/glm/ext/matrix_transform.hpp"
-#include "libs/glm/gtc/matrix_transform.hpp"
+#include <glm/glm.hpp>
+#include <glm/ext/matrix_transform.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 
 //Game Logic
@@ -63,7 +63,7 @@ enum MenuType {
 	MENU_PAUSE,
 };
 
-static class Game
+class Game
 {
 public:
 	static void init();

@@ -1,5 +1,7 @@
 #include "ResourceManager.h"
 
+#include <list>
+
 #include "Logger.h"
 #include "NPC.h"
 #include "ConfigManager.h"

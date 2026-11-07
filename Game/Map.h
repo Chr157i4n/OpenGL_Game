@@ -6,8 +6,6 @@
 #include <memory>
 #include <string>
 
-#include <irrKlang.h>
-
 
 struct PointLight {
 	glm::vec3 position = glm::vec3(0,0,0);
@@ -79,7 +77,5 @@ private:
 	static glm::vec2 mapSize;
 
 	static unsigned int skyboxTexture;
-
-	static std::vector<irrklang::ISound*> ambientSounds;
 };
 

@@ -3,7 +3,7 @@
 #include <memory>
 #include <vector>
 
-#include "libs/glm/glm.hpp"
+#include <glm/glm.hpp>
 
 #include "Object.h"
 

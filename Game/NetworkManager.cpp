@@ -1,5 +1,7 @@
 #include "NetworkManager.h"
 
+#include <stdexcept>
+
 #include "Game.h"
 
 ENetAddress NetworkManager::address;
@@ -185,7 +187,7 @@ void NetworkManager::parseData(std::string data)
 		
 		std::stringstream errMsg;
 		errMsg << "cant parse NetworkData: " << data;
-		throw std::exception(errMsg.str().c_str());
+		throw std::runtime_error(errMsg.str().c_str());
 	}
 	
 

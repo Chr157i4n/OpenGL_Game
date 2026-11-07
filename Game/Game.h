@@ -14,12 +14,14 @@
 
 //#define GLEW_STATIC
 #include <GL/glew.h>
+#ifndef SDL_MAIN_HANDLED
 #define SDL_MAIN_HANDLED
+#endif
 #include <SDL.h>
 
-#include "libs/glm/glm.hpp"
-#include "libs/glm/ext/matrix_transform.hpp"
-#include "libs/glm/gtc/matrix_transform.hpp"
+#include <glm/glm.hpp>
+#include <glm/ext/matrix_transform.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 //Menu
 #include "Menu.h"
@@ -163,7 +165,7 @@ std::unordered_map<Uint8, MouseAction> const mousebindings =
 	{SDL_BUTTON_X2,			MouseAction::x2mb},
 };
 
-static class Game
+class Game
 {
 public:
 	static void init();

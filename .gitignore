@@ -51,6 +51,32 @@
 *modelconverter/Release
 *modelconverter/x64
 
+# CMake build output
+/build*/
+/out/
+CMakeCache.txt
+CMakeFiles/
+CMakeUserPresets.json
+cmake_install.cmake
+compile_commands.json
+Makefile
+*.ninja
+.ninja_deps
+.ninja_log
+
+# Generated game binaries (Linux/Windows)
+/Game/OpenGL_Game
+/Game/OpenGL_Game.exe
+/GameServer/GameServer
+/GameServer/GameServer.exe
+/modelconverter/modelconverter
+/modelconverter/modelconverter.exe
+
+# Third-party libraries: keep the documentation, ignore downloaded SDKs
+!/libs/
+!/libs/**
+/libs/_deps*/
+
 *OpenGL_Tutorial/Debug
 *OpenGL_Tutorial/libs
 *OpenGL_Tutorial/Release

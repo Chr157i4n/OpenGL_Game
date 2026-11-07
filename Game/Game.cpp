@@ -3,7 +3,7 @@
 
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "libs/stb_image.h"
+#include <stb_image.h>
 #undef STB_IMAGE_IMPLEMENTATION
 
 
