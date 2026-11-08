@@ -1,7 +1,7 @@
 #pragma once
 #include "Character.h"
 
-#include <enet/enet.h>
+#include <enet.h>
 
 class Client : public Character
 {

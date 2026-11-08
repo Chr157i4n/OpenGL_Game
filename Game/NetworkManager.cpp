@@ -11,6 +11,18 @@ ENetPeer*	NetworkManager::peer;
 bool		NetworkManager::isConnected = false;
 int			NetworkManager::clientID;
 
+// ENET_HOST_ANY / ENetAddress::host is a 128 bit address since the zpl-c fork,
+// so it cannot be converted with std::to_string any more.
+static std::string enetAddressToString(const ENetAddress& addr)
+{
+	char buffer[64] = { 0 };
+
+	if (enet_address_get_host_ip(&addr, buffer, sizeof(buffer) - 1) != 0)
+		return "unknown";
+
+	return std::string(buffer);
+}
+
 void NetworkManager::init()
 {
 	if (enet_initialize() != 0)
@@ -39,7 +51,11 @@ void NetworkManager::connect()
 {
 	ENetEvent event;
 	/* Connect to some.server.net:1234. */
-	enet_address_set_host(&address, ConfigManager::server_address.c_str());
+	if (enet_address_set_host(&address, ConfigManager::server_address.c_str()) != 0)
+	{
+		Logger::log("[ENet] Could not resolve server address: " + ConfigManager::server_address);
+		return;
+	}
 	address.port = ConfigManager::server_port;
 	Logger::log("Connecting to: "+ ConfigManager::server_address +":"+std::to_string(ConfigManager::server_port));
 	/* Initiate the connection, allocating the two channels 0 and 1. */
@@ -82,6 +98,11 @@ void NetworkManager::disconnect()
 				break;
 			case ENET_EVENT_TYPE_DISCONNECT:
 				Logger::log("Disconnection succeeded.");
+				isConnected = false;
+				return;
+			case ENET_EVENT_TYPE_DISCONNECT_TIMEOUT:
+				Logger::log("Disconnection timed out.");
+				enet_peer_reset(peer);
 				isConnected = false;
 				return;
 			}
@@ -129,7 +150,7 @@ void NetworkManager::readData(int timeout_ms)
 			{
 			case ENET_EVENT_TYPE_CONNECT:
 			{
-				Logger::log("A new client connected from" + std::to_string(event.peer->address.host) + ":" + std::to_string(event.peer->address.port));
+				Logger::log("A new client connected from" + enetAddressToString(event.peer->address) + ":" + std::to_string(event.peer->address.port));
 				break;
 			}
 			case ENET_EVENT_TYPE_RECEIVE:
@@ -141,8 +162,10 @@ void NetworkManager::readData(int timeout_ms)
 				break;
 			}
 			case ENET_EVENT_TYPE_DISCONNECT:
+			case ENET_EVENT_TYPE_DISCONNECT_TIMEOUT:
 			{
 				Logger::log("disconnect");
+				isConnected = false;
 				break;
 			}
 			}

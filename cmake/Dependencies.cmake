@@ -196,21 +196,42 @@ if(OG_BUILD_GAME)
 endif()
 
 # ---------------------------------------------------------------------------
-# ENet
+# ENet (zpl-c fork - dual-stack IPv4/IPv6)
 # ---------------------------------------------------------------------------
 FetchContent_Declare(enet
-    GIT_REPOSITORY https://github.com/lsalzman/enet.git
-    GIT_TAG v1.3.18
+    GIT_REPOSITORY https://github.com/zpl-c/enet.git
+    GIT_TAG v2.7.0
     GIT_SHALLOW TRUE)
+
+# The fork is a single header (include/enet.h) compiled by test/library.c.
+# Its own test executables are not needed here.
+set(ENET_TEST           OFF CACHE BOOL "" FORCE)
+set(ENET_STATIC         ON  CACHE BOOL "" FORCE)
+set(ENET_SHARED         OFF CACHE BOOL "" FORCE)
+set(ENET_IPV4_ONLY      OFF CACHE BOOL "" FORCE)
+set(ENET_USE_MORE_PEERS OFF CACHE BOOL "" FORCE)
+
 FetchContent_MakeAvailable(enet)
 FetchContent_GetProperties(enet)
 
-# ENet still uses directory-level include_directories(), which does not
-# propagate to consuming targets.  Wrap it in a modern interface target.
+# The fork has no plain "enet" target: it builds enet_static (alias
+# enet::enet_static) and/or enet_shared.  Wrap it in a modern interface target.
 if(NOT TARGET og_enet)
     add_library(og_enet INTERFACE)
-    target_link_libraries(og_enet INTERFACE enet)
+
+    if(TARGET enet_static)
+        target_link_libraries(og_enet INTERFACE enet_static)
+    elseif(TARGET enet_shared)
+        target_link_libraries(og_enet INTERFACE enet_shared)
+    else()
+        message(FATAL_ERROR "ENet was downloaded but no usable target exists")
+    endif()
+
     target_include_directories(og_enet INTERFACE "${enet_SOURCE_DIR}/include")
+
+    if(WIN32)
+        target_link_libraries(og_enet INTERFACE winmm ws2_32)
+    endif()
 endif()
 
 # ---------------------------------------------------------------------------

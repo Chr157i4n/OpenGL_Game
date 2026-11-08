@@ -7,6 +7,18 @@
 ENetAddress								NetworkManager::address;
 ENetHost*								NetworkManager::server;
 
+// ENET_HOST_ANY / ENetAddress::host is a 128 bit address since the zpl-c fork,
+// so it cannot be converted with std::to_string any more.
+static std::string enetAddressToString(const ENetAddress& addr)
+{
+	char buffer[64] = { 0 };
+
+	if (enet_address_get_host_ip(&addr, buffer, sizeof(buffer) - 1) != 0)
+		return "unknown";
+
+	return std::string(buffer);
+}
+
 void NetworkManager::init()
 {
 	if (enet_initialize() != 0)
@@ -54,6 +66,10 @@ void NetworkManager::disconnect()
 			case ENET_EVENT_TYPE_DISCONNECT:
 				Logger::log("Disconnection succeeded.");
 				return;
+			case ENET_EVENT_TYPE_DISCONNECT_TIMEOUT:
+				Logger::log("Disconnection timed out.");
+				enet_peer_reset(event.peer);
+				return;
 			}
 		}
 	}
@@ -69,7 +85,7 @@ void NetworkManager::waitForEvent()
         {
         case ENET_EVENT_TYPE_CONNECT:
 		{
-			Logger::log("A new client connected from " + std::to_string(event.peer->address.host) + ":" + std::to_string(event.peer->address.port));
+			Logger::log("A new client connected from " + enetAddressToString(event.peer->address) + ":" + std::to_string(event.peer->address.port));
 			initClient(event);
 			break;
 		}
@@ -83,8 +99,10 @@ void NetworkManager::waitForEvent()
 			break;
 		}
         case ENET_EVENT_TYPE_DISCONNECT:
+        case ENET_EVENT_TYPE_DISCONNECT_TIMEOUT:
             Logger::log("disconnect");
 			deinitClient(event);
+            break;
         }
     }
 }
@@ -210,7 +228,8 @@ void NetworkManager::deinitClient(ENetEvent event)
 
 	for (std::shared_ptr<Client> client : Game::clients)
 	{
-		if (client->getPeer()->address.host == event.peer->address.host)
+		if (client->getPeer() != nullptr &&
+			enet_host_equal(client->getPeer()->address.host, event.peer->address.host))
 		{
 			broadcastData(NetworkCommand::player_disconnected,networkIDtoString(client) + "|0");
 

@@ -93,7 +93,7 @@ Hier muss die reine Logik von GL getrennt werden, damit sie testbar wird:
 | `Game/ConfigManager` | `#include "Game.h"` zieht GLEW+SDL nach | Server-Kopie verwenden **oder** `Game.h`-Include entfernen. |
 | `Game/Model` | `init()` ruft `glGenTextures`, `stbi_load` | Nur `Mesh::calculateDimension` / `getDimension` extrahieren (GL-freier Teil). |
 | `Game/Character`, `Bullet`, `Player` | Konstruktoren benötigen `Shader*` | Physik-/Bewegungslogik in GL-freie Basisklasse oder freie Funktionen auslagern. |
-| `Game/NetworkManager`, `GameServer/NetworkManager` | `parseData` braucht `<enet/enet.h>` | Framing-Logik (`"NN|id|payload"`, `networkIDtoString`, `getClientID`) als GL-/enet-freie freie Funktionen isolieren. |
+| `Game/NetworkManager`, `GameServer/NetworkManager` | `parseData` braucht `<enet.h>` | Framing-Logik (`"NN|id|payload"`, `networkIDtoString`, `getClientID`) als GL-/enet-freie freie Funktionen isolieren. |
 
 ### Ebene C – NICHT unit-testbar (nur Integration/Smoke)
 

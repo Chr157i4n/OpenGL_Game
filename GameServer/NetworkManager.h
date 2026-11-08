@@ -5,7 +5,7 @@
 #include <algorithm>
 
 #include <glm/glm.hpp>
-#include <enet/enet.h>
+#include <enet.h>
 
 #include "Logger.h"
 #include "Client.h"

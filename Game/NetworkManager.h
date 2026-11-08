@@ -1,7 +1,7 @@
 #pragma once
 
 #include <glm/glm.hpp>
-#include <enet/enet.h>
+#include <enet.h>
 
 #include <string>
 #include <vector>
