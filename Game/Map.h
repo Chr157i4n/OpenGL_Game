@@ -63,6 +63,11 @@ public:
 	static glm::vec3 sun_color;
 	static std::string skyboxName;
 
+	// model files which are configured in the level file
+	static std::string characterModelName;
+	static std::string bulletModelName;
+	static std::string fallbackModelName;
+
 	static std::vector<PointLight> pointLights;
 
 private:

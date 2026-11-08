@@ -36,6 +36,10 @@ public:
 		Map::mapSize = mapSize;
 	}
 
+	static std::string characterModelName;
+	static std::string bulletModelName;
+	static std::string fallbackModelName;
+
 private:
 
 	static std::string mapFileName;

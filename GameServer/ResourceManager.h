@@ -29,6 +29,8 @@ public:
 
 	static void loadMap(std::string mapFileName);
 
+	static void loadDefaultModels(tinyxml2::XMLElement* xmlNode);
+
 	
 
 private:

@@ -96,6 +96,12 @@ public:
     }
 
 private:
+    bool initBMF(const char* filename, Shader* shader);
+
+#ifdef OG_ASSIMP_ENABLED
+    bool initAssimp(const char* filename, Shader* shader);
+#endif
+
     std::vector<Mesh*> meshes;
     std::vector<Material> materials;
 

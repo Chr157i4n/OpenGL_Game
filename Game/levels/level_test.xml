@@ -6,15 +6,21 @@
     <sun_color>0.5;0.5;0.5</sun_color>
     <skybox>skybox3</skybox>
   </map_properties>
+  <default_models>
+    <character_model>character.glb</character_model>
+    <bullet_model>arrow.glb</bullet_model>
+    <fallback_model>replacemeball.glb</fallback_model>
+  </default_models>
   <player>
     <position>40;10;30</position>
+    <modelfile>character.glb</modelfile>
   </player>
   <sounds>
-  <sound>
-    <position>0;0;50</position>
-    <volume>0.8</volume>
-    <soundfile>river.mp3</soundfile>
-  </sound>
+    <sound>
+      <position>0;0;50</position>
+      <volume>0.8</volume>
+      <soundfile>river.mp3</soundfile>
+    </sound>
   </sounds>
   <lights>
     <light>
@@ -35,10 +41,11 @@
     </text>
   </texts>
   <models>
-    <model>character.bmf</model>
-    <model>arrow.bmf</model>
-    <model>ground.bmf</model>
-    <model>box.bmf</model>
+    <model>character.glb</model>
+    <model>arrow.glb</model>
+    <model>ground.glb</model>
+    <model>box.glb</model>
+    <model>barrel.glb</model>
   </models>
   <objects>
     <object>
@@ -46,7 +53,7 @@
       <type>Environment</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>ground.bmf</modelfile>
+      <modelfile>ground.glb</modelfile>
       <position>0;-0.2;0</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -56,7 +63,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>wall.bmf</modelfile>
+      <modelfile>wall.glb</modelfile>
       <position>0;0;0</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -66,7 +73,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>lamp.bmf</modelfile>
+      <modelfile>lamp.glb</modelfile>
       <position>5;0;5</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -82,7 +89,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>lamp.bmf</modelfile>
+      <modelfile>lamp.glb</modelfile>
       <position>5;0;-5</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -98,7 +105,7 @@
       <type>Entity</type>
       <collisionboxtype>none</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>button.bmf</modelfile>
+      <modelfile>button.glb</modelfile>
       <position>0.3;2;1</position>
       <rotation>0;90;0</rotation>
       <scale>1;1;1</scale>
@@ -114,7 +121,7 @@
       <type>Entity</type>
       <collisionboxtype>none</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>button.bmf</modelfile>
+      <modelfile>button.glb</modelfile>
       <position>0.3;2;-1</position>
       <rotation>0;90;0</rotation>
       <scale>1;1;1</scale>
@@ -130,7 +137,7 @@
       <type>Entity</type>
       <collisionboxtype>none</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>button.bmf</modelfile>
+      <modelfile>button.glb</modelfile>
       <position>0.3;2;0</position>
       <rotation>0;90;0</rotation>
       <scale>1;1;1</scale>
@@ -146,9 +153,19 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>vehicle1.bmf</modelfile>
+      <modelfile>vehicle1.glb</modelfile>
       <position>40;0;0</position>
       <rotation>0;90;0</rotation>
+      <scale>1;1;1</scale>
+    </object>
+    <object>
+      <name>Barrel</name>
+      <type>Entity</type>
+      <collisionboxtype>cube</collisionboxtype>
+      <gravity>false</gravity>
+      <modelfile>barrel.glb</modelfile>
+      <position>10;0;10</position>
+      <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
     </object>
   </objects>
@@ -157,7 +174,7 @@
       <name>Bot1</name>
       <type>Bot</type>
       <team>0</team>
-      <modelfile>character.bmf</modelfile>
+      <modelfile>character.glb</modelfile>
       <position>10;0;10</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>

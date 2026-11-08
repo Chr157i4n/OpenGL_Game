@@ -53,6 +53,7 @@ StopWatch  Game::frametimeStopWatch;
 std::vector<Font3D*> Game::texts;
 
 GameMode* Game::gameMode;
+std::string Game::startupMap = "";
 
 
 
@@ -115,6 +116,13 @@ void Game::init()
 	gameMode = new GameMode_Menu();
 
 	Renderer::init();	
+
+	if (!Game::startupMap.empty())
+	{
+		Logger::log("Direct map start from command line: " + Game::startupMap);
+		Map::load(Game::startupMap);
+		Game::startGame(Game_Mode::GameMode_SinglePlayer);
+	}
 
 
 	gameLoop();

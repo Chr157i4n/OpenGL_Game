@@ -1,4 +1,5 @@
 # OpenGL_Game
+
 a simple game in 3D programmed directly with OpenGL
 
 ## Building
@@ -70,65 +71,76 @@ The Game itself use the Library SDL to create a window and OpenGL-context. Also 
 For the mathematics (Matrices and Vectors) the Library OpenGL Mathematics is used.
 
 On the Graphics Card side i use the shader programming language GLSL
-https://www.khronos.org/opengl/wiki/Core_Language_(GLSL)
+<https://www.khronos.org/opengl/wiki/Core_Language_(GLSL)>
 
 For importing Textures and Fonts i use the STB Library.
 
 As Mapfiles i use the XML format. To parse them i use the tinyxml2 Library.
 
+Every level file configures the models which are not defined by an object, but by the level itself:
+
+```xml
+  <default_models>
+    <character_model>character.glb</character_model>
+    <bullet_model>arrow.glb</bullet_model>
+    <fallback_model>replacemeball.glb</fallback_model>
+  </default_models>
+```
+
+`character_model` is used for the player and for all bots without their own `<modelfile>`, `bullet_model` for every bullet which is shot, and `fallback_model` is loaded as the first model and used whenever an object asks for a model which is not available. The player can also get its own model with a `<modelfile>` inside the `<player>` node.
+
 for playing audio the open-source SoLoud-Library is used.
 
 The idea and the knowlegde for this project did i get from this german youtube OpenGL tutorial playlist:
-https://www.youtube.com/playlist?list=PLStQc0GqppuWBDuNWnkQ8rzmyx35AINyt
-https://github.com/Pilzschaf/OpenGLTutorial
+<https://www.youtube.com/playlist?list=PLStQc0GqppuWBDuNWnkQ8rzmyx35AINyt>
+<https://github.com/Pilzschaf/OpenGLTutorial>
 
 On of the first versions that had just material properties and no textures
-![](Images/screenshot1.png)
+![](images/screenshot1.png)
 Implementation of textures, skybox, colored hud elements.
 That version had also already simple physic, the boxes in the middle are standing on top of each other
-![](Images/screenshot5.png)
+![](images/screenshot5.png)
 Transparent textures with alpha blending and arrows that have collision with the object and get stuck in it
-![](Images/screenshot8.png)
+![](images/screenshot8.png)
 A couple of testballs to test different textures and material properties. Metal (left in the middle) doesnt look well with the phong shading model.
 It is missing reflections of the world. Also the game renders shadows with the shadow mapping technique
-![](Images/screenshot9.png)
-
+![](images/screenshot9.png)
 
 used Libaries:
 
 Assimp for model loading and converting
-https://www.assimp.org/
-https://github.com/assimp/assimp
+<https://www.assimp.org/>
+<https://github.com/assimp/assimp>
 
 SDL for creating a window and the OpenGL-Context
-https://www.libsdl.org/
+<https://www.libsdl.org/>
 
 OpenGL for rendering 3D objects
-https://www.opengl.org/
-https://github.com/topics/opengl
+<https://www.opengl.org/>
+<https://github.com/topics/opengl>
 
 GLEW for easier handling of new OpenGL functions
-http://glew.sourceforge.net/
-https://github.com/nigels-com/glew
+<http://glew.sourceforge.net/>
+<https://github.com/nigels-com/glew>
 
 GLM for the matrices/vector calculations
-https://glm.g-truc.net/0.9.9/index.html
-https://github.com/g-truc/glm
+<https://glm.g-truc.net/0.9.9/index.html>
+<https://github.com/g-truc/glm>
 
 stb for loading fonts and textures/images
-https://github.com/nothings/stb
-https://github.com/nothings/stb/blob/master/stb_image.h
-https://github.com/nothings/stb/blob/master/stb_truetype.h
+<https://github.com/nothings/stb>
+<https://github.com/nothings/stb/blob/master/stb_image.h>
+<https://github.com/nothings/stb/blob/master/stb_truetype.h>
 
 TinyXML2 for parsing the level-file
-https://github.com/leethomason/tinyxml2
+<https://github.com/leethomason/tinyxml2>
 
 SoLoud for 2D and 3D audio (open source, zlib/libpng license)
-https://soloud-audio.com/
-https://github.com/jarikomppa/soloud
+<https://soloud-audio.com/>
+<https://github.com/jarikomppa/soloud>
 
 used Textures from:
-https://3dtextures.me
+<https://3dtextures.me>
 
 ## Unit tests
 

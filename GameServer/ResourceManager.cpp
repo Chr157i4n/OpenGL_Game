@@ -7,32 +7,40 @@
 #include "ConfigManager.h"
 #include "Object.h"
 #include "Game.h"
+#include "Map.h"
 
 std::string ResourceManager::modelFolder = "models";
 float ResourceManager::percentageLoading = 0;
 
-std::vector<Model*> ResourceManager::models;
+std::vector<Model *> ResourceManager::models;
 
-
-
-
-std::vector<Model*> ResourceManager::loadAllModels(std::string modelFileName)
+std::vector<Model *> ResourceManager::loadAllModels(std::string modelFileName)
 {
 	Logger::log("Loading all Models");
 
 	std::string newmodefilename;
-	std::vector<Model*> models;
+	std::vector<Model *> models;
 	int id = 0;
 	std::list<std::string> modelfilenames;
 
 	tinyxml2::XMLDocument doc;
 	doc.LoadFile(modelFileName.c_str());
 
+	tinyxml2::XMLElement *mapNode = doc.FirstChildElement("map");
+	if (mapNode == NULL)
+		return models;
 
-	//get all modelnames
-	modelfilenames.push_back("replacemeball.bmf");
+	// the models which are not defined by an object but by the level itself
+	tinyxml2::XMLElement *xmlNodeDefaultModels = mapNode->FirstChildElement("default_models");
+	if (xmlNodeDefaultModels != NULL)
+		loadDefaultModels(xmlNodeDefaultModels);
 
-	for (tinyxml2::XMLElement* xmlNodeObject = doc.FirstChildElement("map")->FirstChildElement("models")->FirstChildElement("model"); xmlNodeObject != NULL; xmlNodeObject = xmlNodeObject->NextSiblingElement())
+	// get all modelnames
+	modelfilenames.push_back(Map::fallbackModelName);
+	modelfilenames.push_back(Map::characterModelName);
+	modelfilenames.push_back(Map::bulletModelName);
+
+	for (tinyxml2::XMLElement *xmlNodeObject = doc.FirstChildElement("map")->FirstChildElement("models")->FirstChildElement("model"); xmlNodeObject != NULL; xmlNodeObject = xmlNodeObject->NextSiblingElement())
 	{
 		newmodefilename = xmlNodeObject->GetText();
 		bool alreadyLoaded = false;
@@ -51,7 +59,7 @@ std::vector<Model*> ResourceManager::loadAllModels(std::string modelFileName)
 		}
 	}
 
-	for (tinyxml2::XMLElement* xmlNodeObject = doc.FirstChildElement("map")->FirstChildElement("objects")->FirstChildElement("object"); xmlNodeObject != NULL; xmlNodeObject = xmlNodeObject->NextSiblingElement())
+	for (tinyxml2::XMLElement *xmlNodeObject = doc.FirstChildElement("map")->FirstChildElement("objects")->FirstChildElement("object"); xmlNodeObject != NULL; xmlNodeObject = xmlNodeObject->NextSiblingElement())
 	{
 		newmodefilename = xmlNodeObject->FirstChildElement("modelfile")->GetText();
 		bool alreadyLoaded = false;
@@ -70,7 +78,7 @@ std::vector<Model*> ResourceManager::loadAllModels(std::string modelFileName)
 		}
 	}
 
-	for (tinyxml2::XMLElement* xmlNodeObject = doc.FirstChildElement("map")->FirstChildElement("bots")->FirstChildElement("bot"); xmlNodeObject != NULL; xmlNodeObject = xmlNodeObject->NextSiblingElement())
+	for (tinyxml2::XMLElement *xmlNodeObject = doc.FirstChildElement("map")->FirstChildElement("bots")->FirstChildElement("bot"); xmlNodeObject != NULL; xmlNodeObject = xmlNodeObject->NextSiblingElement())
 	{
 		newmodefilename = xmlNodeObject->FirstChildElement("modelfile")->GetText();
 		bool alreadyLoaded = false;
@@ -89,14 +97,15 @@ std::vector<Model*> ResourceManager::loadAllModels(std::string modelFileName)
 		}
 	}
 
-	//load models
+	// load models
 	float modelCount = modelfilenames.size();
 
 	for (std::string modefilename : modelfilenames)
 	{
 
-		Model* newModel = loadModel(modelFolder + "/" + modefilename);
-		if (newModel == nullptr) continue;
+		Model *newModel = loadModel(modelFolder + "/" + modefilename);
+		if (newModel == nullptr)
+			continue;
 
 		newModel->setModelName(modefilename);
 		newModel->setModelID(id++);
@@ -107,17 +116,17 @@ std::vector<Model*> ResourceManager::loadAllModels(std::string modelFileName)
 		models.push_back(newModel);
 	}
 
-	ResourceManager::models=models;
+	ResourceManager::models = models;
 
 	Logger::log("Loading all Models - finished");
 	return models;
 }
 
-Model* ResourceManager::loadModel(std::string modelFileName)
+Model *ResourceManager::loadModel(std::string modelFileName)
 {
-	Model* newModel = new Model();
+	Model *newModel = new Model();
 
-	const char* fileNameChar = modelFileName.c_str();
+	const char *fileNameChar = modelFileName.c_str();
 	if (!newModel->init(fileNameChar))
 	{
 		return nullptr;
@@ -126,9 +135,26 @@ Model* ResourceManager::loadModel(std::string modelFileName)
 	return newModel;
 }
 
-Model* ResourceManager::getModelByName(std::string modelFileName)
+void ResourceManager::loadDefaultModels(tinyxml2::XMLElement *xmlNode)
 {
-	for (Model* model : models)
+	tinyxml2::XMLElement *xmlNodeSub = xmlNode->FirstChildElement("character_model");
+	if (xmlNodeSub)
+		Map::characterModelName = xmlNodeSub->GetText();
+
+	xmlNodeSub = xmlNode->FirstChildElement("bullet_model");
+	if (xmlNodeSub)
+		Map::bulletModelName = xmlNodeSub->GetText();
+
+	xmlNodeSub = xmlNode->FirstChildElement("fallback_model");
+	if (xmlNodeSub)
+		Map::fallbackModelName = xmlNodeSub->GetText();
+
+	Logger::log("Level default models: character: " + Map::characterModelName + ", bullet: " + Map::bulletModelName + ", fallback: " + Map::fallbackModelName);
+}
+
+Model *ResourceManager::getModelByName(std::string modelFileName)
+{
+	for (Model *model : models)
 	{
 		if (model->getModelName() == modelFileName)
 		{
@@ -138,14 +164,14 @@ Model* ResourceManager::getModelByName(std::string modelFileName)
 	return models[0];
 }
 
-
 std::vector<std::string> ResourceManager::readAllMaps()
 {
 	std::vector<std::string> maps;
 	std::string path = "levels";
-	if (!std::filesystem::exists(path)) return maps;
+	if (!std::filesystem::exists(path))
+		return maps;
 
-	for (const auto& entry : std::filesystem::directory_iterator(path))
+	for (const auto &entry : std::filesystem::directory_iterator(path))
 	{
 		maps.push_back(entry.path().string());
 	}
@@ -161,12 +187,12 @@ void ResourceManager::loadMap(std::string mapFileName)
 	Game::npcs.clear();
 	Game::bullets.clear();
 
-	std::vector<std::shared_ptr<Object>>* map = &Game::map;
-	std::vector<std::shared_ptr<Object>>* objects = &Game::objects;
-	std::vector<std::shared_ptr<Character>>* characters = &Game::characters;
-	std::vector< std::shared_ptr<NPC>>* npcs = &Game::npcs;
+	std::vector<std::shared_ptr<Object>> *map = &Game::map;
+	std::vector<std::shared_ptr<Object>> *objects = &Game::objects;
+	std::vector<std::shared_ptr<Character>> *characters = &Game::characters;
+	std::vector<std::shared_ptr<NPC>> *npcs = &Game::npcs;
 
-	const char* mapFileNameC = mapFileName.c_str();
+	const char *mapFileNameC = mapFileName.c_str();
 	int32 numObject = 0;
 	tinyxml2::XMLDocument doc;
 	std::string xmlNodeText;
@@ -177,16 +203,14 @@ void ResourceManager::loadMap(std::string mapFileName)
 
 	std::string title = doc.FirstChildElement("map")->FirstChildElement("name")->GetText();
 
-
-
 	Logger::log("Loading all Objects");
 	float objectCount = 0;
-	for (tinyxml2::XMLElement* xmlNodeObject = doc.FirstChildElement("map")->FirstChildElement("objects")->FirstChildElement("object"); xmlNodeObject != NULL; xmlNodeObject = xmlNodeObject->NextSiblingElement())
+	for (tinyxml2::XMLElement *xmlNodeObject = doc.FirstChildElement("map")->FirstChildElement("objects")->FirstChildElement("object"); xmlNodeObject != NULL; xmlNodeObject = xmlNodeObject->NextSiblingElement())
 	{
 		objectCount++;
 	}
 
-	for (tinyxml2::XMLElement* xmlNodeObject = doc.FirstChildElement("map")->FirstChildElement("objects")->FirstChildElement("object"); xmlNodeObject != NULL; xmlNodeObject = xmlNodeObject->NextSiblingElement())
+	for (tinyxml2::XMLElement *xmlNodeObject = doc.FirstChildElement("map")->FirstChildElement("objects")->FirstChildElement("object"); xmlNodeObject != NULL; xmlNodeObject = xmlNodeObject->NextSiblingElement())
 	{
 		xmlNodeText = xmlNodeObject->FirstChildElement("modelfile")->GetText();
 
@@ -211,8 +235,14 @@ void ResourceManager::loadMap(std::string mapFileName)
 		newObject->setCollisionBoxType(Object::convertStringToCollisionBoxType(xmlNodeText));
 
 		xmlNodeText = xmlNodeObject->FirstChildElement("gravity")->GetText();
-		if (xmlNodeText == "true") { newObject->setGravity(true); }
-		else { newObject->setGravity(false); }
+		if (xmlNodeText == "true")
+		{
+			newObject->setGravity(true);
+		}
+		else
+		{
+			newObject->setGravity(false);
+		}
 
 		xmlNodeText = xmlNodeObject->FirstChildElement("name")->GetText();
 		newObject->setName(xmlNodeText);
@@ -228,24 +258,19 @@ void ResourceManager::loadMap(std::string mapFileName)
 			map->push_back(newObject);
 		}
 
-
-
 		numObject++;
 	}
 	Logger::log("Loading all Objects - finished");
 
-
-
 	Logger::log("Loading all NPCs");
 	float npcCount = 0;
-	for (tinyxml2::XMLElement* xmlNodeBot = doc.FirstChildElement("map")->FirstChildElement("bots")->FirstChildElement("bot"); xmlNodeBot != NULL; xmlNodeBot = xmlNodeBot->NextSiblingElement())
+	for (tinyxml2::XMLElement *xmlNodeBot = doc.FirstChildElement("map")->FirstChildElement("bots")->FirstChildElement("bot"); xmlNodeBot != NULL; xmlNodeBot = xmlNodeBot->NextSiblingElement())
 	{
 		npcCount++;
 	}
 
-	for (tinyxml2::XMLElement* xmlNodeBot = doc.FirstChildElement("map")->FirstChildElement("bots")->FirstChildElement("bot"); xmlNodeBot != NULL; xmlNodeBot = xmlNodeBot->NextSiblingElement())
+	for (tinyxml2::XMLElement *xmlNodeBot = doc.FirstChildElement("map")->FirstChildElement("bots")->FirstChildElement("bot"); xmlNodeBot != NULL; xmlNodeBot = xmlNodeBot->NextSiblingElement())
 	{
-
 
 		std::shared_ptr<NPC> newNPC = std::make_shared<NPC>();
 
@@ -263,7 +288,6 @@ void ResourceManager::loadMap(std::string mapFileName)
 		xmlNodeText = xmlNodeBot->FirstChildElement("scale")->GetText();
 		Helper::split(xmlNodeText, params, ';');
 		newNPC->setScale(glm::vec3(stof(params[0]), stof(params[1]), stof(params[2])));
-
 
 		xmlNodeText = xmlNodeBot->FirstChildElement("name")->GetText();
 		newNPC->setName(xmlNodeText);
@@ -286,15 +310,13 @@ void ResourceManager::loadMap(std::string mapFileName)
 				newNPC->setCurrentTask(CurrentTask::Attack);
 			}
 
-
-			for (tinyxml2::XMLElement* xmlNodeNavPoint = xmlNodeBot->FirstChildElement("navpoints")->FirstChildElement("navpoint"); xmlNodeNavPoint != NULL; xmlNodeNavPoint = xmlNodeNavPoint->NextSiblingElement())
+			for (tinyxml2::XMLElement *xmlNodeNavPoint = xmlNodeBot->FirstChildElement("navpoints")->FirstChildElement("navpoint"); xmlNodeNavPoint != NULL; xmlNodeNavPoint = xmlNodeNavPoint->NextSiblingElement())
 			{
 				xmlNodeText = xmlNodeNavPoint->GetText();
 				Helper::split(xmlNodeText, params, ';');
 				newNPC->addNavPoint(glm::vec3(stof(params[0]), stof(params[1]), stof(params[2])));
 			}
 		}
-
 
 		newNPC->setNumber(numObject);
 
@@ -308,9 +330,7 @@ void ResourceManager::loadMap(std::string mapFileName)
 		numObject++;
 	}
 
-
-
-	//random bots
+	// random bots
 	int botcount = std::stoi(ConfigManager::readConfig("bots"));
 	for (int i = 0; i < botcount; i++)
 	{

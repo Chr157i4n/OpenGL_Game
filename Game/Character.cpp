@@ -1,11 +1,12 @@
 #include "Character.h"
 
 #include "Game.h"
+#include "Map.h"
 #include "Raypicker.h"
 
 #include <cmath>
 
-Character::Character(Shader* shader) : Object(shader, "character.bmf")
+Character::Character(Shader *shader, std::string modelFileName) : Object(shader, modelFileName.empty() ? Map::characterModelName : modelFileName)
 {
 	this->shader = shader;
 	lookDirection = glm::vec3(1.0f, 0.0f, 0.0f);
@@ -44,28 +45,32 @@ void Character::resetVerticalMovement()
 	movement = movement * glm::vec3(0, 1, 0);
 }
 
-void Character::moveForward() {
-	glm::vec3 v = glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f) * getLookDirection()) * forwardSpeed;// *Game::getDelta() / 1000.0f;
+void Character::moveForward()
+{
+	glm::vec3 v = glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f) * getLookDirection()) * forwardSpeed; // *Game::getDelta() / 1000.0f;
 
 	movement.x += v.x;
 	movement.z += v.z;
 }
 
-void Character::moveBackward() {
-	glm::vec3 v = glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f) * getLookDirection()) * -backwardSidewaySpeed;// *Game::getDelta() / 1000.0f;
+void Character::moveBackward()
+{
+	glm::vec3 v = glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f) * getLookDirection()) * -backwardSidewaySpeed; // *Game::getDelta() / 1000.0f;
 
 	movement.x += v.x;
 	movement.z += v.z;
 }
 
-void Character::moveRight() {
-	glm::vec3 v = glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f) * glm::cross(getLookDirection(), up)) * backwardSidewaySpeed;// *Game::getDelta() / 1000.0f;
+void Character::moveRight()
+{
+	glm::vec3 v = glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f) * glm::cross(getLookDirection(), up)) * backwardSidewaySpeed; // *Game::getDelta() / 1000.0f;
 
 	movement.x += v.x;
 	movement.z += v.z;
 }
 
-void Character::moveLeft() {
+void Character::moveLeft()
+{
 	glm::vec3 v = glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f) * glm::cross(getLookDirection(), up)) * -backwardSidewaySpeed; //* Game::getDelta() / 1000.0f;
 
 	movement.x += v.x;
@@ -83,7 +88,7 @@ void Character::jump()
 		AudioManager::play3D("audio/jump.wav", this->getPosition());
 
 		movement.y += 30;
-		//movement.y += 0.06 * Game::getDelta();
+		// movement.y += 0.06 * Game::getDelta();
 
 		canJump = false;
 	}
@@ -132,7 +137,7 @@ std::shared_ptr<Object> Character::calculateObjectLookingAt()
 	RayPickingResult raypickingresult = Raypicker::doRayPicking(Ray(rayOrigin, rayDirection), Game::objects);
 
 #ifdef DEBUG_RAYPICKING
-	Logger::log(this->printObject()+" is looking at "+ raypickingresult.intersectedObject_nearest.object->printObject());
+	Logger::log(this->printObject() + " is looking at " + raypickingresult.intersectedObject_nearest.object->printObject());
 #endif
 	objectLookingAt = raypickingresult.intersectedObject_nearest.object;
 	return raypickingresult.intersectedObject_nearest.object;
@@ -157,16 +162,15 @@ std::shared_ptr<Bullet> Character::shoot()
 	std::chrono::duration<double, std::milli> notshotDuration = now - lastTimeShot;
 	if (notshotDuration.count() > 1000)
 	{
-		glm::vec3 bulletCreationPosition = position + glm::vec3(0, 2, 0) +glm::vec3(1, 1, 1) * getLookDirection();
+		glm::vec3 bulletCreationPosition = position + glm::vec3(0, 2, 0) + glm::vec3(1, 1, 1) * getLookDirection();
 		glm::vec3 bulletCreationRotation = glm::vec3(0, rotation.y - 90 + scatteringAngleY, -rotation.x - 90 + scatteringAngleX);
 		glm::vec3 bulletCreationDirection = getLookDirection();
-		
-		//rotate direction around Y
+
+		// rotate direction around Y
 		bulletCreationDirection = glm::rotate(bulletCreationDirection, glm::radians(scatteringAngleY), glm::vec3(0, 1, 0));
 
-		//rotate direction around z
+		// rotate direction around z
 		bulletCreationDirection = glm::rotate(bulletCreationDirection, glm::radians(scatteringAngleX), glm::vec3(0, 0, 1));
-
 
 		std::shared_ptr<Bullet> newBullet = std::make_shared<Bullet>(shader, bulletCreationPosition, bulletCreationRotation, bulletCreationDirection);
 		newBullet->setNumber(Game::objects.size());
@@ -174,7 +178,6 @@ std::shared_ptr<Bullet> Character::shoot()
 		Game::bullets.push_back(newBullet);
 		Game::objects.push_back(newBullet);
 		newBullet->calculationBeforeFrame();
-
 
 		lastTimeShot = std::chrono::system_clock::now();
 
@@ -184,6 +187,3 @@ std::shared_ptr<Bullet> Character::shoot()
 	}
 	return nullptr;
 }
-
-
-

@@ -12,7 +12,7 @@
 class Character : public Object
 {
 public:
-	Character(Shader* shader);
+	Character(Shader* shader, std::string modelFileName = "");
 
 	virtual glm::vec3 getLookDirection();
 

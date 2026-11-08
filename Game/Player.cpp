@@ -4,7 +4,7 @@
 #include "Bullet.h"
 #include "Shader.h"
 
-Player::Player(Shader* shader, float fov, float width, float height) : Character(shader), FPSCamera(fov, width, height)
+Player::Player(Shader* shader, float fov, float width, float height, std::string modelFileName) : Character(shader, modelFileName), FPSCamera(fov, width, height)
 {
 	setType(ObjectType::Object_Player | ObjectType::Object_Character);
 	

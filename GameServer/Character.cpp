@@ -1,9 +1,10 @@
 #include "Character.h"
 #include "Game.h"
+#include "Map.h"
 
 #include <cmath>
 
-Character::Character() : Object("character.bmf")
+Character::Character() : Object(Map::characterModelName)
 {
 	lookDirection = glm::vec3(1.0f, 0.0f, 0.0f);
 	up = glm::vec3(0.0f, 1.0f, 0.0f);
@@ -41,28 +42,32 @@ void Character::resetVerticalMovement()
 	movement = movement * glm::vec3(0, 1, 0);
 }
 
-void Character::moveForward() {
-	glm::vec3 v = glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f) * getLookDirection()) * forwardSpeed;// *Game::getDelta() / 1000.0f;
+void Character::moveForward()
+{
+	glm::vec3 v = glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f) * getLookDirection()) * forwardSpeed; // *Game::getDelta() / 1000.0f;
 
 	movement.x += v.x;
 	movement.z += v.z;
 }
 
-void Character::moveBackward() {
-	glm::vec3 v = glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f) * getLookDirection()) * -backwardSidewaySpeed;// *Game::getDelta() / 1000.0f;
+void Character::moveBackward()
+{
+	glm::vec3 v = glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f) * getLookDirection()) * -backwardSidewaySpeed; // *Game::getDelta() / 1000.0f;
 
 	movement.x += v.x;
 	movement.z += v.z;
 }
 
-void Character::moveRight() {
-	glm::vec3 v = glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f) * glm::cross(getLookDirection(), up)) * backwardSidewaySpeed;// *Game::getDelta() / 1000.0f;
+void Character::moveRight()
+{
+	glm::vec3 v = glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f) * glm::cross(getLookDirection(), up)) * backwardSidewaySpeed; // *Game::getDelta() / 1000.0f;
 
 	movement.x += v.x;
 	movement.z += v.z;
 }
 
-void Character::moveLeft() {
+void Character::moveLeft()
+{
 	glm::vec3 v = glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f) * glm::cross(getLookDirection(), up)) * -backwardSidewaySpeed; //* Game::getDelta() / 1000.0f;
 
 	movement.x += v.x;
@@ -76,7 +81,7 @@ void Character::jump()
 		Logger::log("Character: " + printObject() + " jumped");
 
 		movement.y += 30;
-		//movement.y += 0.06 * Game::getDelta();
+		// movement.y += 0.06 * Game::getDelta();
 
 		canJump = false;
 	}
@@ -119,13 +124,16 @@ void Character::run(bool run)
 
 std::shared_ptr<Object> Character::getObjectLookingAt()
 {
-	std::vector< std::shared_ptr<Object> > objectsLookingAt;
+	std::vector<std::shared_ptr<Object>> objectsLookingAt;
 
 	for (std::shared_ptr<Object> object : Game::objects)
 	{
-		if (object->getType() & ObjectType::Object_Player) continue;
-		if (object->getType() & ObjectType::Object_Environment) continue;
-		if (!object->getEnabled()) continue;
+		if (object->getType() & ObjectType::Object_Player)
+			continue;
+		if (object->getType() & ObjectType::Object_Environment)
+			continue;
+		if (!object->getEnabled())
+			continue;
 
 		glm::vec3 rayOrigin = this->getLookOrigin();
 
@@ -137,7 +145,7 @@ std::shared_ptr<Object> Character::getObjectLookingAt()
 		}
 	}
 
-	//return the object with the minimum distance
+	// return the object with the minimum distance
 	float minDistance = (std::numeric_limits<float>::max)();
 	float currentDistance = 0;
 	std::shared_ptr<Object> objectMinDistance = nullptr;
@@ -178,20 +186,18 @@ std::shared_ptr<Bullet> Character::shoot()
 		glm::vec3 bulletCreationRotation = glm::vec3(0, rotation.y - 90 + scatteringAngleY, -rotation.x - 90 + scatteringAngleX);
 		glm::vec3 bulletCreationDirection = getLookDirection();
 
-		//rotate direction around Y
+		// rotate direction around Y
 		bulletCreationDirection = glm::rotate(bulletCreationDirection, glm::radians(scatteringAngleY), glm::vec3(0, 1, 0));
 
-		//rotate direction around z
+		// rotate direction around z
 		bulletCreationDirection = glm::rotate(bulletCreationDirection, glm::radians(scatteringAngleX), glm::vec3(0, 0, 1));
-
 
 		std::shared_ptr<Bullet> newBullet = std::make_shared<Bullet>(bulletCreationPosition, bulletCreationRotation, bulletCreationDirection);
 		newBullet->setNumber(Game::objects.size());
-		newBullet->setNetworkID(Game::objects[Game::objects.size()-1]->getNetworkID()+1);
+		newBullet->setNetworkID(Game::objects[Game::objects.size() - 1]->getNetworkID() + 1);
 
 		Game::bullets.push_back(newBullet);
 		Game::objects.push_back(newBullet);
-
 
 		lastTimeShot = std::chrono::system_clock::now();
 
@@ -199,7 +205,3 @@ std::shared_ptr<Bullet> Character::shoot()
 	}
 	return nullptr;
 }
-
-
-
-

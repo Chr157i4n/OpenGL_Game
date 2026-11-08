@@ -25,6 +25,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 option(OG_BUILD_GAME "Build the game client" ON)
 option(OG_BUILD_SERVER "Build the dedicated server" ON)
 option(OG_BUILD_MODELCONVERTER "Build the Assimp based BMF converter" OFF)
+option(OG_ENABLE_ASSIMP "Enable direct Assimp model import in the game client (OBJ, FBX, ...)" ON)
 option(OG_ENABLE_AUDIO "Enable SoLoud audio with 3D sound" ON)
 option(OG_USE_SYSTEM_DEPS "Prefer system/vcpkg packages over downloaded dependencies" OFF)
 option(OG_FETCH_DEPS "Download missing dependencies with FetchContent" ON)
@@ -40,6 +41,35 @@ set(FETCHCONTENT_QUIET OFF)
 include(FetchContent)
 
 include(cmake/Dependencies.cmake)
+
+# ---------------------------------------------------------------------------
+# Assimp (direct model import for the game client and the converter)
+# ---------------------------------------------------------------------------
+set(OG_ASSIMP_FOUND OFF)
+if(OG_ENABLE_ASSIMP OR OG_BUILD_MODELCONVERTER)
+    find_package(assimp CONFIG QUIET)
+    if(assimp_FOUND)
+        set(OG_ASSIMP_FOUND ON)
+    else()
+        if(OG_FETCH_DEPS)
+            message(STATUS "Assimp not found - downloading it for model import")
+            set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+            set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE)
+            set(ASSIMP_BUILD_SAMPLES OFF CACHE BOOL "" FORCE)
+            set(ASSIMP_INSTALL OFF CACHE BOOL "" FORCE)
+            set(ASSIMP_WARNINGS_AS_ERRORS OFF CACHE BOOL "" FORCE)
+            FetchContent_Declare(assimp
+                GIT_REPOSITORY https://github.com/assimp/assimp.git
+                GIT_TAG v5.4.3
+                GIT_SHALLOW TRUE)
+            FetchContent_MakeAvailable(assimp)
+            set(OG_ASSIMP_FOUND ON)
+        else()
+            message(WARNING "Assimp is required but was not found and OG_FETCH_DEPS is OFF. "
+                            "Disable OG_ENABLE_ASSIMP or install Assimp.")
+        endif()
+    endif()
+endif()
 
 # Shared, platform-independent code used by both the client and the server.
 file(GLOB OG_COMMON_SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/common/*.cpp")
@@ -79,6 +109,19 @@ if(OG_BUILD_GAME)
         glm::glm
         og_lua
         og_stb)
+
+    if(OG_ASSIMP_FOUND)
+        target_compile_definitions(OpenGL_Game PRIVATE OG_ASSIMP_ENABLED)
+        target_link_libraries(OpenGL_Game PRIVATE assimp::assimp)
+
+        # The Assimp DLL has to sit next to the executable, otherwise the game
+        # starts with STATUS_DLL_NOT_FOUND when run from the asset directory.
+        add_custom_command(TARGET OpenGL_Game POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "$<TARGET_FILE:assimp::assimp>"
+                "$<TARGET_FILE_DIR:OpenGL_Game>"
+            VERBATIM)
+    endif()
 
     if(OG_ENABLE_AUDIO)
         target_compile_definitions(OpenGL_Game PRIVATE OG_AUDIO_ENABLED)
@@ -161,19 +204,9 @@ endif()
 # Optional model converter (needs Assimp)
 # ---------------------------------------------------------------------------
 if(OG_BUILD_MODELCONVERTER)
-    find_package(assimp CONFIG QUIET)
-
-    if(NOT assimp_FOUND)
-        message(STATUS "Assimp not found - downloading it for modelconverter")
-        set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-        set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE)
-        set(ASSIMP_BUILD_SAMPLES OFF CACHE BOOL "" FORCE)
-        set(ASSIMP_INSTALL OFF CACHE BOOL "" FORCE)
-        FetchContent_Declare(assimp
-            GIT_REPOSITORY https://github.com/assimp/assimp.git
-            GIT_TAG v5.4.3
-            GIT_SHALLOW TRUE)
-        FetchContent_MakeAvailable(assimp)
+    if(NOT OG_ASSIMP_FOUND)
+        message(FATAL_ERROR "The model converter requires Assimp. "
+            "Enable OG_FETCH_DEPS or install Assimp.")
     endif()
 
     add_executable(modelconverter "${CMAKE_SOURCE_DIR}/modelconverter/modelconverter.cpp")
@@ -190,6 +223,7 @@ message(STATUS "  Build type:        ${CMAKE_BUILD_TYPE}")
 message(STATUS "  Game client:       ${OG_BUILD_GAME}")
 message(STATUS "  Dedicated server:  ${OG_BUILD_SERVER}")
 message(STATUS "  Model converter:   ${OG_BUILD_MODELCONVERTER}")
+message(STATUS "  Assimp import:     ${OG_ENABLE_ASSIMP} (found: ${OG_ASSIMP_FOUND})")
 if(OG_ENABLE_AUDIO)
     message(STATUS "  Audio:             ON (SoLoud + SDL2, 3D)")
 else()

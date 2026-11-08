@@ -269,6 +269,8 @@ public:
 	static void openConsole();
 
 
+	static std::string startupMap;
+
 	static std::vector< std::shared_ptr<Object> > map;
 	static std::vector< std::shared_ptr<Object> > objects;
 	static std::vector< std::shared_ptr<Character> > characters;

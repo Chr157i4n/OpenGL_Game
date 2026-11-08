@@ -13,6 +13,10 @@ glm::vec3 Map::sun_direction= glm::vec3(-0.8, +0.4, +0.4);
 glm::vec3 Map::sun_color = glm::vec3(0.8, 0.8, 0.8);
 std::string Map::skyboxName = "skybox1";
 
+std::string Map::characterModelName = "character.glb";
+std::string Map::bulletModelName = "arrow.glb";
+std::string Map::fallbackModelName = "replacemeball.glb";
+
 std::vector<PointLight> Map::pointLights;
 
 glm::vec3 Map::gravity = glm::vec3(0, -80, 0);

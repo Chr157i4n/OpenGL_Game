@@ -37,6 +37,8 @@ public:
 
 	//parts of map loading
 	//
+	static void loadDefaultModels(tinyxml2::XMLElement* xmlNode);
+
 	static void loadMapProperties(tinyxml2::XMLElement* xmlNode);
 
 	static void loadPlayer(tinyxml2::XMLElement* xmlNode);

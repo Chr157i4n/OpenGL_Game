@@ -1,11 +1,16 @@
 <?xml version="1.0"?>
 <map>
   <name>Test Level</name>
+  <default_models>
+    <character_model>character.gltf</character_model>
+    <bullet_model>arrow.gltf</bullet_model>
+    <fallback_model>replacemeball.gltf</fallback_model>
+  </default_models>
   <models>
-    <model>character.bmf</model>
-    <model>arrow.bmf</model>
-    <model>ground.bmf</model>
-    <model>box.bmf</model>
+    <model>character.gltf</model>
+    <model>arrow.gltf</model>
+    <model>ground.gltf</model>
+    <model>box.gltf</model>
   </models>
   <objects>
     <object>
@@ -13,7 +18,7 @@
       <type>Environment</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>ground.bmf</modelfile>
+      <modelfile>ground.gltf</modelfile>
       <position>0;-0.2;0</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -23,7 +28,7 @@
       <type>Environment</type>
       <collisionboxtype>none</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>puddle.bmf</modelfile>
+      <modelfile>puddle.gltf</modelfile>
       <position>15;0.01;30</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -33,7 +38,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>cube.bmf</modelfile>
+      <modelfile>cube.gltf</modelfile>
       <position>20;1;-10</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -43,7 +48,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>vent.bmf</modelfile>
+      <modelfile>vent.gltf</modelfile>
       <position>0;0;-18</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -53,7 +58,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>rock.bmf</modelfile>
+      <modelfile>rock.gltf</modelfile>
       <position>40;0;-30</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -63,7 +68,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>rock_small.bmf</modelfile>
+      <modelfile>rock_small.gltf</modelfile>
       <position>40;0;-34</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -73,7 +78,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>clips.bmf</modelfile>
+      <modelfile>clips.gltf</modelfile>
       <position>60;0;-34</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -83,7 +88,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>window.bmf</modelfile>
+      <modelfile>window.gltf</modelfile>
       <position>70;0;-34</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -93,7 +98,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>block_high.bmf</modelfile>
+      <modelfile>block_high.gltf</modelfile>
       <position>40;0;-50</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -103,7 +108,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>block_high.bmf</modelfile>
+      <modelfile>block_high.gltf</modelfile>
       <position>44;0;-50</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -113,7 +118,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>block_high.bmf</modelfile>
+      <modelfile>block_high.gltf</modelfile>
       <position>44;4;-50</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -123,7 +128,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>block_high.bmf</modelfile>
+      <modelfile>block_high.gltf</modelfile>
       <position>48;0;-50</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -133,7 +138,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>block_high.bmf</modelfile>
+      <modelfile>block_high.gltf</modelfile>
       <position>48;4;-50</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -143,7 +148,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>block_high.bmf</modelfile>
+      <modelfile>block_high.gltf</modelfile>
       <position>48;8;-50</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -153,7 +158,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>block_high.bmf</modelfile>
+      <modelfile>block_high.gltf</modelfile>
       <position>52;12;-50</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -163,7 +168,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>block_high.bmf</modelfile>
+      <modelfile>block_high.gltf</modelfile>
       <position>56;16;-50</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -173,7 +178,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>testball01.bmf</modelfile>
+      <modelfile>testball01.gltf</modelfile>
       <position>25;2;10</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -183,7 +188,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>testball01a.bmf</modelfile>
+      <modelfile>testball01a.gltf</modelfile>
       <position>28;2;10</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -193,7 +198,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>testball01b.bmf</modelfile>
+      <modelfile>testball01b.gltf</modelfile>
       <position>31;2;10</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -203,7 +208,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>testball01c.bmf</modelfile>
+      <modelfile>testball01c.gltf</modelfile>
       <position>34;2;10</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -213,7 +218,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>testball01d.bmf</modelfile>
+      <modelfile>testball01d.gltf</modelfile>
       <position>37;2;10</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -223,7 +228,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>testball02.bmf</modelfile>
+      <modelfile>testball02.gltf</modelfile>
       <position>25;2;14</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -233,7 +238,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>testball02a.bmf</modelfile>
+      <modelfile>testball02a.gltf</modelfile>
       <position>28;2;14</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -243,7 +248,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>testball03.bmf</modelfile>
+      <modelfile>testball03.gltf</modelfile>
       <position>25;2;18</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -253,7 +258,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>testball04.bmf</modelfile>
+      <modelfile>testball04.gltf</modelfile>
       <position>25;2;22</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -263,7 +268,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>testball04a.bmf</modelfile>
+      <modelfile>testball04a.gltf</modelfile>
       <position>28;2;22</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -273,7 +278,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>testball05.bmf</modelfile>
+      <modelfile>testball05.gltf</modelfile>
       <position>25;2;26</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -283,7 +288,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>testball06.bmf</modelfile>
+      <modelfile>testball06.gltf</modelfile>
       <position>25;2;30</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -293,7 +298,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>testball06a.bmf</modelfile>
+      <modelfile>testball06a.gltf</modelfile>
       <position>28;2;30</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -303,7 +308,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>testball07.bmf</modelfile>
+      <modelfile>testball07.gltf</modelfile>
       <position>25;2;34</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -313,7 +318,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>testball08.bmf</modelfile>
+      <modelfile>testball08.gltf</modelfile>
       <position>25;2;38</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -323,7 +328,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>testball09.bmf</modelfile>
+      <modelfile>testball09.gltf</modelfile>
       <position>25;2;42</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -333,7 +338,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>testball10.bmf</modelfile>
+      <modelfile>testball10.gltf</modelfile>
       <position>25;2;46</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -343,7 +348,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>sign.bmf</modelfile>
+      <modelfile>sign.gltf</modelfile>
       <position>95;0;95</position>
       <rotation>0;45;0</rotation>
       <scale>1;1;1</scale>
@@ -353,7 +358,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>barrel.bmf</modelfile>
+      <modelfile>barrel.gltf</modelfile>
       <position>30;0;5</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -363,7 +368,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>box.bmf</modelfile>
+      <modelfile>box.gltf</modelfile>
       <position>0;20;0</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -373,7 +378,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>true</gravity>
-      <modelfile>box.bmf</modelfile>
+      <modelfile>box.gltf</modelfile>
       <position>20;10;-20</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -383,7 +388,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>true</gravity>
-      <modelfile>box.bmf</modelfile>
+      <modelfile>box.gltf</modelfile>
       <position>20;15;-20</position>
       <rotation>0;20;0</rotation>
       <scale>1;1;1</scale>
@@ -393,7 +398,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>true</gravity>
-      <modelfile>box.bmf</modelfile>
+      <modelfile>box.gltf</modelfile>
       <position>20;20;-20</position>
       <rotation>0;40;0</rotation>
       <scale>1;1;1</scale>
@@ -403,7 +408,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>true</gravity>
-      <modelfile>box.bmf</modelfile>
+      <modelfile>box.gltf</modelfile>
       <position>20;25;-20</position>
       <rotation>0;60;0</rotation>
       <scale>1;1;1</scale>
@@ -413,7 +418,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>wall.bmf</modelfile>
+      <modelfile>wall.gltf</modelfile>
       <position>-2;0;-20</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -423,7 +428,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>wall.bmf</modelfile>
+      <modelfile>wall.gltf</modelfile>
       <position>-2;0;-24</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -433,7 +438,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>block_low.bmf</modelfile>
+      <modelfile>block_low.gltf</modelfile>
       <position>0;0;-20</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -443,7 +448,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>block_low.bmf</modelfile>
+      <modelfile>block_low.gltf</modelfile>
       <position>0;0;-24</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -453,7 +458,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>block_low.bmf</modelfile>
+      <modelfile>block_low.gltf</modelfile>
       <position>4;0;-24</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -463,7 +468,7 @@
       <type>Entity</type>
       <collisionboxtype>prism</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>block_low_ramp.bmf</modelfile>
+      <modelfile>block_low_ramp.gltf</modelfile>
       <position>4;0;-20</position>
       <rotation>0;180;0</rotation>
       <scale>1;1;1</scale>
@@ -473,7 +478,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>block_high.bmf</modelfile>
+      <modelfile>block_high.gltf</modelfile>
       <position>0;0;-28</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -483,7 +488,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>block_high.bmf</modelfile>
+      <modelfile>block_high.gltf</modelfile>
       <position>0;0;-32</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -493,7 +498,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>block_high.bmf</modelfile>
+      <modelfile>block_high.gltf</modelfile>
       <position>4;0;-32</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -503,7 +508,7 @@
       <type>Entity</type>
       <collisionboxtype>prism</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>block_high_ramp.bmf</modelfile>
+      <modelfile>block_high_ramp.gltf</modelfile>
       <position>4;0;-28</position>
       <rotation>0;180;0</rotation>
       <scale>1;1;1</scale>
@@ -513,7 +518,7 @@
       <type>Entity</type>
       <collisionboxtype>prism</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>block_low_ramp.bmf</modelfile>
+      <modelfile>block_low_ramp.gltf</modelfile>
       <position>0;2;-24</position>
       <rotation>0;90;0</rotation>
       <scale>1;1;1</scale>
@@ -523,7 +528,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>true</gravity>
-      <modelfile>box.bmf</modelfile>
+      <modelfile>box.gltf</modelfile>
       <position>10;0;0</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -533,7 +538,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>true</gravity>
-      <modelfile>box.bmf</modelfile>
+      <modelfile>box.gltf</modelfile>
       <position>13;3;0</position>
       <rotation>0;45;0</rotation>
       <scale>1;1;1</scale>
@@ -543,7 +548,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>fence.bmf</modelfile>
+      <modelfile>fence.gltf</modelfile>
       <position>10;0;-40</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -553,7 +558,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>fence.bmf</modelfile>
+      <modelfile>fence.gltf</modelfile>
       <position>15.8;0;-42.3</position>
       <rotation>0;45;0</rotation>
       <scale>1;1;1</scale>
@@ -563,7 +568,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>fence.bmf</modelfile>
+      <modelfile>fence.gltf</modelfile>
       <position>18.7;0;-48</position>
       <rotation>0;80;0</rotation>
       <scale>1;1;1</scale>
@@ -573,7 +578,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>fence.bmf</modelfile>
+      <modelfile>fence.gltf</modelfile>
       <position>18;0;-55</position>
       <rotation>0;120;0</rotation>
       <scale>1;1;1</scale>
@@ -583,7 +588,7 @@
       <type>Entity</type>
       <collisionboxtype>cube</collisionboxtype>
       <gravity>false</gravity>
-      <modelfile>fence.bmf</modelfile>
+      <modelfile>fence.gltf</modelfile>
       <position>10;0;-62</position>
       <rotation>0;180;0</rotation>
       <scale>1;1;1</scale>
@@ -594,7 +599,7 @@
       <name>Bot_Team1_0</name>
       <type>Bot</type>
       <team>1</team>
-      <modelfile>character_team1.bmf</modelfile>
+      <modelfile>character_team1.gltf</modelfile>
       <position>-50;0;-50</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -605,7 +610,7 @@
       <name>Bot_Team2_0</name>
       <type>Bot</type>
       <team>2</team>
-      <modelfile>character_team2.bmf</modelfile>
+      <modelfile>character_team2.gltf</modelfile>
       <position>50;0;50</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -616,7 +621,7 @@
       <name>Bot0</name>
       <type>Bot</type>
       <team>3</team>
-      <modelfile>character.bmf</modelfile>
+      <modelfile>character.gltf</modelfile>
       <position>15;0;40</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -627,7 +632,7 @@
       <name>Bot1</name>
       <type>Bot</type>
       <team>0</team>
-      <modelfile>character.bmf</modelfile>
+      <modelfile>character.gltf</modelfile>
       <position>10;0;10</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -642,7 +647,7 @@
       <name>Bot2</name>
       <type>Bot</type>
       <team>0</team>
-      <modelfile>character.bmf</modelfile>
+      <modelfile>character.gltf</modelfile>
       <position>20;0;20</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>
@@ -655,7 +660,7 @@
       <name>Bot3</name>
       <type>Bot</type>
       <team>0</team>
-      <modelfile>character.bmf</modelfile>
+      <modelfile>character.gltf</modelfile>
       <position>-40;0;-40</position>
       <rotation>0;0;0</rotation>
       <scale>1;1;1</scale>

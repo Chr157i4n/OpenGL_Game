@@ -14,7 +14,7 @@ class Player : public Character, public FPSCamera
 
 public:
 
-	Player(Shader* shader, float fov, float width, float height);
+	Player(Shader* shader, float fov, float width, float height, std::string modelFileName = "");
 
 	glm::vec3 getLookDirection();
 
