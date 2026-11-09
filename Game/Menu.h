@@ -2,8 +2,11 @@
 
 #include <vector>
 #include <string>
+#include <unordered_map>
 
 #include <SDL.h>
+
+#include "MenuLayout.h"
 
 #include "UI_Element.h"
 #include "UI_Element_Button.h"
@@ -34,6 +37,10 @@ std::unordered_map<SDL_Keycode, MenuAction> const menu_keybindings =
 	{SDLK_s,		MenuAction::Down},
 	{SDLK_a,		MenuAction::Left},
 	{SDLK_d,		MenuAction::Right},
+	{SDLK_UP,		MenuAction::Up},
+	{SDLK_DOWN,		MenuAction::Down},
+	{SDLK_LEFT,		MenuAction::Left},
+	{SDLK_RIGHT,	MenuAction::Right},
 	{SDLK_SPACE,	MenuAction::Space},
 	{SDLK_RETURN,	MenuAction::Enter},
 	{SDLK_ESCAPE,	MenuAction::Esc},
@@ -44,6 +51,8 @@ class Menu
 public:
 	Menu();
 
+	virtual ~Menu();
+
 	std::vector<UI_Element*> getMenuItemList()
 	{
 		return menuElementList;
@@ -51,7 +60,16 @@ public:
 
 	virtual void drawMenu();
 
-	void addMenuElement(UI_Element* menuElement);
+	// The grid the menu is laid out in. Menus set it in their constructor, the
+	// actual pixel positions are resolved every frame in applyLayout().
+	void setLayout(MenuLayout layout)
+	{
+		this->layout = layout;
+	}
+
+	void addMenuElement(UI_Element* menuElement, int row = 0, int col = 0);
+
+	MenuLayoutResult applyLayout();
 
 	void selectNextElement();
 
@@ -65,7 +83,7 @@ public:
 
 	void onMouseMove(float x, float y);
 
-	int onMouseDown(float x, float y, SDL_MouseButtonEvent buttonEvent);
+	int onMouseDown(float x, float y);
 
 	int onMouseClick(float x, float y, SDL_MouseButtonEvent buttonEvent);
 
@@ -78,5 +96,8 @@ protected:
 
 	std::vector<UI_Element*> menuElementList;
 
-};
+	std::vector<MenuGridSlot> elementSlots;
 
+	MenuLayout layout;
+
+};

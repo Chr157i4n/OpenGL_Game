@@ -47,7 +47,11 @@ void UI_Element_Button::drawUI_Element()
 	glVertex2f(_x - outlineThickness, _y + _h + outlineThickness);
 	glEnd();
 
-	UI::drawString(x + labelOffsetX, y+labelOffsetY, label, foreColor);
+	// Recomputed every frame so the label stays centered when the grid layout
+	// resizes the cell.
+	labelOffsetX = w / 2 - 6 * (int)label.size();
+	labelOffsetY = h / 2 - 10;
+	UI::drawString(x + labelOffsetX, y + labelOffsetY, label, foreColor);
 
 }
 

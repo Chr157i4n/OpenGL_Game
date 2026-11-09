@@ -1,5 +1,6 @@
 #include "Platform.h"
 #include "Game.h"
+#include "Localization.h"
 
 #ifdef _WIN32
 #include <winsock2.h>
@@ -83,7 +84,8 @@ int main(int argc, char* argv[])
 
 	Platform::setWorkingDirectoryToExecutable();
 
-	ConfigManager::init("config.ini");
+	ConfigManager::init("config.json");
+	Locale::init(ConfigManager::language);
 
 	Game::startupMap = getMapCommandLineArgument(argc, argv);
 

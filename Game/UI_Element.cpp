@@ -16,6 +16,11 @@ UI_Element::UI_Element(int x, int y, int w, int h, float lifespan, glm::vec4 for
     this->backColor = backColor;
 }
 
+UI_Element::~UI_Element()
+{
+
+}
+
 
 int UI_Element::getX() const
 {
@@ -54,6 +59,14 @@ int UI_Element::getH() const
 
 void UI_Element::setH(int h)
 {
+    this->h = h;
+}
+
+void UI_Element::setPosition(int x, int y, int w, int h)
+{
+    this->x = x;
+    this->y = y;
+    this->w = w;
     this->h = h;
 }
 
@@ -170,6 +183,11 @@ int UI_Element::increase()
 }
 
 int UI_Element::decrease()
+{
+    return 0;
+}
+
+int UI_Element::navigateMenu(int direction)
 {
     return 0;
 }

@@ -57,7 +57,9 @@ void UI_Element_Slider::drawUI_Element()
 	glVertex2f(_x + _value * _w - SliderThickness / 2, _y + 0.25 * _h + SliderThickness / 2);		//left top
 	glEnd();
 
-	UI::drawString(x + labelOffsetX, y+labelOffsetY, label, foreColor);
+	labelOffsetX = 0;
+	labelOffsetY = h / 2;
+	UI::drawString(x + labelOffsetX, y + labelOffsetY, label, foreColor);
 
 }
 

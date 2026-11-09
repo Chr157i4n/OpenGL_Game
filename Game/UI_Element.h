@@ -11,10 +11,19 @@ enum UI_Element_Type {
     progressbar,
 };
 
+// Return codes of the UI event handlers, replacing the magic numbers the
+// menus used to return.
+enum MenuResult {
+    MENU_OK = 0,       // event was handled, the mouse press may still be recorded
+    MENU_CONSUMED = 2, // event was fully handled, do not record the mouse press
+};
+
 class UI_Element
 {
 public:
     UI_Element(int x, int y, int w, int h, float lifespan=0, glm::vec4 foreColor = glm::vec4(1.0, 1.0, 1.0, 1.0) , glm::vec4 backColor = glm::vec4(0.2, 0.2, 0.2, 0.4) , bool isDebugInfo=false);
+
+    virtual ~UI_Element();
 
     virtual void drawUI_Element()=0;
 
@@ -29,6 +38,9 @@ public:
 
     int getH() const;
     void setH(int h);
+
+    // Sets position and size in one go (used by the menu grid layout).
+    void setPosition(int x, int y, int w, int h);
 
     glm::vec4 getForeColor() const;
     void setForeColor(glm::vec4 color);
@@ -67,7 +79,7 @@ public:
         this->callback = callback;
     }
 
-    int callCallBack(SDL_MouseButtonEvent* buttonEvent = nullptr);
+    virtual int callCallBack(SDL_MouseButtonEvent* buttonEvent = nullptr);
 
     virtual int onMouseClick(float mouseX, float mouseY, SDL_MouseButtonEvent* buttonEvent = nullptr);
 
@@ -78,6 +90,11 @@ public:
     virtual int increase();
 
     virtual int decrease();
+
+    // Navigates the element's own content (dropdown items, states...). Returns
+    // 0 when the element has nothing to navigate, so the menu can fall back to
+    // selecting the next element. direction is +1 (down) or -1 (up).
+    virtual int navigateMenu(int direction);
 
 protected:
 	int x, y, w, h;

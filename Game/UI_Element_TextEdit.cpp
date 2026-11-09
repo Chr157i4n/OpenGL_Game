@@ -56,6 +56,7 @@ void UI_Element_TextEdit::drawUI_Element()
 
 
 
+	labelOffsetY = h / 2 - 10;
 	UI::drawString(x + labelOffsetX, y + labelOffsetY, text, foreColor);
 }
 
