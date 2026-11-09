@@ -7,3 +7,6 @@ rag_db/
 
 # Ignore logs
 opencode-rag.log
+
+# wiki
+wiki/

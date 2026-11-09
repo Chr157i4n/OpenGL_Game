@@ -71,6 +71,8 @@
       "node_modules",
       ".git",
       ".opencode",
+      "libs",
+      "third_party",
       "dist",
       "build",
       "__pycache__",
