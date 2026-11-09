@@ -77,11 +77,13 @@ bool Model::initAssimp(const char* filename, Shader* shader) {
     Assimp::Importer importer;
 
     const aiScene* scene = importer.ReadFile(filename,
+        // aiProcess_OptimizeGraph is incompatible with aiProcess_PreTransformVertices
+        // (Assimp aborts with an ai_assert if both are set). PreTransformVertices already
+        // flattens the scene graph, so OptimizeGraph is unnecessary here.
         aiProcess_PreTransformVertices |
         aiProcess_Triangulate |
         aiProcess_GenNormals |
         aiProcess_OptimizeMeshes |
-        aiProcess_OptimizeGraph |
         aiProcess_JoinIdenticalVertices |
         aiProcess_ImproveCacheLocality |
         aiProcess_CalcTangentSpace);

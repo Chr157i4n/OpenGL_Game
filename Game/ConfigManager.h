@@ -8,6 +8,8 @@
 #include <algorithm>
 #include <string>
 
+#include <nlohmann/json.hpp>
+
 #include "Logger.h"
 
 
@@ -40,6 +42,8 @@ public:
 
 	//SETTINGS
 	//[General]
+	// UI language, selects locale/<language>.json
+	static std::string language;
 	static std::string player_name;
 	static std::string level;
 	static int bots;
@@ -79,6 +83,7 @@ public:
 private:
 
 	static std::string configFileName;
+	static nlohmann::json configJson;
 
 
 };

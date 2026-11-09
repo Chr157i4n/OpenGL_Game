@@ -2,11 +2,12 @@
 
 
 
-std::string			ConfigManager::configFileName = "config.ini";
+std::string			ConfigManager::configFileName = "config.json";
+nlohmann::json		ConfigManager::configJson;
 
 //SETTINGS
 //[General]
-std::string			ConfigManager::level = "level_test.xml";
+std::string			ConfigManager::level = "level_farm.json";
 int					ConfigManager::bots = 0;
 float				ConfigManager::bot_speed_mult = 0.5;
 int					ConfigManager::max_bullets = 20;
@@ -19,48 +20,39 @@ void ConfigManager::init(std::string nConfigFileName)
 {
 	configFileName = nConfigFileName;
 
+	std::ifstream file(configFileName);
+	if (file)
+	{
+		try
+		{
+			configJson = nlohmann::json::parse(file);
+		}
+		catch (const std::exception& e)
+		{
+			Logger::log("Could not parse Configfile: " + configFileName + " - " + e.what());
+		}
+	}
+	else
+	{
+		Logger::log("Cant open Configfile: " + configFileName);
+	}
+
 	ConfigManager::readAllConfigs();
 }
 
 std::string ConfigManager::readConfig(std::string key)
 {
 	Logger::log("reading Configuration key: " + key);
-	std::ifstream configFile;
-	configFile.open(configFileName);
 
-	if (!configFile) {
-		Logger::log("Cant open Configfile: " + configFileName);
-		return "";
-	}
-
-	char line[255];
-
-	while (!configFile.eof())
+	if (configJson.contains(key))
 	{
-		std::vector<std::string> param;
-		configFile.getline(line, 255);
-
-
-		if (line[0] == '\0' ||	//	line is empty
-			line[0] == '#' ||	//	line is comment
-			line[0] == ';' ||	//	line is comment
-			line[0] == '[')		//	line is section
-		{
-			continue;
-		}
-
-		split(line, param, '=');
-
-		for (int i = 0; i < param.size(); i++)
-		{
-			param[i] = trim(param[i]);
-		}
-
-		if (param[0] == key)
-		{
-			return param[1];
-		}
-
+		const nlohmann::json& value = configJson[key];
+		if (value.is_string())
+			return value.get<std::string>();
+        if (value.is_boolean())
+            return value.get<bool>() ? "1" : "0";
+        if (value.is_number())
+            return value.dump();
 	}
 
 	Logger::log("While reading config did not find this key: " + key);
@@ -73,7 +65,6 @@ void ConfigManager::readAllConfigs()
 	std::string config = "";
 
 	//[General]
-
 	config = ConfigManager::readConfig("level");
 	if (config != "") ConfigManager::level = config;
 
@@ -94,78 +85,47 @@ void ConfigManager::readAllConfigs()
 	if (config != "") ConfigManager::server_port = std::stoi(config);
 }
 
+// Stores a value, keeping numbers as numbers and everything else as strings.
+static bool looksNumeric(const std::string& value)
+{
+	if (value.empty())
+		return false;
+
+	bool hasDot = false;
+	for (char c : value)
+	{
+		if (c == '.')
+		{
+			if (hasDot)
+				return false;
+			hasDot = true;
+		}
+        else if (c < '0' || c > '9')
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
 void ConfigManager::writeConfig(std::string key, std::string value)
 {
 	Logger::log("Writing Configuration key: " + key + " value: " + value);
-	std::ifstream filein(configFileName); //File to read from
-	std::ofstream fileout("_" + configFileName); //Temporary file
-	if (!filein || !fileout)
+
+	if (looksNumeric(value))
+		configJson[key] = std::stod(value);
+	else
+		configJson[key] = value;
+
+	std::ofstream file(configFileName);
+	if (!file)
 	{
-		Logger::log("Error opening configfiles for saving!");
+		Logger::log("Error opening configfile for saving: " + configFileName);
 		return;
 	}
 
-	char linein[255];
-	std::string lineout;
-	bool foundKey = false;
-
-	while (!filein.eof())
-	{
-		std::vector<std::string> param;
-		filein.getline(linein, 255);
-
-		if (linein[0] == '\0' ||	//	line is empty
-			linein[0] == '#' ||		//	line is comment
-			linein[0] == ';' ||		//	line is comment
-			linein[0] == '[')		//	line is section
-		{
-			lineout = linein;
-			fileout << lineout;
-			if (!filein.eof())
-			{
-				fileout << '\n';
-			}
-			continue;
-		}
-
-		split(linein, param, '=');
-
-		for (int i = 0; i < param.size(); i++)
-		{
-			param[i] = trim(param[i]);
-		}
-
-		if (param[0] == key)
-		{
-			lineout = key + " = " + value;
-			foundKey = true;
-		}
-		else
-		{
-			lineout = linein;
-		}
-
-		fileout << lineout;
-
-		if (!filein.eof())
-		{
-			fileout << '\n';
-		}
-
-	}
-
-	if (!foundKey)
-	{
-		lineout = key + " = " + value;
-		fileout << '\n' << lineout;
-		Logger::log("While writing did not find this key: " + key + ". Added it at the end");
-	}
-
-	filein.close();
-	fileout.close();
-
-	std::remove(configFileName.c_str());
-	std::rename(("_" + configFileName).c_str(), configFileName.c_str());
+	file << configJson.dump(2) << '\n';
 }
 
 void ConfigManager::writeAllConfigs()
@@ -180,36 +140,4 @@ void ConfigManager::writeAllConfigs()
 
 	//[Network]
 	ConfigManager::writeConfig("server_port", std::to_string(ConfigManager::server_port));
-
-}
-
-size_t ConfigManager::split(const std::string& txt, std::vector<std::string>& strs, char ch)
-{
-	size_t pos = txt.find(ch);
-	size_t initialPos = 0;
-	strs.clear();
-
-	// Decompose statement
-	while (pos != std::string::npos) {
-		strs.push_back(txt.substr(initialPos, pos - initialPos));
-		initialPos = pos + 1;
-
-		pos = txt.find(ch, initialPos);
-	}
-
-	// Add the last one
-	strs.push_back(txt.substr(initialPos, (std::min)(pos, txt.size()) - initialPos + 1));
-
-	return strs.size();
-}
-
-std::string ConfigManager::trim(std::string& str)
-{
-	size_t first = str.find_first_not_of(" \t\r\n");
-	if (first == std::string::npos)
-	{
-		return "";
-	}
-	size_t last = str.find_last_not_of(" \t\r\n");
-	return str.substr(first, (last - first + 1));
 }

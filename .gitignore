@@ -82,8 +82,6 @@ Makefile
 *OpenGL_Tutorial/Release
 *OpenGL_Tutorial/x64
 
-tinyxml2.cpp
-tinyxml2.h
 /Game/textures/human01.jpg
 /Game/models/character_v2.bmf
 /Game/config.ini.bak

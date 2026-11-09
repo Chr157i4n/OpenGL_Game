@@ -284,6 +284,11 @@ public:
 	static bool pressedKeys[300];
 	static bool pressedMouseButtons[6];
 
+	// Last known absolute mouse position, needed for continuous mouse drag in
+	// the menus (the SDL event that triggered the press is not available there).
+	static int lastMouseX;
+	static int lastMouseY;
+
 	static float32 FPS;
 	static bool close;
 

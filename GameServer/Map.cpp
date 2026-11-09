@@ -5,7 +5,7 @@
 
 std::string Map::mapFileName = "";
 std::string Map::mapFileFolder = "levels/";
-std::string Map::mapFileExtension = ".xml";
+std::string Map::mapFileExtension = ".json";
 
 glm::vec3 Map::gravity = glm::vec3(0, -80, 0);
 

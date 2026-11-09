@@ -70,7 +70,7 @@ Currently only the moving object is moved back. For correct physic both object s
 
 **Initialization procedure**
 1. ConfigManager init
-	-read the config.ini file
+	-read the config.json file
 	-store all configuration in the ram inside the ConfigManager class
 2. Game init
 	2.1 Renderer init OpenGL	

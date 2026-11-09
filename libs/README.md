@@ -9,7 +9,7 @@ them automatically into `libs/_deps/` (ignored by git):
 | GLEW | OpenGL function loading | https://github.com/Perlmint/glew-cmake |
 | GLM | Vector and matrix math | https://github.com/g-truc/glm |
 | stb | Image and font loading | https://github.com/nothings/stb |
-| TinyXML2 | Level file parsing | https://github.com/leethomason/tinyxml2 |
+| nlohmann/json | Config, level, locale and voice file parsing | https://github.com/nlohmann/json |
 | ENet (zpl-c fork) | Networking, dual-stack IPv4/IPv6 | https://github.com/zpl-c/enet |
 | Lua | Scripting | https://github.com/lua/lua |
 | SoLoud | 2D/3D audio (SDL2 backend) | https://github.com/jarikomppa/soloud |

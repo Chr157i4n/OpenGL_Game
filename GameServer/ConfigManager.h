@@ -8,6 +8,8 @@
 #include <algorithm>
 #include <string>
 
+#include <nlohmann/json.hpp>
+
 #include "Logger.h"
 
 
@@ -44,6 +46,7 @@ private:
 	static std::string trim(std::string& str);
 
 	static std::string configFileName;
+	static nlohmann::json configJson;
 
 
 };

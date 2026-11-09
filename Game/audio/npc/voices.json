@@ -1,0 +1,32 @@
+{
+  "language": "de-DE",
+  "speed": 1.0,
+  "voicelines": [
+    {
+      "event": "chatter",
+      "lines": [
+        "Hallo.",
+        "Guten Tag.",
+        "Moin.",
+        "Was willst du?",
+        "Lass mich in Ruhe.",
+        "Ich bin nur vorbeigekommen.",
+        "Wie schön, dass du hier bist.",
+        "Nichts Neues aus der Stadt.",
+        "Baby Schmaybe.",
+        "Jo, wie geht es?"
+      ]
+    },
+    {
+      "event": "hit",
+      "lines": [
+        "Autsch!",
+        "Das tut weh!",
+        "Warum schiesst du auf mich?",
+        "Ho!",
+        "Das war keine gute Idee.",
+        "Verdammt!"
+      ]
+    }
+  ]
+}

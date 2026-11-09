@@ -1,7 +1,7 @@
 #pragma once
 #include "defines.h"
 
-#include "tinyxml2.h"
+#include <nlohmann/json.hpp>
 #include <fstream>
 #include <vector>
 #include <cmath>
@@ -37,21 +37,21 @@ public:
 
 	//parts of map loading
 	//
-	static void loadDefaultModels(tinyxml2::XMLElement* xmlNode);
+	static void loadDefaultModels(const nlohmann::json& node);
 
-	static void loadMapProperties(tinyxml2::XMLElement* xmlNode);
+	static void loadMapProperties(const nlohmann::json& node);
 
-	static void loadPlayer(tinyxml2::XMLElement* xmlNode);
+	static void loadPlayer(const nlohmann::json& mapNode);
 
-	static void loadObject(tinyxml2::XMLElement* xmlNode, int objectCount);
+	static void loadObject(const nlohmann::json& node, int objectCount);
 
-	static void loadNpc(tinyxml2::XMLElement* xmlNode, int npcCount);
+	static void loadNpc(const nlohmann::json& node, int npcCount);
 
-	static void loadSound(tinyxml2::XMLElement* xmlNode);
+	static void loadSound(const nlohmann::json& node);
 
-	static void loadLight(tinyxml2::XMLElement* xmlNode);
+	static void loadLight(const nlohmann::json& node);
 
-	static void loadText(tinyxml2::XMLElement* xmlNode);
+	static void loadText(const nlohmann::json& node);
 
 
 	

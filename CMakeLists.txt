@@ -124,7 +124,7 @@ if(OG_BUILD_GAME)
         ${OG_GLEW_TARGET}
         OpenGL::GL
         og_enet
-        tinyxml2::tinyxml2
+        nlohmann_json::nlohmann_json
         glm::glm
         og_lua
         og_stb)
@@ -163,7 +163,6 @@ if(OG_BUILD_GAME)
     endif()
 
     og_set_output_directory(OpenGL_Game "${CMAKE_SOURCE_DIR}/Game")
-    og_copy_runtime_dependency(OpenGL_Game tinyxml2::tinyxml2)
 
     if(WIN32 AND TARGET SDL2::SDL2 AND NOT TARGET SDL2::SDL2-static)
         add_custom_command(TARGET OpenGL_Game POST_BUILD
@@ -193,7 +192,7 @@ if(OG_BUILD_SERVER)
     target_compile_definitions(GameServer PRIVATE GLM_ENABLE_EXPERIMENTAL)
     target_link_libraries(GameServer PRIVATE
         og_enet
-        tinyxml2::tinyxml2
+        nlohmann_json::nlohmann_json
         glm::glm
         og_stb)
 
@@ -202,7 +201,6 @@ if(OG_BUILD_SERVER)
     endif()
 
     og_set_output_directory(GameServer "${CMAKE_SOURCE_DIR}/GameServer")
-    og_copy_runtime_dependency(GameServer tinyxml2::tinyxml2)
 
     add_custom_target(run_server
         COMMAND "$<TARGET_FILE:GameServer>"

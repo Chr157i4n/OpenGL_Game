@@ -7,7 +7,7 @@
 std::string Map::mapName = "";
 std::string Map::mapFileName = "";
 std::string Map::mapFileFolder = "levels/";
-std::string Map::mapFileExtension = ".xml";
+std::string Map::mapFileExtension = ".json";
 
 glm::vec3 Map::sun_direction= glm::vec3(-0.8, +0.4, +0.4);
 glm::vec3 Map::sun_color = glm::vec3(0.8, 0.8, 0.8);

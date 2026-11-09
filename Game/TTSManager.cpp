@@ -16,6 +16,8 @@
 #include <string>
 #include <vector>
 
+#include <nlohmann/json.hpp>
+
 std::vector<TTSManager::Voice> TTSManager::s_voices;
 std::int64_t TTSManager::s_configStamp = 0;
 
@@ -27,7 +29,7 @@ namespace
 	pico_System g_system = nullptr;
 	std::vector<unsigned char> g_picoMemory;
 
-	const char* const VOICE_CONFIG_FILE = "audio/npc/voices.ini";
+	const char* const VOICE_CONFIG_FILE = "audio/npc/voices.json";
 
 	// Counter for pico voice definition names. It only grows, so a reload can
 	// create definitions for newly configured languages without clashing with
@@ -47,7 +49,7 @@ namespace
 		const std::string whitespace = " \t\r\n";
 		size_t start = value.find_first_not_of(whitespace);
 		if (start == std::string::npos) return std::string();
-		size_t end = value.find_last_not_of(whitespace);
+        size_t end = value.find_last_not_of(whitespace);
 		return value.substr(start, end - start + 1);
 	}
 
@@ -84,65 +86,6 @@ namespace
 		return std::string();
 	}
 
-	std::vector<std::string> splitVariants(const std::string& text)
-	{
-		std::vector<std::string> variants;
-		std::string current;
-
-		for (char c : text)
-		{
-			if (c == '|')
-			{
-				std::string variant = trim(current);
-				if (!variant.empty()) variants.push_back(variant);
-				current.clear();
-			}
-			else
-			{
-				current.push_back(c);
-			}
-		}
-
-		std::string variant = trim(current);
-		if (!variant.empty()) variants.push_back(variant);
-
-		return variants;
-	}
-
-	void parseOptions(const std::string& options, TTSManager::Voice& voice)
-	{
-		size_t pos = 0;
-		while (pos < options.size())
-		{
-			size_t next = options.find(';', pos);
-			std::string pair = trim(options.substr(pos, next == std::string::npos ? std::string::npos : next - pos));
-			pos = next == std::string::npos ? options.size() : next + 1;
-
-			size_t separator = pair.find('=');
-			if (separator == std::string::npos) continue;
-
-			std::string key = lower(trim(pair.substr(0, separator)));
-			std::string value = trim(pair.substr(separator + 1));
-
-			if (key == "speed")
-			{
-				voice.speed = std::clamp(std::stof(value), 0.1f, 2.0f);
-			}
-			else if (key == "lang" || key == "language")
-			{
-				voice.lang = lower(value);
-			}
-			else if (key == "ta")
-			{
-				voice.ta = value;
-			}
-			else if (key == "sg")
-			{
-				voice.sg = value;
-			}
-		}
-	}
-
 	bool loadConfig(std::vector<TTSManager::Voice>& voices)
 	{
 		const std::string configFile = VOICE_CONFIG_FILE;
@@ -159,54 +102,62 @@ namespace
 			return false;
 		}
 
+		nlohmann::json json;
+		try
+		{
+			json = nlohmann::json::parse(file);
+		}
+		catch (const std::exception& e)
+		{
+			Logger::log("TTS: could not parse " + configFile + ": " + e.what());
+			return false;
+		}
+
 		std::string defaultLang = "de-DE";
 		float defaultSpeed = 1.0f;
 
-		std::string line;
-		while (std::getline(file, line))
+		if (json.contains("language"))
+			defaultLang = lower(json["language"].get<std::string>());
+		else if (json.contains("sprache"))
+			defaultLang = lower(json["sprache"].get<std::string>());
+
+		if (json.contains("speed"))
+			defaultSpeed = std::clamp(json["speed"].get<float>(), 0.1f, 2.0f);
+
+		if (!json.contains("voicelines"))
+		return false;
+
+		for (const auto& entry : json["voicelines"])
 		{
-			line = trim(line);
-			if (line.empty() || line[0] == '#' || line[0] == ';') continue;
-			if (line[0] == '[') continue;
-
-			size_t separator = line.find('=');
-			if (separator == std::string::npos) continue;
-
-			std::string key = lower(trim(line.substr(0, separator)));
-			std::string value = trim(line.substr(separator + 1));
-
-			if (key == "sprache" || key == "language" || key == "lang")
-			{
-				defaultLang = lower(value);
-				continue;
-			}
-
-			if (key == "speed")
-			{
-				defaultSpeed = std::clamp(std::stof(value), 0.1f, 2.0f);
-				continue;
-			}
-
-			// Everything after ';' is an optional parameter list.
-			std::string text = value;
-			std::string options;
-			size_t optionStart = text.find(';');
-			if (optionStart != std::string::npos)
-			{
-				options = text.substr(optionStart + 1);
-				text = text.substr(0, optionStart);
-			}
-
-			std::vector<std::string> lines = splitVariants(text);
-			if (lines.empty()) continue;
-
 			TTSManager::Voice voice;
-			voice.event = key;
-			voice.lines = lines;
+			voice.event = lower(entry.value("event", std::string()));
+			if (voice.event.empty())
+				continue;
+
+			if (entry.contains("lines"))
+			{
+				for (const auto& line : entry["lines"])
+				{
+					std::string variant = trim(line.get<std::string>());
+					if (!variant.empty())
+						voice.lines.push_back(variant);
+				}
+			}
+
+			if (voice.lines.empty())
+				continue;
+
 			voice.lang = defaultLang;
 			voice.speed = defaultSpeed;
 
-			parseOptions(options, voice);
+			if (entry.contains("speed"))
+				voice.speed = std::clamp(entry["speed"].get<float>(), 0.1f, 2.0f);
+			if (entry.contains("lang"))
+				voice.lang = lower(entry["lang"].get<std::string>());
+			if (entry.contains("ta"))
+				voice.ta = entry["ta"].get<std::string>();
+			if (entry.contains("sg"))
+				voice.sg = entry["sg"].get<std::string>();
 
 			if (voice.ta.empty()) voice.ta = findResource(voice.lang + "_ta.bin");
 			if (voice.sg.empty())
@@ -214,25 +165,25 @@ namespace
 				const std::string guesses[] = {
 					voice.lang + "_gl0_sg.bin",
 					voice.lang + "_lh0_sg.bin",
-					voice.lang + "_kh0_sg.bin",
-					voice.lang + "_sg.bin",
+                    voice.lang + "_kh0_sg.bin",
+                    voice.lang + "_sg.bin",
 				};
 
 				for (const std::string& guess : guesses)
-				{
-					voice.sg = findResource(guess);
-					if (!voice.sg.empty()) break;
-				}
-			}
+                {
+                    voice.sg = findResource(guess);
+                    if (!voice.sg.empty()) break;
+                }
+            }
 
-			if (voice.ta.empty() || voice.sg.empty())
-			{
-				Logger::log("TTS: no pico language files found for '" + voice.lang + "' (voiceline '" + key + "')");
-				continue;
-			}
+            if (voice.ta.empty() || voice.sg.empty())
+            {
+                Logger::log("TTS: no pico language files found for '" + voice.lang + "' (voiceline '" + voice.event + "')");
+                continue;
+            }
 
-			voices.push_back(voice);
-		}
+            voices.push_back(voice);
+        }
 
 		return !voices.empty();
 	}
@@ -301,21 +252,21 @@ namespace
 				if (&other == &voice) continue;
 				if (other.defName.empty()) continue;
 				if (other.ta == voice.ta && other.sg == voice.sg)
-				{
-					voice.taName = other.taName;
-					voice.sgName = other.sgName;
-					voice.defName = other.defName;
-					break;
-				}
-			}
+                {
+                    voice.taName = other.taName;
+                    voice.sgName = other.sgName;
+                    voice.defName = other.defName;
+                    break;
+                }
+            }
 
-			if (!voice.defName.empty()) continue;
+            if (!voice.defName.empty()) continue;
 
-			if (!createVoiceDefinition(voice)) return false;
-		}
+            if (!createVoiceDefinition(voice)) return false;
+        }
 
-		return true;
-	}
+        return true;
+    }
 }
 
 bool TTSManager::init()
@@ -334,7 +285,7 @@ bool TTSManager::init()
 	if (status != PICO_OK || g_system == nullptr)
 	{
 		pico_Retstring message;
-		if (g_system) pico_getSystemStatusMessage(g_system, status, message);
+        if (g_system) pico_getSystemStatusMessage(g_system, status, message);
 		Logger::log("TTS: could not initialize pico engine: " + std::string(g_system ? message : "no memory"));
 		g_system = nullptr;
 		s_voices.clear();

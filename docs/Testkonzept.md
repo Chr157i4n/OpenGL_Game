@@ -81,7 +81,7 @@ Diese Klassen haben **keine GL-Abhängigkeit** und können direkt getestet werde
 | `GameServer/Logger` | Log-Formatierung `[hh:mm:ss] message` | String-Format |
 | `GameServer/Map`, `Game/Map` | `getGravity`, `getMapSize`, `getSkyboxFaces`, Filename-Normalisierung in `load()` | reine Getter + Parsing |
 | `GameServer/Character`, `Bullet`, `NPC`, `Client` | `run`, `crouch`, `jump`, `resetVerticalMovement`, `getLookOrigin`, `forwardSpeed`-Verhalten, `Bullet::fall`-Rotationsformel, `NPC`-Nav-Point-Zyklus | State-Machine / Physik |
-| `GameServer/ResourceManager` | `loadAllModels` (Dedup), `readAllMaps`, XML-Map-Parsing | tinyxml2-Parser |
+| `GameServer/ResourceManager` | `loadAllModels` (Dedup), `readAllMaps`, JSON-Map-Parsing | nlohmann/json-Parser |
 
 ### Ebene B – Logik extrahierbar, aber GL-Kopplung entfernen
 
@@ -159,7 +159,7 @@ if(OG_BUILD_TESTS)
     target_link_libraries(og_tests PRIVATE
         Catch2::Catch2WithMain
         glm::glm
-        tinyxml2::tinyxml2)
+        nlohmann_json::nlohmann_json)
 
     find_package(Catch2 3 REQUIRED)
     include(Catch)
@@ -167,7 +167,7 @@ if(OG_BUILD_TESTS)
 endif()
 ```
 
-**Wichtiger Hinweis:** Der Server-Code hat **keine** OpenGL-/SDL-Abhängigkeit. Deshalb kann die Test-Binary nur `glm`, `tinyxml2`, `enet` (falls Protokoll getestet wird) und Catch2 verlinken – **kein GLEW, kein SDL, kein SoLoud**. Das ist der entscheidende Vorteil: Tests laufen auf jedem CI-Runner ohne GPU.
+**Wichtiger Hinweis:** Der Server-Code hat **keine** OpenGL-/SDL-Abhängigkeit. Deshalb kann die Test-Binary nur `glm`, `nlohmann/json`, `enet` (falls Protokoll getestet wird) und Catch2 verlinken – **kein GLEW, kein SDL, kein SoLoud**. Das ist der entscheidende Vorteil: Tests laufen auf jedem CI-Runner ohne GPU.
 
 ---
 

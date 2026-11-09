@@ -22,6 +22,8 @@ std::vector< std::shared_ptr<Bullet> > Game::bullets;
 
 bool Game::pressedKeys[300];
 bool Game::pressedMouseButtons[6];
+int Game::lastMouseX = 0;
+int Game::lastMouseY = 0;
 
 float32  Game::FPS = 0;
 bool  Game::close = false;
@@ -356,6 +358,9 @@ void Game::processInput()
 			keyReleased(event.key.keysym.sym);
 		}
 		else if (event.type == SDL_MOUSEMOTION) {
+			Game::lastMouseX = event.motion.x;
+			Game::lastMouseY = event.motion.y;
+
 			if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
 			{
 				if (SDL_GetRelativeMouseMode() && players.size() > 0) {
@@ -370,6 +375,9 @@ void Game::processInput()
 			}
 		}
 		else if (event.type == SDL_MOUSEBUTTONDOWN) {
+			Game::lastMouseX = event.motion.x;
+			Game::lastMouseY = event.motion.y;
+
 			if (gameState == GameState::GAME_ACTIVE || gameState == GameState::GAME_GAME_OVER)
 			{
 				if (!SDL_GetRelativeMouseMode())
@@ -380,7 +388,7 @@ void Game::processInput()
 			}
 			else if (gameState == GameState::GAME_MENU)
 			{
-				if (menu_current->onMouseClick(event.motion.x, event.motion.y, event.button) == 2)
+				if (menu_current->onMouseClick(event.motion.x, event.motion.y, event.button) == MENU_CONSUMED)
 				{
 					continue;
 				}
@@ -410,7 +418,7 @@ void Game::processInput()
 		}
 		else if (gameState == GameState::GAME_MENU)
 		{
-			menu_current->onMouseDown(event.motion.x, event.motion.y, event.button);
+			menu_current->onMouseDown(Game::lastMouseX, Game::lastMouseY);
 		}
 
 	}

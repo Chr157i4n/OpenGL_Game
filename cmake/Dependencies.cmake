@@ -268,20 +268,18 @@ if(NOT TARGET og_enet)
 endif()
 
 # ---------------------------------------------------------------------------
-# TinyXML2
+# nlohmann/json (header only)
 # ---------------------------------------------------------------------------
 if(OG_USE_SYSTEM_DEPS)
-    find_package(tinyxml2 CONFIG QUIET)
+    find_package(nlohmann_json CONFIG QUIET)
 endif()
 
-if(NOT TARGET tinyxml2::tinyxml2)
-    set(tinyxml2_BUILD_TESTING OFF CACHE BOOL "" FORCE)
-
-    FetchContent_Declare(tinyxml2
-        GIT_REPOSITORY https://github.com/leethomason/tinyxml2.git
-        GIT_TAG 10.0.0
+if(NOT TARGET nlohmann_json::nlohmann_json)
+    FetchContent_Declare(nlohmann_json
+        GIT_REPOSITORY https://github.com/nlohmann/json.git
+        GIT_TAG v3.11.3
         GIT_SHALLOW TRUE)
-    FetchContent_MakeAvailable(tinyxml2)
+    FetchContent_MakeAvailable(nlohmann_json)
 endif()
 
 # ---------------------------------------------------------------------------

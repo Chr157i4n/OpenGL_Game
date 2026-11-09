@@ -36,7 +36,7 @@ void Game::startGame()
 /// </summary>
 void Game::init()
 {
-	ConfigManager::init("config.ini");
+	ConfigManager::init("config.json");
 	Map::load(ConfigManager::level);
 	NetworkManager::init();
 	gameLoop();

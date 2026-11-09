@@ -1,0 +1,82 @@
+{
+  "name": "Test Level",
+  "map_properties": {
+    "sun_direction": [
+      -0.8,
+      0.6,
+      -0.0
+    ],
+    "sun_color": [
+      0.95,
+      0.93,
+      0.66
+    ],
+    "skybox": "skybox2"
+  },
+  "default_models": {
+    "character_model": "character.glb",
+    "bullet_model": "arrow.glb",
+    "fallback_model": "replacemeball.glb"
+  },
+  "player": {
+    "position": [
+      40.0,
+      10.0,
+      30.0
+    ],
+    "modelfile": "character.glb"
+  },
+  "models": [
+    "character.glb",
+    "arrow.glb",
+    "ground.glb",
+    "box.glb"
+  ],
+  "objects": [
+    {
+      "name": "Ground",
+      "type": "Environment",
+      "collisionboxtype": "cube",
+      "modelfile": "ground.glb",
+      "gravity": false,
+      "position": [
+        0.0,
+        -0.2,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Barrel",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "barrel.glb",
+      "gravity": false,
+      "position": [
+        5.0,
+        0.0,
+        5.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    }
+  ],
+  "bots": []
+}

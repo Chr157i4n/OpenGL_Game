@@ -3,12 +3,14 @@
 #include "Game.h"
 
 
-std::string			ConfigManager::configFileName = "config.ini";
+std::string			ConfigManager::configFileName = "config.json";
+nlohmann::json		ConfigManager::configJson;
 
 //SETTINGS
 //[General]
+std::string			ConfigManager::language = "de";
 std::string			ConfigManager::player_name = "Player";
-std::string			ConfigManager::level = "level_test.xml";
+std::string			ConfigManager::level = "level_test.json";
 int					ConfigManager::bots = 0;
 float				ConfigManager::bot_speed_mult = 0.5;
 bool				ConfigManager::show_debug_console = 0;
@@ -47,50 +49,39 @@ void ConfigManager::init(std::string nConfigFileName)
 {
 	configFileName = nConfigFileName;
 
+	std::ifstream file(configFileName);
+	if (file)
+	{
+		try
+		{
+			configJson = nlohmann::json::parse(file);
+		}
+		catch (const std::exception& e)
+		{
+			Logger::log("Could not parse Configfile: " + configFileName + " - " + e.what());
+		}
+	}
+	else
+	{
+		Logger::log("Cant open Configfile: " + configFileName);
+	}
+
 	ConfigManager::readAllConfigs();
 }
 
 std::string ConfigManager::readConfig(std::string key)
 {
 	Logger::log("reading Configuration key: " + key);
-	std::ifstream configFile;
-	configFile.open(configFileName);
 
-	if (!configFile) {
-		Logger::log("Cant open Configfile: " + configFileName);
-		return "";
-	}
-
-	char line[255];
-
-	while (!configFile.eof())
+	if (configJson.contains(key))
 	{
-		std::vector<std::string> param;
-		configFile.getline(line, 255);
-
-
-		if (line[0] == '\0' ||	//	line is empty
-			line[0] == '#' ||	//	line is comment
-			line[0] == ';' ||	//	line is comment
-			line[0] == '[')		//	line is section
-		{
-			continue;
-		}
-
-
-
-		Helper::split(line, param, '=');
-
-		for (int i = 0; i < param.size(); i++)
-		{
-			param[i] = Helper::trim(param[i]);
-		}
-
-		if (param[0] == key)
-		{
-			return param[1];
-		}
-
+		const nlohmann::json& value = configJson[key];
+		if (value.is_string())
+			return value.get<std::string>();
+        if (value.is_boolean())
+            return value.get<bool>() ? "1" : "0";
+        if (value.is_number())
+            return value.dump();
 	}
 
 	Logger::log("While reading config did not find this key: " + key);
@@ -103,6 +94,9 @@ void ConfigManager::readAllConfigs()
 	std::string config = "";
 
 	//[General]
+	config = ConfigManager::readConfig("language");
+	if (config != "") ConfigManager::language = config;
+
 	config = ConfigManager::readConfig("player_name");
 	if (config != "") ConfigManager::player_name = config;
 
@@ -192,84 +186,54 @@ void ConfigManager::readAllConfigs()
 	if (config != "") ConfigManager::v_sync = std::stoi(config);
 }
 
+// Stores a value, keeping numbers as numbers and everything else as strings.
+static bool looksNumeric(const std::string& value)
+{
+	if (value.empty())
+		return false;
+
+	bool hasDot = false;
+	for (char c : value)
+	{
+		if (c == '.')
+		{
+			if (hasDot)
+				return false;
+			hasDot = true;
+		}
+        else if (c < '0' || c > '9')
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
 void ConfigManager::writeConfig(std::string key, std::string value)
 {
 	Logger::log("Writing Configuration key: " + key + " value: " + value);
-	std::ifstream filein(configFileName); //File to read from
-	std::ofstream fileout("_" + configFileName); //Temporary file
-	if (!filein || !fileout)
+
+	if (looksNumeric(value))
+		configJson[key] = std::stod(value);
+	else
+		configJson[key] = value;
+
+	std::ofstream file(configFileName);
+	if (!file)
 	{
-		Logger::log("Error opening configfiles for saving!");
+		Logger::log("Error opening configfile for saving: " + configFileName);
 		return;
 	}
 
-	char linein[255];
-	std::string lineout;
-	bool foundKey = false;
-
-	while (!filein.eof())
-	{
-		std::vector<std::string> param;
-		filein.getline(linein, 255);
-
-		if (linein[0] == '\0' ||	//	line is empty
-			linein[0] == '#' ||		//	line is comment
-			linein[0] == ';' ||		//	line is comment
-			linein[0] == '[')		//	line is section
-		{
-			lineout = linein;
-			fileout << lineout;
-			if (!filein.eof())
-			{
-				fileout << '\n';
-			}
-			continue;
-		}
-
-		Helper::split(linein, param, '=');
-
-		for (int i = 0; i < param.size(); i++)
-		{
-			param[i] = Helper::trim(param[i]);
-		}
-
-		if (param[0] == key)
-		{
-			lineout = key + " = " + value;
-			foundKey = true;
-		}
-		else
-		{
-			lineout = linein;
-		}
-
-		fileout << lineout;
-
-		if (!filein.eof())
-		{
-			fileout << '\n';
-		}
-
-	}
-
-	if (!foundKey)
-	{
-		lineout = key + " = " + value;
-		fileout << '\n' << lineout;
-		Logger::log("While writing did not find this key: " + key + ". Added it at the end");
-	}
-
-	filein.close();
-	fileout.close();
-
-	std::remove(configFileName.c_str());
-	std::rename(("_" + configFileName).c_str(), configFileName.c_str());
+	file << configJson.dump(2) << '\n';
 }
 
 void ConfigManager::writeAllConfigs()
 {
 	Logger::log("Writing Configuration");
 	//[General]
+	ConfigManager::writeConfig("language", ConfigManager::language);
 	ConfigManager::writeConfig("player_name", ConfigManager::player_name);
 	ConfigManager::writeConfig("level", ConfigManager::level);
 	ConfigManager::writeConfig("bots", std::to_string(ConfigManager::bots));

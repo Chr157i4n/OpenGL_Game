@@ -167,5 +167,8 @@
   "logging": {
     "level": "info",
     "logFilePath": "./.opencode/opencode-rag.log"
+  },
+  "embedding": {
+    "vectorDimension": 1024
   }
 }

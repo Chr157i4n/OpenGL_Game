@@ -9,7 +9,7 @@
 
 /// <summary>
 /// Live text-to-speech for NPC voices using SVOX Pico TTS.
-/// The voicelines are defined in audio/npc/voices.ini, so every line can be
+/// The voicelines are defined in audio/npc/voices.json, so every line can be
 /// changed or added without any audio files.
 /// </summary>
 class TTSManager
@@ -57,7 +57,7 @@ public:
 	/// All configured event names.
 	static std::vector<std::string> events();
 
-	/// Reloads audio/npc/voices.ini if the file was modified on disk.
+	/// Reloads audio/npc/voices.json if the file was modified on disk.
 	/// New events and variants are picked up without restarting the game.
 	static bool reloadIfChanged();
 

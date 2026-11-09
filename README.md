@@ -94,19 +94,19 @@ On the Graphics Card side i use the shader programming language GLSL
 
 For importing Textures and Fonts i use the STB Library.
 
-As Mapfiles i use the XML format. To parse them i use the tinyxml2 Library.
+As Mapfiles i use the JSON format. To parse them i use the nlohmann/json Library.
 
 Every level file configures the models which are not defined by an object, but by the level itself:
 
-```xml
-  <default_models>
-    <character_model>character.glb</character_model>
-    <bullet_model>arrow.glb</bullet_model>
-    <fallback_model>replacemeball.glb</fallback_model>
-  </default_models>
+```json
+  "default_models": {
+    "character_model": "character.glb",
+    "bullet_model": "arrow.glb",
+    "fallback_model": "replacemeball.glb"
+  }
 ```
 
-`character_model` is used for the player and for all bots without their own `<modelfile>`, `bullet_model` for every bullet which is shot, and `fallback_model` is loaded as the first model and used whenever an object asks for a model which is not available. The player can also get its own model with a `<modelfile>` inside the `<player>` node.
+`character_model` is used for the player and for all bots without their own `modelfile`, `bullet_model` for every bullet which is shot, and `fallback_model` is loaded as the first model and used whenever an object asks for a model which is not available. The player can also get its own model with a `modelfile` inside the `player` object.
 
 for playing audio the open-source SoLoud-Library is used.
 
@@ -151,8 +151,8 @@ stb for loading fonts and textures/images
 <https://github.com/nothings/stb/blob/master/stb_image.h>
 <https://github.com/nothings/stb/blob/master/stb_truetype.h>
 
-TinyXML2 for parsing the level-file
-<https://github.com/leethomason/tinyxml2>
+nlohmann/json for parsing the level-file, config, locale and voice files
+<https://github.com/nlohmann/json>
 
 SoLoud for 2D and 3D audio (open source, zlib/libpng license)
 <https://soloud-audio.com/>
