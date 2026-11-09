@@ -1,17 +1,5 @@
 #pragma once
-#include "defines.h"
-
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <cmath>
-#include <algorithm>
-#include <string>
-
-#include <nlohmann/json.hpp>
-
-#include "Logger.h"
-
+#include "ConfigManagerBase.h"
 
 enum ShadowOption {
 	off,
@@ -25,21 +13,16 @@ enum FullscreenOption {
 	windowed_borderless,
 };
 
-class ConfigManager
+// Client configuration. Reuses the shared JSON plumbing from ConfigManagerBase and
+// adds the settings that only the game client has (audio, renderer, UI language...).
+class ConfigManager : public ConfigManagerBase
 {
 
 public:
 
 	static void init(std::string nConfigFileName);
 
-	static std::string readConfig(std::string key);
-
 	static void readAllConfigs();
-
-	static void writeConfig(const std::string& key, const std::string& value);
-	static void writeConfig(const std::string& key, bool value);
-	static void writeConfig(const std::string& key, int value);
-	static void writeConfig(const std::string& key, double value);
 
 	static void writeAllConfigs();
 
@@ -48,15 +31,10 @@ public:
 	// UI language, selects locale/<language>.json
 	static std::string language;
 	static std::string player_name;
-	static std::string level;
-	static int bots;
-	static float bot_speed_mult;
 	static bool show_debug_console;
 	static float mouse_sensitivity;
-	static int max_bullets;
 	//[Network]
 	static std::string server_address;
-	static int server_port;
 	//[Audio]
 	static float master_volume;
 	static float music_volume;
@@ -80,15 +58,5 @@ public:
 	static int fps_limit_ingame;
 	static int fps_limit_menu;
 	static bool v_sync;
-	
-	
-
-private:
-
-	static std::string configFileName;
-	static nlohmann::json configJson;
-	static void saveConfig();
-
 
 };
-

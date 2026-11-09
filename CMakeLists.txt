@@ -223,6 +223,7 @@ if(OG_BUILD_TESTS)
     target_compile_definitions(og_tests PRIVATE GLM_ENABLE_EXPERIMENTAL)
     target_link_libraries(og_tests PRIVATE
         Catch2::Catch2WithMain
+        nlohmann_json::nlohmann_json
         glm::glm)
 
     list(APPEND CMAKE_MODULE_PATH "${catch2_SOURCE_DIR}/extras")
