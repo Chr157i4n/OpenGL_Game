@@ -109,15 +109,8 @@ static bool looksNumeric(const std::string& value)
 	return true;
 }
 
-void ConfigManager::writeConfig(std::string key, std::string value)
+void ConfigManager::saveConfig()
 {
-	Logger::log("Writing Configuration key: " + key + " value: " + value);
-
-	if (looksNumeric(value))
-		configJson[key] = std::stod(value);
-	else
-		configJson[key] = value;
-
 	std::ofstream file(configFileName);
 	if (!file)
 	{
@@ -128,16 +121,54 @@ void ConfigManager::writeConfig(std::string key, std::string value)
 	file << configJson.dump(2) << '\n';
 }
 
+void ConfigManager::writeConfig(const std::string& key, bool value)
+{
+	Logger::log("Writing Configuration key: " + key + " value: " + (value ? "true" : "false"));
+	configJson[key] = value;
+	saveConfig();
+}
+
+void ConfigManager::writeConfig(const std::string& key, int value)
+{
+	Logger::log("Writing Configuration key: " + key + " value: " + std::to_string(value));
+	configJson[key] = value;
+	saveConfig();
+}
+
+void ConfigManager::writeConfig(const std::string& key, double value)
+{
+	Logger::log("Writing Configuration key: " + key + " value: " + std::to_string(value));
+	configJson[key] = value;
+	saveConfig();
+}
+
+void ConfigManager::writeConfig(const std::string& key, const std::string& value)
+{
+	Logger::log("Writing Configuration key: " + key + " value: " + value);
+
+	// The JSON type is derived from the value itself: real booleans become booleans,
+	// whole numbers become integers, numbers with a decimal point stay floats, and
+	// anything else is stored as a string.
+	if (value == "true" || value == "false")
+		configJson[key] = (value == "true");
+	else if (looksNumeric(value))
+		configJson[key] = (value.find('.') == std::string::npos) ? std::stoll(value) : std::stod(value);
+	else
+		configJson[key] = value;
+
+	saveConfig();
+}
+
 void ConfigManager::writeAllConfigs()
 {
 	Logger::log("Writing Configuration");
 	//[General]
 	ConfigManager::writeConfig("level", ConfigManager::level);
-	ConfigManager::writeConfig("bots", std::to_string(ConfigManager::bots));
-	ConfigManager::writeConfig("bot_speed_mult", std::to_string(ConfigManager::bot_speed_mult));
-	ConfigManager::writeConfig("max_bullets", std::to_string(ConfigManager::max_bullets));
-	ConfigManager::writeConfig("fps_limit_server", std::to_string(ConfigManager::fps_limit_server));
+	ConfigManager::writeConfig("bots", ConfigManager::bots);
+	ConfigManager::writeConfig("bot_speed_mult", ConfigManager::bot_speed_mult);
+	ConfigManager::writeConfig("max_bullets", ConfigManager::max_bullets);
+	ConfigManager::writeConfig("fps_limit_server", ConfigManager::fps_limit_server);
 
 	//[Network]
-	ConfigManager::writeConfig("server_port", std::to_string(ConfigManager::server_port));
+	ConfigManager::writeConfig("server_port", ConfigManager::server_port);
 }

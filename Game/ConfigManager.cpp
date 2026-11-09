@@ -210,15 +210,8 @@ static bool looksNumeric(const std::string& value)
 	return true;
 }
 
-void ConfigManager::writeConfig(std::string key, std::string value)
+void ConfigManager::saveConfig()
 {
-	Logger::log("Writing Configuration key: " + key + " value: " + value);
-
-	if (looksNumeric(value))
-		configJson[key] = std::stod(value);
-	else
-		configJson[key] = value;
-
 	std::ofstream file(configFileName);
 	if (!file)
 	{
@@ -229,6 +222,44 @@ void ConfigManager::writeConfig(std::string key, std::string value)
 	file << configJson.dump(2) << '\n';
 }
 
+void ConfigManager::writeConfig(const std::string& key, bool value)
+{
+	Logger::log("Writing Configuration key: " + key + " value: " + (value ? "true" : "false"));
+	configJson[key] = value;
+	saveConfig();
+}
+
+void ConfigManager::writeConfig(const std::string& key, int value)
+{
+	Logger::log("Writing Configuration key: " + key + " value: " + std::to_string(value));
+	configJson[key] = value;
+	saveConfig();
+}
+
+void ConfigManager::writeConfig(const std::string& key, double value)
+{
+	Logger::log("Writing Configuration key: " + key + " value: " + std::to_string(value));
+	configJson[key] = value;
+	saveConfig();
+}
+
+void ConfigManager::writeConfig(const std::string& key, const std::string& value)
+{
+	Logger::log("Writing Configuration key: " + key + " value: " + value);
+
+	// The JSON type is derived from the value itself: real booleans become booleans,
+	// whole numbers become integers, numbers with a decimal point stay floats, and
+	// anything else is stored as a string.
+	if (value == "true" || value == "false")
+		configJson[key] = (value == "true");
+	else if (looksNumeric(value))
+		configJson[key] = (value.find('.') == std::string::npos) ? std::stoll(value) : std::stod(value);
+	else
+		configJson[key] = value;
+
+	saveConfig();
+}
+
 void ConfigManager::writeAllConfigs()
 {
 	Logger::log("Writing Configuration");
@@ -236,43 +267,43 @@ void ConfigManager::writeAllConfigs()
 	ConfigManager::writeConfig("language", ConfigManager::language);
 	ConfigManager::writeConfig("player_name", ConfigManager::player_name);
 	ConfigManager::writeConfig("level", ConfigManager::level);
-	ConfigManager::writeConfig("bots", std::to_string(ConfigManager::bots));
-	ConfigManager::writeConfig("bot_speed_mult", std::to_string(ConfigManager::bot_speed_mult));
-	ConfigManager::writeConfig("show_debug_console", std::to_string(ConfigManager::show_debug_console));
-	ConfigManager::writeConfig("mouse_sensitivity", std::to_string(ConfigManager::mouse_sensitivity));
-	ConfigManager::writeConfig("max_bullets", std::to_string(ConfigManager::max_bullets));
+	ConfigManager::writeConfig("bots", ConfigManager::bots);
+	ConfigManager::writeConfig("bot_speed_mult", ConfigManager::bot_speed_mult);
+	ConfigManager::writeConfig("show_debug_console", ConfigManager::show_debug_console);
+	ConfigManager::writeConfig("mouse_sensitivity", ConfigManager::mouse_sensitivity);
+	ConfigManager::writeConfig("max_bullets", ConfigManager::max_bullets);
 
 	//[Network]
 	ConfigManager::writeConfig("server_address", ConfigManager::server_address);
-	ConfigManager::writeConfig("server_port", std::to_string(ConfigManager::server_port));
+	ConfigManager::writeConfig("server_port", ConfigManager::server_port);
 
 	//[Audio]
-	ConfigManager::writeConfig("master_volume", std::to_string(ConfigManager::master_volume));
-	ConfigManager::writeConfig("music_volume", std::to_string(ConfigManager::music_volume));
-	ConfigManager::writeConfig("effect_volume", std::to_string(ConfigManager::effect_volume));
-	ConfigManager::writeConfig("ambient_volume", std::to_string(ConfigManager::ambient_volume));
-	ConfigManager::writeConfig("voice_volume", std::to_string(ConfigManager::voice_volume));
+	ConfigManager::writeConfig("master_volume", ConfigManager::master_volume);
+	ConfigManager::writeConfig("music_volume", ConfigManager::music_volume);
+	ConfigManager::writeConfig("effect_volume", ConfigManager::effect_volume);
+	ConfigManager::writeConfig("ambient_volume", ConfigManager::ambient_volume);
+	ConfigManager::writeConfig("voice_volume", ConfigManager::voice_volume);
 
 	//[Renderer]
-	ConfigManager::writeConfig("fullscreen_resolution_width", std::to_string(ConfigManager::fullscreen_resolution_width));
-	ConfigManager::writeConfig("fullscreen_resolution_height", std::to_string(ConfigManager::fullscreen_resolution_height));
+	ConfigManager::writeConfig("fullscreen_resolution_width", ConfigManager::fullscreen_resolution_width);
+	ConfigManager::writeConfig("fullscreen_resolution_height", ConfigManager::fullscreen_resolution_height);
 
-	ConfigManager::writeConfig("windowed_resolution_width", std::to_string(ConfigManager::windowed_resolution_width));
-	ConfigManager::writeConfig("windowed_resolution_height", std::to_string(ConfigManager::windowed_resolution_height));
+	ConfigManager::writeConfig("windowed_resolution_width", ConfigManager::windowed_resolution_width);
+	ConfigManager::writeConfig("windowed_resolution_height", ConfigManager::windowed_resolution_height);
 
 	//[Renderer - Reflection]
-	ConfigManager::writeConfig("env_map_resolution", std::to_string(ConfigManager::env_map_resolution));
-	ConfigManager::writeConfig("env_map_render_interval", std::to_string(ConfigManager::env_map_render_interval));
-	ConfigManager::writeConfig("env_map_render_characters", std::to_string(ConfigManager::env_map_render_characters));
+	ConfigManager::writeConfig("env_map_resolution", ConfigManager::env_map_resolution);
+	ConfigManager::writeConfig("env_map_render_interval", ConfigManager::env_map_render_interval);
+	ConfigManager::writeConfig("env_map_render_characters", ConfigManager::env_map_render_characters);
 
 	//[Renderer - Shadows]
-	ConfigManager::writeConfig("shadow_option", std::to_string(ConfigManager::shadow_option));
-	ConfigManager::writeConfig("shadow_map_resolution", std::to_string(ConfigManager::shadow_map_resolution));
+	ConfigManager::writeConfig("shadow_option", static_cast<int>(ConfigManager::shadow_option));
+	ConfigManager::writeConfig("shadow_map_resolution", ConfigManager::shadow_map_resolution);
 
 
-	ConfigManager::writeConfig("fov", std::to_string(ConfigManager::fov));
-	ConfigManager::writeConfig("fullscreen_option", std::to_string(ConfigManager::fullscreen_option));
-	ConfigManager::writeConfig("fps_limit_ingame", std::to_string(ConfigManager::fps_limit_ingame));
-	ConfigManager::writeConfig("fps_limit_menu", std::to_string(ConfigManager::fps_limit_menu));
-	ConfigManager::writeConfig("v_sync", std::to_string(ConfigManager::v_sync));
+	ConfigManager::writeConfig("fov", ConfigManager::fov);
+	ConfigManager::writeConfig("fullscreen_option", static_cast<int>(ConfigManager::fullscreen_option));
+	ConfigManager::writeConfig("fps_limit_ingame", ConfigManager::fps_limit_ingame);
+	ConfigManager::writeConfig("fps_limit_menu", ConfigManager::fps_limit_menu);
+	ConfigManager::writeConfig("v_sync", ConfigManager::v_sync);
 }

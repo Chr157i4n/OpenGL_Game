@@ -24,7 +24,10 @@ public:
 
 	static void readAllConfigs();
 
-	static void writeConfig(std::string key, std::string value);
+	static void writeConfig(const std::string& key, const std::string& value);
+	static void writeConfig(const std::string& key, bool value);
+	static void writeConfig(const std::string& key, int value);
+	static void writeConfig(const std::string& key, double value);
 
 	static void writeAllConfigs();
 
@@ -47,6 +50,7 @@ private:
 
 	static std::string configFileName;
 	static nlohmann::json configJson;
+	static void saveConfig();
 
 
 };
