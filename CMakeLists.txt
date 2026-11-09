@@ -93,6 +93,19 @@ function(og_set_output_directory target directory)
         RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL "${directory}")
 endfunction()
 
+# Windows loads DLLs from the executable directory first.  Executables are
+# written next to their assets, so any shared dependency has to be copied
+# there as well or the program fails with STATUS_DLL_NOT_FOUND.
+function(og_copy_runtime_dependency target dependency)
+    if(WIN32 AND TARGET ${dependency})
+        add_custom_command(TARGET ${target} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "$<TARGET_FILE:${dependency}>"
+                "$<TARGET_FILE_DIR:${target}>"
+            VERBATIM)
+    endif()
+endfunction()
+
 # ---------------------------------------------------------------------------
 # Game client
 # ---------------------------------------------------------------------------
@@ -150,6 +163,7 @@ if(OG_BUILD_GAME)
     endif()
 
     og_set_output_directory(OpenGL_Game "${CMAKE_SOURCE_DIR}/Game")
+    og_copy_runtime_dependency(OpenGL_Game tinyxml2::tinyxml2)
 
     if(WIN32 AND TARGET SDL2::SDL2 AND NOT TARGET SDL2::SDL2-static)
         add_custom_command(TARGET OpenGL_Game POST_BUILD
@@ -188,6 +202,7 @@ if(OG_BUILD_SERVER)
     endif()
 
     og_set_output_directory(GameServer "${CMAKE_SOURCE_DIR}/GameServer")
+    og_copy_runtime_dependency(GameServer tinyxml2::tinyxml2)
 
     add_custom_target(run_server
         COMMAND "$<TARGET_FILE:GameServer>"

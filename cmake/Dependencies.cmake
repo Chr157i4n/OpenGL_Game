@@ -188,8 +188,8 @@ if(OG_BUILD_GAME AND OG_ENABLE_AUDIO)
         target_include_directories(og_picotts PUBLIC
             "${picotts_SOURCE_DIR}/pico/lib")
 
-        # MSVC has no <endian.h>; provide a tiny compatibility shim.
-        if(MSVC)
+        # Neither MSVC nor MinGW provide <endian.h>; use a tiny shim.
+        if(MSVC OR MINGW)
             target_include_directories(og_picotts PRIVATE
                 "${CMAKE_CURRENT_LIST_DIR}/picotts_compat")
         endif()

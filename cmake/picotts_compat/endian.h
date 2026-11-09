@@ -1,8 +1,8 @@
-/* Minimal endian.h shim for MSVC.
+/* Minimal endian.h shim for MSVC and MinGW.
  *
  * SVOX PicoTTS includes <endian.h> (POSIX/glibc) from picopltf.h to detect
- * the host byte order.  MSVC does not provide that header, so this shim
- * supplies the few macros the engine needs.
+ * the host byte order.  Neither MSVC nor MinGW provide that header, so this
+ * shim supplies the few macros the engine needs.
  */
 #ifndef OG_PICOTTS_COMPAT_ENDIAN_H
 #define OG_PICOTTS_COMPAT_ENDIAN_H
@@ -16,7 +16,9 @@
 #endif
 
 #ifndef BYTE_ORDER
-#if defined(_M_IX86) || defined(_M_X64) || defined(_M_ARM) || defined(_M_ARM64)
+#if defined(_M_IX86) || defined(_M_X64) || defined(_M_ARM) || defined(_M_ARM64) \
+    || defined(__i386__) || defined(__x86_64__) || defined(__aarch64__) \
+    || defined(__arm__)
 #define BYTE_ORDER LITTLE_ENDIAN
 #else
 #define BYTE_ORDER BIG_ENDIAN
