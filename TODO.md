@@ -1,0 +1,89 @@
+﻿# TODO
+
+## Fixes
+
+- [ ] jump-climb walls should not be possible
+- [ ] ctd when pressing options in main menu
+
+## Enhancements
+
+- [ ] dynamic environment mapping game settings
+- [ ] main menu background in options menu?
+- [ ] player name in put box in main menu
+- [ ] options save and then render env maps
+- [x] ambient sounds
+- [ ] Map Editor mode
+  - [ ] spot where ray hits object for placing
+  - [ ] distance from look vector for placing
+  - [ ] change distance with mouse wheel
+  - [ ] transparent object while moving
+  - [ ] rotation objects with Q/E
+  - [ ] object placement and removement
+  - [ ] model switching
+  - [ ] save objects in map xml file
+- [ ] push boxes
+- [ ] Multiplayer
+  - [x] dedicated Server
+  - [ ] Client/Server
+  - [ ] chat
+  - [ ] name above players
+  - [ ] bots not moving (killed?)
+  - [ ] cant shoot sometimes
+  - [ ] multiplayer connecting feedback
+- [ ] Netcode optimisation
+  - [ ] dont broadcast to the sender of the data
+- [x] 3D Raypicking
+- [ ] NPCS
+  - [x] Teams
+  - [x] shooting
+  - [ ] optimisation
+  - [ ] friendly, talkable npcs
+- [ ] Animations
+  - [ ] model file supporting animations
+  - [ ] animation conversion
+  - [ ] animation playing
+- [ ] Collision
+  - [ ] optimisation
+  - [ ] collisionpoints needs just to be calculated one time per frame
+  - [ ] prism collision box (ramp)
+  - [ ] Bullet Collision and Hit Dectetion is doubled
+- [ ] Console input to manipulate objects in the world
+- [ ] UI elements
+  - [x] button
+  - [x] slider
+  - [ ] textedit
+  - [ ] numedit
+  - [ ] 3D text (text to texture -> texture in 3D world)
+- [x] Menu mouse interaction
+- [ ] Menu
+  - [ ] Main Menu
+    - [x] level selection
+  - [ ] Options Menu
+    - [x] Audio volume
+    - [ ] Graphics quality
+    - [ ] Keybindings
+- [ ] Graphic Effects
+  - [x] Cube Map Reflection
+  - [x] Environment Mapping (360° in the View of every (reflective) object as cube map for reflection of this object)
+  - [ ] Screen Space Reflection
+  - [ ] Scren Screen Ambient Occlusion
+  - [ ] PBR (Tesselation)
+- [ ] Items
+  - [ ] Weapons
+  - [ ] Ammo
+- [ ] Inventory
+- [ ] Quests
+- [ ] Vehicles
+- [x] interactable objects in the world (buttons, levers)
+- [ ] collision detection with sweeping (now more running trough objects)
+- [ ] destroyable objects, with debris
+- [ ] Arrows get stuck in wood, but ricochet from stone, metal
+- [ ] VFX
+- [ ] Postprocessing
+  - [ ] Camera Shake
+- [x] Performance Measurement
+- [x] Map
+  - [x] skybox
+  - [x] sun direction
+  - [x] buttons with script
+  - [ ] sound sources connected to objects
