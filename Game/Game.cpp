@@ -2,6 +2,8 @@
 
 
 
+#include "TTSManager.h"
+
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 #undef STB_IMAGE_IMPLEMENTATION
@@ -69,6 +71,7 @@ void Game::init()
 	LuaManager::init();
 	LuaManager::loadScripts();
 
+	TTSManager::init();
 	AudioManager::init();
 
 	UI::init();
@@ -204,6 +207,7 @@ void Game::gameLoop()
 
 	gameMode->deinit();
 	AudioManager::deinit();
+	TTSManager::shutdown();
 	LuaManager::deinit();
 	ConfigManager::writeAllConfigs();
 }

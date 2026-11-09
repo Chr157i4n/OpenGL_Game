@@ -19,6 +19,7 @@ void GameMode_Menu::gameLoop()
 	Logger::log("Debug Input Step");
 #endif
 	Game::processInput();
+	Logger::log("DBG: processInput done");
 	double stopwatch1duration = stopwatch1.stop();
 	Game::lbl_stopwatch1->setText("Input: " + std::to_string(stopwatch1duration));
 
@@ -33,6 +34,7 @@ void GameMode_Menu::gameLoop()
 	if (Game::gameState != GameState::GAME_PAUSED)
 	{
 		Game::render();
+		Logger::log("DBG: menu render done");
 	}
 	double stopwatch4duration = stopwatch1.stop();
 	Game::lbl_stopwatch4->setText("Render: " + std::to_string(stopwatch4duration));

@@ -4,6 +4,7 @@
 #include "Game.h"
 #include "Logger.h"
 #include "Player.h"
+#include "TTSManager.h"
 
 #include <algorithm>
 #include <memory>
@@ -13,6 +14,7 @@
 #ifdef OG_AUDIO_ENABLED
 #include <soloud.h>
 #include <soloud_wav.h>
+#include <soloud_file.h>
 #endif
 
 namespace
@@ -20,6 +22,7 @@ namespace
 #ifdef OG_AUDIO_ENABLED
 	SoLoud::Soloud* g_engine = nullptr;
 	std::unordered_map<std::string, std::unique_ptr<SoLoud::Wav>> g_soundSources;
+	std::unordered_map<std::string, std::unique_ptr<SoLoud::Wav>> g_ttsSources;
 	std::shared_ptr<AudioHandle> g_music;
 
 	std::string normalizePath(std::string path)
@@ -52,6 +55,38 @@ namespace
 		return sourcePtr;
 	}
 
+	// Renders a text with the TTS engine and caches the result as a wav source.
+	SoLoud::Wav* loadTtsSource(const std::string& text)
+	{
+		if (!g_engine) return nullptr;
+
+		auto existing = g_ttsSources.find(text);
+		if (existing != g_ttsSources.end())
+		{
+			return existing->second.get();
+		}
+
+		std::vector<short> samples = TTSManager::render(text);
+		if (samples.empty())
+		{
+			Logger::log("TTS: nothing to speak: '" + text + "'");
+			return nullptr;
+		}
+		Logger::log("TTS: synthesized '" + text + "', samples=" + std::to_string(samples.size()));
+
+		auto source = std::make_unique<SoLoud::Wav>();
+		SoLoud::result result = source->loadRawWave16(samples.data(), static_cast<unsigned int>(samples.size()), 16000.0f, 1);
+		if (result != SoLoud::SO_NO_ERROR)
+		{
+			Logger::log("TTS: could not load the synthesized voice for '" + text + "': " + g_engine->getErrorString(result));
+			return nullptr;
+		}
+
+		SoLoud::Wav* sourcePtr = source.get();
+		g_ttsSources.emplace(text, std::move(source));
+		return sourcePtr;
+	}
+
 	float volumeForType(AudioType type)
 	{
 		switch (type)
@@ -69,6 +104,7 @@ namespace
 void AudioManager::init()
 {
 #ifdef OG_AUDIO_ENABLED
+	Logger::log("DBG: AudioManager::init enter");
 	g_engine = new SoLoud::Soloud();
 
 	SoLoud::result result = g_engine->init(
@@ -87,9 +123,12 @@ void AudioManager::init()
 	}
 
 	g_engine->set3dListenerParameters(0, 0, 0, 0, 0, 1, 0, 1, 0);
+	Logger::log("DBG: SoLoud initialized");
 
 	g_music = play2D("audio/breakout.mp3", AudioType::music, true);
+	Logger::log("DBG: music loaded");
 	setVolume();
+	Logger::log("DBG: AudioManager::init done");
 #else
 	Logger::log("Audio support is disabled at build time.");
 #endif
@@ -104,6 +143,7 @@ void AudioManager::deinit()
 	{
 		g_engine->stopAll();
 		g_soundSources.clear();
+		g_ttsSources.clear();
 		g_engine->deinit();
 		delete g_engine;
 		g_engine = nullptr;
@@ -181,6 +221,40 @@ std::shared_ptr<AudioHandle> AudioManager::play3D(const std::string& musicFile, 
 #endif
 }
 
+std::shared_ptr<AudioHandle> AudioManager::play3DTTS(const std::string& text, const glm::vec3& position, float speed)
+{
+#ifdef OG_AUDIO_ENABLED
+	if (!g_engine) return nullptr;
+
+	SoLoud::Wav* source = loadTtsSource(text);
+	if (!source) return nullptr;
+
+	SoLoud::handle handle = g_engine->play3d(
+		*source,
+		position.x, position.y, position.z,
+		0.0f, 0.0f, 0.0f,
+		volumeForType(AudioType::voice));
+
+	if (handle == 0)
+	{
+		Logger::log("Error playing voice: " + text);
+		return nullptr;
+	}
+
+	if (speed != 1.0f)
+	{
+		g_engine->setRelativePlaySpeed(handle, std::clamp(speed, 0.1f, 2.0f));
+	}
+
+	return std::make_shared<AudioHandle>(handle);
+#else
+	(void)text;
+	(void)position;
+	(void)speed;
+	return nullptr;
+#endif
+}
+
 void AudioManager::updateAudioListener()
 {
 #ifdef OG_AUDIO_ENABLED
@@ -217,6 +291,16 @@ void AudioHandle::setPosition(const glm::vec3& position) const
 	g_engine->set3dSourcePosition(voice, position.x, position.y, position.z);
 #else
 	(void)position;
+#endif
+}
+
+void AudioHandle::setSpeed(float speed) const
+{
+#ifdef OG_AUDIO_ENABLED
+	if (!g_engine || voice == 0) return;
+	g_engine->setRelativePlaySpeed(voice, std::clamp(speed, 0.1f, 2.0f));
+#else
+	(void)speed;
 #endif
 }
 

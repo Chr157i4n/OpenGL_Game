@@ -164,6 +164,39 @@ if(OG_BUILD_GAME AND OG_ENABLE_AUDIO)
 endif()
 
 # ---------------------------------------------------------------------------
+# PicoTTS (SVOX text-to-speech, static library built from pico/lib sources)
+# ---------------------------------------------------------------------------
+if(OG_BUILD_GAME AND OG_ENABLE_AUDIO)
+    if(OG_USE_SYSTEM_DEPS)
+        find_package(PicoTTS CONFIG QUIET)
+    endif()
+
+    if(TARGET PicoTTS::PicoTTS)
+        add_library(og_picotts INTERFACE)
+        target_link_libraries(og_picotts INTERFACE PicoTTS::PicoTTS)
+    elseif(NOT TARGET og_picotts)
+        # The upstream project only ships Android makefiles, so the engine is
+        # compiled directly from the portable C sources in pico/lib.
+        og_fetch_source(picotts https://github.com/ihuguet/picotts.git
+            21089d223e177ba3cb7e385db8613a093dff74b5 FALSE)
+        FetchContent_GetProperties(picotts)
+
+        file(GLOB OG_PICOTTS_SOURCES CONFIGURE_DEPENDS
+            "${picotts_SOURCE_DIR}/pico/lib/*.c")
+
+        add_library(og_picotts STATIC ${OG_PICOTTS_SOURCES})
+        target_include_directories(og_picotts PUBLIC
+            "${picotts_SOURCE_DIR}/pico/lib")
+
+        # MSVC has no <endian.h>; provide a tiny compatibility shim.
+        if(MSVC)
+            target_include_directories(og_picotts PRIVATE
+                "${CMAKE_CURRENT_LIST_DIR}/picotts_compat")
+        endif()
+    endif()
+endif()
+
+# ---------------------------------------------------------------------------
 # GLEW
 # ---------------------------------------------------------------------------
 if(OG_BUILD_GAME)

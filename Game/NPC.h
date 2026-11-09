@@ -51,7 +51,10 @@ public:
 
 	virtual void registerHit();
 
-	virtual void speak(std::string audioFile);
+	virtual void speak(const std::string& text, float speed = 1.0f);
+
+	// Speaks one of the voicelines configured for an event in audio/npc/voices.ini.
+	void speakEvent(const std::string& event);
 
 
 private:
@@ -63,7 +66,6 @@ private:
 	std::shared_ptr<Character> currentTarget = nullptr;
 
 	std::shared_ptr<AudioHandle> voice = nullptr;
-	std::vector<std::string> voicefiles;
 
 
 };

@@ -12,6 +12,12 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# Recent CMake versions do not always pass the standard to MSVC, and the code
+# needs C++17 (std::filesystem, std::clamp).
+if(MSVC)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17")
+endif()
+
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
     set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release RelWithDebInfo MinSizeRel)
@@ -125,11 +131,22 @@ if(OG_BUILD_GAME)
 
     if(OG_ENABLE_AUDIO)
         target_compile_definitions(OpenGL_Game PRIVATE OG_AUDIO_ENABLED)
-        target_link_libraries(OpenGL_Game PRIVATE og_soloud)
+        target_link_libraries(OpenGL_Game PRIVATE og_soloud og_picotts)
     endif()
 
     if(WIN32)
         target_link_libraries(OpenGL_Game PRIVATE winmm ws2_32)
+    endif()
+
+    if(MSVC)
+        # MSBuild does not always pull in the UCRT import library for the
+        # statically linked C dependencies (Lua, Pico TTS), which leads to
+        # unresolved stdio symbols at link time. The static UCRT library that
+        # is pulled in by the other prebuilt dependencies is dropped so the
+        # import library does not clash with it.
+        target_link_libraries(OpenGL_Game PRIVATE ucrt.lib)
+        target_link_options(OpenGL_Game PRIVATE /NODEFAULTLIB:libucrt.lib)
+        target_link_options(OpenGL_Game PRIVATE "/MAP:${CMAKE_SOURCE_DIR}/Game/OpenGL_Game.map")
     endif()
 
     og_set_output_directory(OpenGL_Game "${CMAKE_SOURCE_DIR}/Game")
@@ -225,7 +242,7 @@ message(STATUS "  Dedicated server:  ${OG_BUILD_SERVER}")
 message(STATUS "  Model converter:   ${OG_BUILD_MODELCONVERTER}")
 message(STATUS "  Assimp import:     ${OG_ENABLE_ASSIMP} (found: ${OG_ASSIMP_FOUND})")
 if(OG_ENABLE_AUDIO)
-    message(STATUS "  Audio:             ON (SoLoud + SDL2, 3D)")
+    message(STATUS "  Audio:             ON (SoLoud + SDL2, 3D, Pico TTS voices)")
 else()
     message(STATUS "  Audio:             OFF (silent)")
 endif()

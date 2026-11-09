@@ -2,6 +2,7 @@
 
 #include "Game.h"
 #include "ConfigManager.h"
+#include "TTSManager.h"
 
 NPC::NPC(Shader* shader) : Character(shader)
 {
@@ -11,17 +12,6 @@ NPC::NPC(Shader* shader) : Character(shader)
 	float npc_speed_mult = ConfigManager::bot_speed_mult;
 	forwardSpeed = forwardSpeed * npc_speed_mult;
 	backwardSidewaySpeed = backwardSidewaySpeed * npc_speed_mult;
-
-	std::string path = "audio/npc";
-	if (std::filesystem::exists(path))
-	{
-		for (const auto& entry : std::filesystem::directory_iterator(path))
-		{
-			if(entry.path().string().find("random") != std::string::npos)
-				voicefiles.push_back(entry.path().string());
-		}
-	}
-
 }
 
 void NPC::followCharacter(std::shared_ptr <Character> character)
@@ -202,9 +192,7 @@ void NPC::interact_click()
 {
 	if (!this->getEnabled()) return;
 
-	int randomvoicefile = (std::rand() * voicefiles.size() / RAND_MAX);
-
-	this->speak(voicefiles[randomvoicefile]);
+	this->speakEvent("chatter");
 }
 
 void NPC::move()
@@ -221,18 +209,34 @@ void NPC::registerHit()
 {
 	this->Object::registerHit();
 	
-	this->speak("audio/npc/npc_hit.mp3");
+	this->speakEvent("hit");
 }
 
-void NPC::speak(std::string audioFile)
+void NPC::speakEvent(const std::string& event)
 {
+#ifdef OG_AUDIO_ENABLED
+	TTSManager::Line line = TTSManager::lineForEvent(event);
+
+	if (!line.text.empty())
+	{
+		this->speak(line.text, line.speed);
+	}
+#else
+	(void)event;
+#endif
+}
+
+void NPC::speak(const std::string& text, float speed)
+{
+	if (text.empty()) return;
+
 	if (voice == nullptr)
 	{
-		voice = AudioManager::play3D(audioFile, this->getCenter(), AudioType::voice);
+		voice = AudioManager::play3DTTS(text, this->getCenter(), speed);
 	}
 	else if (voice->isFinished())
 	{
 		voice->drop();
-		voice = AudioManager::play3D(audioFile, this->getCenter(), AudioType::voice);
+		voice = AudioManager::play3DTTS(text, this->getCenter(), speed);
 	}
 }

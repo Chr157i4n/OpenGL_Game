@@ -63,6 +63,25 @@ Audio uses the open-source [SoLoud](https://soloud-audio.com/) engine with its
 SDL2 backend.  It supports 2D and 3D positional audio, looping, and MP3/WAV/OGG
 playback.  SoLoud is downloaded automatically; no proprietary SDK is required.
 
+NPC voices are synthesized at runtime with the open-source
+[SVOX Pico TTS](https://github.com/ihuguet/picotts) library (Apache-2.0), so
+there are no MP3 voice files in `Game/audio/npc` any more.  The lines are
+configured in `Game/audio/npc/voices.ini`:
+
+```ini
+sprache = de-DE
+speed = 1.0
+
+chatter = Hallo. | Guten Tag. | Moin.          # random variant per interaction
+hit     = Autsch! | Das tut weh!               # reaction when an NPC is hit
+```
+
+Every line can override the language and the speed:
+`my_event = Hello there. ; lang=en-US ; speed=1.2`.  New events can simply be
+added to the file and are spoken by `NPC::speakEvent("my_event")`.  The Pico
+voice resources (`de-DE_ta.bin`, `de-DE_gl0_sg.bin`, ...) sit next to the config
+file; supported languages are de-DE, en-US, en-GB, es-ES, fr-FR and it-IT.
+
 Models can be created with Blender and then exported as OBJ format for example. Also FBX format works great for me.
 The ModelConverter Tool import the Vertices, Indices and the Material from the file(s)(in case of OBJ an extra MTL file will be created and needed
 using the Open-Asset-Importer-Library. The tool then exports the data into a custom BMF file. where the data can be loaded by the game faster.
