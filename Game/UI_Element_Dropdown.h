@@ -10,7 +10,7 @@ struct UI_Element_Dropdown_Item
 {
 	std::string label="";
 	int ID=-1;
-	int labelOffsetX, labelOffsetY;
+	int labelOffsetX = 0, labelOffsetY = 0;
 	bool isSelected = false;
 	std::function<int()> callback;
 };
@@ -56,7 +56,7 @@ public:
 private:
 	int fontSize = 1;
 	std::vector<UI_Element_Dropdown_Item*> items;
-	UI_Element_Dropdown_Item* selectedItem;
+	UI_Element_Dropdown_Item* selectedItem = nullptr;
 	bool dropdown_open = false;
 	std::string name = "";
 
