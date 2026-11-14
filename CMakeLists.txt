@@ -118,7 +118,7 @@ function(og_copy_runtime_dependency target dependency)
         if(dependency_output_name AND dependency_soversion)
             add_custom_command(TARGET ${target} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                    "$<TARGET_FILE:${dependency}}"
+                    "$<TARGET_FILE:${dependency}>"
                     "$<TARGET_FILE_DIR:${target}>/lib${dependency_output_name}$<IF:$<CONFIG:Debug>,${CMAKE_DEBUG_POSTFIX},>.so.${dependency_soversion}"
                 VERBATIM)
         endif()
