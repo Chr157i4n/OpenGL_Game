@@ -98,12 +98,30 @@ endfunction()
 # well: on Windows otherwise the program fails with STATUS_DLL_NOT_FOUND, on
 # Linux it is found through the "$ORIGIN" rpath set for the client.
 function(og_copy_runtime_dependency target dependency)
-    if(TARGET ${dependency})
-        add_custom_command(TARGET ${target} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                "$<TARGET_FILE:${dependency}>"
-                "$<TARGET_FILE_DIR:${target}>"
-            VERBATIM)
+    if(NOT TARGET ${dependency})
+        return()
+    endif()
+
+    add_custom_command(TARGET ${target} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "$<TARGET_FILE:${dependency}>"
+            "$<TARGET_FILE_DIR:${target}>"
+        VERBATIM)
+
+    # On Linux a versioned shared library is built as lib<name>.so.<full version>
+    # (for example libassimp.so.5.4.3), but the ELF loader resolves it through its
+    # SONAME lib<name>.so.<major> (libassimp.so.5).  Copy the library a second time
+    # under that name so the "$ORIGIN" rpath can find it next to the executable.
+    if(NOT WIN32)
+        get_target_property(dependency_output_name ${dependency} OUTPUT_NAME)
+        get_target_property(dependency_soversion ${dependency} SOVERSION)
+        if(dependency_output_name AND dependency_soversion)
+            add_custom_command(TARGET ${target} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                    "$<TARGET_FILE:${dependency}}"
+                    "$<TARGET_FILE_DIR:${target}>/lib${dependency_output_name}$<IF:$<CONFIG:Debug>,${CMAKE_DEBUG_POSTFIX},>.so.${dependency_soversion}"
+                VERBATIM)
+        endif()
     endif()
 endfunction()
 

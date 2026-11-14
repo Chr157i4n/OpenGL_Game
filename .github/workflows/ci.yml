@@ -60,7 +60,10 @@ jobs:
 
       - name: Package distribution
         shell: bash
-        run: cmake --build build --target package
+        # --config Release is required: on Windows CMake uses the multi-config
+        # Visual Studio generator, which defaults to Debug and would overwrite the
+        # Release executable built in the previous step.
+        run: cmake --build build --target package --config Release
 
       - name: Smoke test the packaged server
         if: matrix.os == 'ubuntu-latest'
