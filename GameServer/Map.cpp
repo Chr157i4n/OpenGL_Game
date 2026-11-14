@@ -11,9 +11,9 @@ glm::vec3 Map::gravity = glm::vec3(0, -80, 0);
 
 glm::vec2 Map::mapSize = glm::vec2(110,110);
 
-std::string Map::characterModelName = "character.gltf";
-std::string Map::bulletModelName = "arrow.gltf";
-std::string Map::fallbackModelName = "replacemeball.gltf";
+std::string Map::characterModelName = "character.glb";
+std::string Map::bulletModelName = "arrow.glb";
+std::string Map::fallbackModelName = "replacemeball.glb";
 
 void Map::load(std::string mapFileName)
 {

@@ -20,7 +20,7 @@
   - [ ] rotation objects with Q/E
   - [ ] object placement and removement
   - [ ] model switching
-  - [ ] save objects in map xml file
+  - [ ] save objects in map JSON file
 - [ ] push boxes
 - [ ] Multiplayer
   - [x] dedicated Server

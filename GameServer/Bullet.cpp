@@ -42,19 +42,19 @@ void Bullet::checkHit()
 	if (!collisionresult.collided)
 		return;
 
-	for (CollidedObject *collidedObject : collisionresult.collidedObjectList)
+	for (const CollidedObject& collidedObject : collisionresult.collidedObjectList)
 	{
-		if (collidedObject->object->getType() == ObjectType::Object_Bullet)
+		if (collidedObject.object->getType() == ObjectType::Object_Bullet)
 			return;
-		if (collidedObject->object->getType() == ObjectType::Object_Environment)
+		if (collidedObject.object->getType() == ObjectType::Object_Environment)
 			return;
-		// if (collidedObject->object->getType() == ObjectType::Object_Player) return;
-		if (collidedObject->object->getType() == ObjectType::Object_Entity)
+		// if (collidedObject.object->getType() == ObjectType::Object_Player) return;
+		if (collidedObject.object->getType() == ObjectType::Object_Entity)
 			return;
 
 		this->registerHit();
-		collidedObject->object->registerHit();
-		Logger::log(collidedObject->object->printObject() + " was hit");
+		collidedObject.object->registerHit();
+		Logger::log(collidedObject.object->printObject() + " was hit");
 	}
 }
 

@@ -9,7 +9,9 @@
 
 #include <glm/glm.hpp>
 
-// Forward declaration: the actual Object class lives in Game/ or GameServer/.
+// Forward declarations: the shared simulation core lives in common/,
+// the renderer/server specific classes live in Game/ or GameServer/.
+class ObjectCore;
 class Object;
 
 /// <summary>
@@ -70,7 +72,7 @@ std::unordered_map<std::string, CollisionBoxType> const CollisionBoxTypeTable =
 /// </summary>
 struct CollidedObject
 {
-	std::shared_ptr<Object> object = nullptr;
+	std::shared_ptr<ObjectCore> object = nullptr;
 	bool onTop = false;
 	glm::vec3 MinimumTranslationVector = glm::vec3(0, 0, 0);
 	glm::vec3 movementBeforeCollision = glm::vec3(0, 0, 0);
@@ -83,5 +85,5 @@ struct CollisionResult
 {
 	bool collided = false;
 	glm::vec3 movementBeforeCollision = glm::vec3(0, 0, 0);
-	std::vector<CollidedObject*> collidedObjectList;
+	std::vector<CollidedObject> collidedObjectList;
 };

@@ -1,83 +1,64 @@
 #pragma once
 #include "defines.h"
 
+#include <string>
 #include <vector>
-#include <fstream>
-#include <iostream>
+
 #include <glm/glm.hpp>
 
-struct BMFMaterial {
-    glm::vec3 diffuse;
-    glm::vec3 specular;
-    glm::vec3 emissive;
-    float shininess;
-};
-
-struct Material {
-    BMFMaterial material;
-    int diffuseMap;
-    int normalMap;
-};
-
-class Mesh {
+/// <summary>
+/// Server-side model metadata. The dedicated server does not render meshes,
+/// it only needs dimensions for collision and the BMF parser has been replaced
+/// by an Assimp based geometry loader.
+/// </summary>
+class Model
+{
 public:
-    Mesh(std::vector<glm::vec3>& vertices, uint64 numVertices, std::vector<uint32>& indices, uint64 numIndices);
 
+	bool init(const char* filename);
 
-    glm::vec3 getDimension();
+	glm::vec3 getDimension() const
+	{
+		return dimension;
+	}
+
+	glm::vec3 getBoundingBoxDimension() const
+	{
+		return boundingBoxDimension;
+	}
+
+	bool getHasTransparentTexture() const
+	{
+		return hasTransparentTexture;
+	}
+
+	void setModelName(std::string newModelName)
+	{
+		modelName = newModelName;
+	}
+
+	std::string getModelName() const
+	{
+		return modelName;
+	}
+
+	void setModelID(int newModelID)
+	{
+		modelID = newModelID;
+	}
+
+	int getModelID() const
+	{
+		return modelID;
+	}
 
 private:
 
-    glm::vec3 calculateDimension(std::vector<glm::vec3>& vertices);
+	glm::vec3 dimension = glm::vec3(2, 2, 2);
+	glm::vec3 boundingBoxDimension = glm::vec3(4, 4, 4);
 
-    Material material;
-    uint64 numIndices = 0;
-    int diffuseLocation;
-    int specularLocation;
-    int emissiveLocation;
-    int shininessLocation;
-    int diffuseMapLocation;
-    int normalMapLocation;
+	std::string modelName = "";
+	int modelID = -1;
 
-    glm::vec3 dimension = glm::vec3(0.0f, 0.0f, 0.0f);
-};
-
-class Model {
-public:
-    bool init(const char* filename);
-
-    void render();
-
-    void renderShadowMap();
-
-    void renderEnvMap();
-
-    glm::vec3 getDimension();
-
-    glm::vec3 getBoundingBoxDimension();
-
-
-    void setModelName(std::string newModelName);
-
-    std::string getModelName();
-
-    void setModelID(int newModelID);
-
-    int getModelID();
-
-    bool getHasTransparentTexture()
-    {
-        return hasTransparentTexture;
-    }
-
-private:
-    std::vector<Mesh*> meshes;
-    std::vector<Material> materials;
-
-    glm::vec3 dimension = glm::vec3(0.0f, 0.0f, 0.0f);
-    glm::vec3 boundingBoxDimension = glm::vec3(0.0f, 0.0f, 0.0f);
-
-    std::string modelName="";
-    int modelID=-1;
-    bool hasTransparentTexture = false;
+	bool hasTransparentTexture = false;
 };

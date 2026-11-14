@@ -1,297 +1,131 @@
 #pragma once
 #include "defines.h"
 #include "Types.h"
+#include "ObjectCore.h"
 
-#include <math.h>
-#include <unordered_map>
+#include <algorithm>
+#include <chrono>
+#include <limits>
+#include <memory>
+#include <string>
+#include <vector>
+
 #include <glm/glm.hpp>
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/rotate_vector.hpp>
-#include <algorithm>
-#include <memory>
-#include <chrono>
 
 #include "Shader.h"
 #include "Model.h"
 
-
-//forward declaration
+// forward declaration
 struct Ray;
 
 struct Box {
 	float minX, maxX, minY, maxY, minZ, maxZ;
 };
 
-
 /// <summary>
-/// Base class for every object in the game world
+/// Client object: rendering, shader, env maps and interaction behavior.
+/// Simulation logic lives in ObjectCore.
 /// </summary>
-class Object
+class Object : public ObjectCore
 {
 public:
-
 	Object(Shader* shader, std::string modelFileName);
-	
 
 	Shader* getShader();
 
 	void bindShader();
-
 	void unbindShader();
 
-	bool  intersectWithRay(Ray ray);
+	bool intersectWithRay(Ray ray) const;
 
-	float getDistance(std::shared_ptr<Object> object);
-
-	float getDistance(glm::vec3 location);
-
-	void markObject();
-
-	void markObject(float duration);
-
-	bool isMarked();
+	float getDistance(std::shared_ptr<Object> object) const;
+	float getDistance(glm::vec3 location) const;
 
 	virtual void interact_click();
-
 	virtual void interact_hold();
 
 	CollisionResult checkCollision();
 
-	bool checkCollision_AABB(std::shared_ptr < Object> object);
-
-	bool checkCollision_SAT(std::shared_ptr < Object> object, CollisionResult* collisionResult);
-
-	virtual void reactToCollision(CollisionResult collisionResult);
-
-	void calculationBeforeFrame();
-
-	void calculationAfterFrame();
-
-	glm::vec3 calculateDimensions();
-
-	std::vector<glm::vec2> calculateRectPoints();
-
-	std::vector<glm::vec3> getCollisionPoints()
-	{
-		return cubePoints;
-	}
-
-	std::vector<glm::vec3> calculateCollisionPoints();
-
-	std::vector<glm::vec3> calculateCollisionNormals();
-
-	std::vector<glm::vec2> getRectPoints();
-
-	std::vector<glm::vec3> getCubePoints();
-
-	std::vector<glm::vec3> getCubeNormals();
+	void reactToCollision(CollisionResult collisionResult);
 
 	bool checkBoundaries();
 
-	virtual void fall();
+	void fall();
+	void move();
 
-	virtual void move();
+	void setModel(Model* newModel);
+	void setModel(std::string newModelFileName);
+	Model* getModel() const;
 
-	void setPosition(glm::vec3 newPosition);
+	void render();
+	void renderShadowMap();
+	void renderEnvMap();
 
-	glm::vec3 getPosition();
-
-	void setRotation(glm::vec3 newRotation);
-
-	glm::vec3 getRotation();
-
-	glm::vec3 getCenter()
-	{
-		return center;
-	}
-
-	void setScale(glm::vec3 newScale);
-
-	glm::vec3 getScale();
-
-	void setMovement(glm::vec3 newMovement);
-
-	glm::vec3 getMovement();
-
-	glm::vec3 getDimensions();
-
-	glm::vec3 getBoundingBoxDimensions();
-
-	Box getOrientedBoundingBox()
+	Box getOrientedBoundingBox() const
 	{
 		return orientedBoundingBox;
 	}
 
-	void setType(ObjectType newObjectType);
-
-	ObjectType getType();
-
-	static ObjectType convertStringToType(std::string objectTypeAsString);
-
-	void setName(std::string newName);
-
-	std::string getName();
-
-	void setNumber(int32 newNumber);
-
-	int32 getNumber();
-
-	void render();
-
-	void renderShadowMap();
-
-	void renderEnvMap();
-
-	virtual void registerHit();
-
-	void setHealth(float32 newHealth);
-
-	float32 getHealth();
-
-	bool isAlive() {
-		return (this->getHealth() > 0) ? true : false;
-	}
-
-	virtual void addToHealth(float32 addHealth);
-
-	std::string printObject();
-
-	std::string printPosition();
-
-	void setCollisionBoxType(CollisionBoxType collisionBoxType);
-
-	CollisionBoxType getCollisionBoxType();
-
-	static CollisionBoxType convertStringToCollisionBoxType(std::string collissionBoxTypeAsString);
-
-	void setGravity(bool enable);
-
-	bool getGravity();
-
-	void setModel(Model* newModel);
-
-	void setModel(std::string newModelFileName);
-
-	Model* getModel();
-
-	bool isGettingDamaged();
-
 	void setEnvCubeMap(unsigned int newEnvCubeMap)
 	{
-		envCubeMap = newEnvCubeMap;
+		envCubeMap = static_cast<int>(newEnvCubeMap);
 	}
 
-	int getEnvCubeMap()
+	int getEnvCubeMap() const
 	{
 		return envCubeMap;
 	}
 
 	void setEnvCubeMapFrameBuffer(unsigned int newEnvCubeMapFrameBuffer)
 	{
-		envCubeMapFrameBuffer = newEnvCubeMapFrameBuffer;
+		envCubeMapFrameBuffer = static_cast<int>(newEnvCubeMapFrameBuffer);
 	}
 
-	int getEnvCubeMapFrameBuffer()
+	int getEnvCubeMapFrameBuffer() const
 	{
 		return envCubeMapFrameBuffer;
 	}
 
 	void setEnvCubeMapDepthBuffer(unsigned int newEnvCubeMapDepthBuffer)
 	{
-		envCubeMapDepthBuffer = newEnvCubeMapDepthBuffer;
+		envCubeMapDepthBuffer = static_cast<int>(newEnvCubeMapDepthBuffer);
 	}
 
-	int getEnvCubeMapDepthBuffer()
+	int getEnvCubeMapDepthBuffer() const
 	{
 		return envCubeMapDepthBuffer;
 	}
 
-	void enable()
+	void setTextureFlow(glm::vec2 newTextureFlow)
 	{
-		enabled = true;
+		textureFlow = newTextureFlow;
 	}
 
-	void disable()
+	glm::vec2 getTextureFlow() const
 	{
-		enabled = false;
+		return textureFlow;
 	}
 
-	bool getEnabled()
-	{
-		return enabled;
-	}
-
-	void toggleEnabled()
-	{
-		enabled = !enabled;
-	}
-
-	void setEnabled(bool enable)
-	{
-		enabled = enable;
-	}
-
-	void setTextureFlow(glm::vec2 textureFlow)
-	{
-		this->textureFlow = textureFlow;
-	}
-
-	glm::vec2 getTextureFlow()
-	{
-		return this->textureFlow;
-	}
-
-	int getNetworkID()
-	{
-		return networkID;
-	}
-
-	void setNetworkID(int newNetworkID)
-	{
-		networkID = newNetworkID;
-	}
-
-	glm::vec3 getMarkColor()
+	glm::vec3 getMarkColor() const
 	{
 		return markColor;
 	}
 
 protected:
+	virtual void updateCollisionGeometry() override;
 
-	glm::vec3 position;						//x, y, z
-	glm::vec3 center;						//x, y, z
-	glm::vec3 rotation;						//yaw, pitch, roll	
-	glm::vec3 scale;
-	glm::vec3 movement;						//x, y, z
-	glm::vec3 dimensions;					//x, y, z
-	glm::vec3 boundingboxdimensions;		//x, y, z
-
-	std::vector<glm::vec2> rectPoints;
-	std::vector<glm::vec3> cubePoints;
-	std::vector<glm::vec3> cubeNormals;
-
-	Box orientedBoundingBox;
-
-	int modelIndex = -1;
 	Shader* shader = nullptr;
 	Model* model = nullptr;
-	ObjectType type;
-	CollisionBoxType collisionBoxType;
-	std::string name = "";
-	int32 number;
-	float32 health = 100;
-	bool onOtherObject=false;
-	bool gravity = true;
-	bool enabled = true;
+	int modelIndex = -1;
+
+	Box orientedBoundingBox{};
 	glm::vec2 textureFlow = glm::vec2(0, 0);
+	glm::vec3 markColor = glm::vec3(0.1f, 0.1f, 0.0f);
 
-	std::chrono::system_clock::time_point lastHitTimestamp = std::chrono::system_clock::now() - std::chrono::hours(1);
-	std::chrono::system_clock::time_point lastMarkTimestamp = std::chrono::system_clock::now() - std::chrono::hours(1);
-	glm::vec3 markColor = glm::vec3(0.1, 0.1, 0);
-	float markDuration = 10;
-
-	int envCubeMap=-1, envCubeMapFrameBuffer=-1, envCubeMapDepthBuffer = -1;
-
-	int networkID = -1;
+	int envCubeMap = -1;
+	int envCubeMapFrameBuffer = -1;
+	int envCubeMapDepthBuffer = -1;
 };

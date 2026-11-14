@@ -4,6 +4,8 @@
 
 #include <cmath>
 
+#include <glm/gtx/rotate_vector.hpp>
+
 Character::Character() : Object(Map::characterModelName)
 {
 	lookDirection = glm::vec3(1.0f, 0.0f, 0.0f);

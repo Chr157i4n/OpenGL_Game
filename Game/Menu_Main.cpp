@@ -43,7 +43,7 @@ Menu_Main::Menu_Main()
 	{
 		UI_Element_Dropdown_Item* mapItem = new UI_Element_Dropdown_Item();
 
-		// readAllMaps returns full paths like "levels/test.xml"; only the bare
+		// readAllMaps returns full paths like "levels/test.json"; only the bare
 		// name is shown. Map::load re-adds the folder and extension itself.
 		std::vector<std::string> toDeletes;
 		toDeletes.push_back("levels/");

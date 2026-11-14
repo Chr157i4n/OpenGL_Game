@@ -121,11 +121,11 @@ void NPC::evade(CollisionResult collisionResult)
 	Logger::log("npc needs to evade an object");
 #endif
 
-	for (CollidedObject* collidedObject : collisionResult.collidedObjectList)
+	for (const CollidedObject& collidedObject : collisionResult.collidedObjectList)
 	{
-		if (collidedObject->onTop) continue;
+		if (collidedObject.onTop) continue;
 
-		if (collidedObject->object->getDimensions().y < 3.5)
+		if (collidedObject.object->getDimensions().y < 3.5)
 		{
 			jump();
 			#ifdef DEBUG_MOVEMENT

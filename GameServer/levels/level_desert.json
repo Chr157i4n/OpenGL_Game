@@ -1,0 +1,1568 @@
+{
+  "name": "Test Level",
+  "map_properties": {
+    "sun_direction": [
+      -0.8,
+      0.4,
+      0.4
+    ],
+    "sun_color": [
+      0.8,
+      0.8,
+      0.8
+    ],
+    "skybox": "skybox1"
+  },
+  "default_models": {
+    "character_model": "character.glb",
+    "bullet_model": "arrow.glb",
+    "fallback_model": "replacemeball.glb"
+  },
+  "player": {
+    "position": [
+      40.0,
+      10.0,
+      30.0
+    ],
+    "modelfile": "character.glb"
+  },
+  "models": [
+    "character.glb",
+    "arrow.glb",
+    "ground.glb",
+    "box.glb",
+    "barrel.glb"
+  ],
+  "objects": [
+    {
+      "name": "Ground",
+      "type": "Environment",
+      "collisionboxtype": "cube",
+      "modelfile": "ground.glb",
+      "gravity": false,
+      "position": [
+        0.0,
+        -0.2,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Puddle",
+      "type": "Environment",
+      "collisionboxtype": "none",
+      "modelfile": "puddle.glb",
+      "gravity": false,
+      "position": [
+        15.0,
+        0.01,
+        30.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Barrel",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "barrel.glb",
+      "gravity": false,
+      "position": [
+        10.0,
+        0.0,
+        10.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Testcube",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "cube.glb",
+      "gravity": false,
+      "position": [
+        20.0,
+        1.0,
+        -10.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Vent",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "vent.glb",
+      "gravity": false,
+      "position": [
+        0.0,
+        0.0,
+        -18.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Rock01",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "rock.glb",
+      "gravity": false,
+      "position": [
+        40.0,
+        0.0,
+        -30.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Rock02",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "rock_small.glb",
+      "gravity": false,
+      "position": [
+        40.0,
+        0.0,
+        -34.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Clips",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "clips.glb",
+      "gravity": false,
+      "position": [
+        60.0,
+        0.0,
+        -34.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Window",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "window.glb",
+      "gravity": false,
+      "position": [
+        70.0,
+        0.0,
+        -34.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "BlockStairs",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "block_high.glb",
+      "gravity": false,
+      "position": [
+        40.0,
+        0.0,
+        -50.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "BlockStairs",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "block_high.glb",
+      "gravity": false,
+      "position": [
+        44.0,
+        0.0,
+        -50.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "BlockStairs",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "block_high.glb",
+      "gravity": false,
+      "position": [
+        44.0,
+        4.0,
+        -50.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "BlockStairs",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "block_high.glb",
+      "gravity": false,
+      "position": [
+        48.0,
+        0.0,
+        -50.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "BlockStairs",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "block_high.glb",
+      "gravity": false,
+      "position": [
+        48.0,
+        4.0,
+        -50.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "BlockStairs",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "block_high.glb",
+      "gravity": false,
+      "position": [
+        48.0,
+        8.0,
+        -50.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "BlockStairs",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "block_high.glb",
+      "gravity": false,
+      "position": [
+        52.0,
+        12.0,
+        -50.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "BlockStairs",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "block_high.glb",
+      "gravity": false,
+      "position": [
+        56.0,
+        16.0,
+        -50.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Crystal",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "testball01.glb",
+      "gravity": false,
+      "position": [
+        25.0,
+        2.0,
+        10.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Crystal",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "testball01a.glb",
+      "gravity": false,
+      "position": [
+        28.0,
+        2.0,
+        10.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Crystal",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "testball01b.glb",
+      "gravity": false,
+      "position": [
+        31.0,
+        2.0,
+        10.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Crystal",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "testball01c.glb",
+      "gravity": false,
+      "position": [
+        34.0,
+        2.0,
+        10.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Crystal",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "testball01d.glb",
+      "gravity": false,
+      "position": [
+        37.0,
+        2.0,
+        10.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Crystal",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "testball02.glb",
+      "gravity": false,
+      "position": [
+        25.0,
+        2.0,
+        14.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Crystal",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "testball02a.glb",
+      "gravity": false,
+      "position": [
+        28.0,
+        2.0,
+        14.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Crystal",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "testball03.glb",
+      "gravity": false,
+      "position": [
+        25.0,
+        2.0,
+        18.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Crystal",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "testball04.glb",
+      "gravity": false,
+      "position": [
+        25.0,
+        2.0,
+        22.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Crystal",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "testball04a.glb",
+      "gravity": false,
+      "position": [
+        28.0,
+        2.0,
+        22.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "MetalTestBall",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "testball05.glb",
+      "gravity": false,
+      "position": [
+        25.0,
+        2.0,
+        26.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Crystal",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "testball06.glb",
+      "gravity": false,
+      "position": [
+        25.0,
+        2.0,
+        30.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Crystal",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "testball06a.glb",
+      "gravity": false,
+      "position": [
+        28.0,
+        2.0,
+        30.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Crystal",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "testball07.glb",
+      "gravity": false,
+      "position": [
+        25.0,
+        2.0,
+        34.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Crystal",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "testball08.glb",
+      "gravity": false,
+      "position": [
+        25.0,
+        2.0,
+        38.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Crystal",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "testball09.glb",
+      "gravity": false,
+      "position": [
+        25.0,
+        2.0,
+        42.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Crystal",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "testball10.glb",
+      "gravity": false,
+      "position": [
+        25.0,
+        2.0,
+        46.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "EasterEgg",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "sign.glb",
+      "gravity": false,
+      "position": [
+        95.0,
+        0.0,
+        95.0
+      ],
+      "rotation": [
+        0.0,
+        45.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Box",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "barrel.glb",
+      "gravity": false,
+      "position": [
+        30.0,
+        0.0,
+        5.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Box",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "box.glb",
+      "gravity": false,
+      "position": [
+        0.0,
+        20.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Box",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "box.glb",
+      "gravity": true,
+      "position": [
+        20.0,
+        10.0,
+        -20.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Box",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "box.glb",
+      "gravity": true,
+      "position": [
+        20.0,
+        15.0,
+        -20.0
+      ],
+      "rotation": [
+        0.0,
+        20.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Box",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "box.glb",
+      "gravity": true,
+      "position": [
+        20.0,
+        20.0,
+        -20.0
+      ],
+      "rotation": [
+        0.0,
+        40.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Box",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "box.glb",
+      "gravity": true,
+      "position": [
+        20.0,
+        25.0,
+        -20.0
+      ],
+      "rotation": [
+        0.0,
+        60.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Wall1",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "wall.glb",
+      "gravity": false,
+      "position": [
+        -2.0,
+        0.0,
+        -20.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Wall1",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "wall.glb",
+      "gravity": false,
+      "position": [
+        -2.0,
+        0.0,
+        -24.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Block1",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "block_low.glb",
+      "gravity": false,
+      "position": [
+        0.0,
+        0.0,
+        -20.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Block1",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "block_low.glb",
+      "gravity": false,
+      "position": [
+        0.0,
+        0.0,
+        -24.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Block1",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "block_low.glb",
+      "gravity": false,
+      "position": [
+        4.0,
+        0.0,
+        -24.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Block2",
+      "type": "Entity",
+      "collisionboxtype": "prism",
+      "modelfile": "block_low_ramp.glb",
+      "gravity": false,
+      "position": [
+        4.0,
+        0.0,
+        -20.0
+      ],
+      "rotation": [
+        0.0,
+        180.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Block1",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "block_high.glb",
+      "gravity": false,
+      "position": [
+        0.0,
+        0.0,
+        -28.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Block1",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "block_high.glb",
+      "gravity": false,
+      "position": [
+        0.0,
+        0.0,
+        -32.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Block1",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "block_high.glb",
+      "gravity": false,
+      "position": [
+        4.0,
+        0.0,
+        -32.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Block2",
+      "type": "Entity",
+      "collisionboxtype": "prism",
+      "modelfile": "block_high_ramp.glb",
+      "gravity": false,
+      "position": [
+        4.0,
+        0.0,
+        -28.0
+      ],
+      "rotation": [
+        0.0,
+        180.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Block2",
+      "type": "Entity",
+      "collisionboxtype": "prism",
+      "modelfile": "block_low_ramp.glb",
+      "gravity": false,
+      "position": [
+        0.0,
+        2.0,
+        -24.0
+      ],
+      "rotation": [
+        0.0,
+        90.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Box",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "box.glb",
+      "gravity": true,
+      "position": [
+        10.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Box",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "box.glb",
+      "gravity": true,
+      "position": [
+        13.0,
+        3.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        45.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Fence",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "fence.glb",
+      "gravity": false,
+      "position": [
+        10.0,
+        0.0,
+        -40.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Fence",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "fence.glb",
+      "gravity": false,
+      "position": [
+        15.8,
+        0.0,
+        -42.3
+      ],
+      "rotation": [
+        0.0,
+        45.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Fence",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "fence.glb",
+      "gravity": false,
+      "position": [
+        18.7,
+        0.0,
+        -48.0
+      ],
+      "rotation": [
+        0.0,
+        80.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Fence",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "fence.glb",
+      "gravity": false,
+      "position": [
+        18.0,
+        0.0,
+        -55.0
+      ],
+      "rotation": [
+        0.0,
+        120.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Fence",
+      "type": "Entity",
+      "collisionboxtype": "cube",
+      "modelfile": "fence.glb",
+      "gravity": false,
+      "position": [
+        10.0,
+        0.0,
+        -62.0
+      ],
+      "rotation": [
+        0.0,
+        180.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    }
+  ],
+  "bots": [
+    {
+      "name": "Bot_Team1_0",
+      "type": "Bot",
+      "modelfile": "character_team1.glb",
+      "team": 1,
+      "position": [
+        -50.0,
+        0.0,
+        -50.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "navpoints": []
+    },
+    {
+      "name": "Bot_Team2_0",
+      "type": "Bot",
+      "modelfile": "character_team2.glb",
+      "team": 2,
+      "position": [
+        50.0,
+        0.0,
+        50.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "navpoints": []
+    },
+    {
+      "name": "Bot0",
+      "type": "Bot",
+      "modelfile": "character.glb",
+      "team": 3,
+      "position": [
+        15.0,
+        0.0,
+        40.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "navpoints": []
+    },
+    {
+      "name": "Bot1",
+      "type": "Bot",
+      "modelfile": "character.glb",
+      "team": 0,
+      "position": [
+        10.0,
+        0.0,
+        10.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "navpoints": [
+        [
+          10.0,
+          0.0,
+          10.0
+        ],
+        [
+          -10.0,
+          0.0,
+          10.0
+        ],
+        [
+          -10.0,
+          0.0,
+          -10.0
+        ],
+        [
+          10.0,
+          0.0,
+          -10.0
+        ]
+      ]
+    },
+    {
+      "name": "Bot2",
+      "type": "Bot",
+      "modelfile": "character.glb",
+      "team": 0,
+      "position": [
+        20.0,
+        0.0,
+        20.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "navpoints": [
+        [
+          20.0,
+          0.0,
+          20.0
+        ],
+        [
+          20.0,
+          0.0,
+          -20.0
+        ]
+      ]
+    },
+    {
+      "name": "Bot3",
+      "type": "Bot",
+      "modelfile": "character.glb",
+      "team": 0,
+      "position": [
+        -40.0,
+        0.0,
+        -40.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "navpoints": [
+        [
+          -40.0,
+          0.0,
+          -40.0
+        ],
+        [
+          -45.0,
+          0.0,
+          -40.0
+        ],
+        [
+          -45.0,
+          0.0,
+          -45.0
+        ],
+        [
+          -50.0,
+          0.0,
+          -40.0
+        ],
+        [
+          -50.0,
+          0.0,
+          -45.0
+        ],
+        [
+          -55.0,
+          0.0,
+          -40.0
+        ],
+        [
+          -55.0,
+          0.0,
+          -45.0
+        ],
+        [
+          -60.0,
+          0.0,
+          -40.0
+        ],
+        [
+          -60.0,
+          0.0,
+          -45.0
+        ],
+        [
+          -65.0,
+          0.0,
+          -40.0
+        ],
+        [
+          -65.0,
+          0.0,
+          -45.0
+        ],
+        [
+          -70.0,
+          0.0,
+          -40.0
+        ],
+        [
+          -70.0,
+          0.0,
+          -45.0
+        ]
+      ]
+    }
+  ]
+}

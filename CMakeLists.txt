@@ -196,6 +196,19 @@ if(OG_BUILD_SERVER)
         glm::glm
         og_stb)
 
+    if(OG_ASSIMP_FOUND)
+        target_compile_definitions(GameServer PRIVATE OG_ASSIMP_ENABLED)
+        target_link_libraries(GameServer PRIVATE assimp::assimp)
+
+        if(WIN32)
+            add_custom_command(TARGET GameServer POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                    "$<TARGET_FILE:assimp::assimp>"
+                    "$<TARGET_FILE_DIR:GameServer>"
+                VERBATIM)
+        endif()
+    endif()
+
     if(WIN32)
         target_link_libraries(GameServer PRIVATE winmm ws2_32)
     endif()

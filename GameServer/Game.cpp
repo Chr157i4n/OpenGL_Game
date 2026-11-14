@@ -154,15 +154,15 @@ void Game::processCollision()
 		if (!collisionResult.collided) continue;
 		if (!object->getEnabled()) continue;
 
-		for (CollidedObject* collidedObject : collisionResult.collidedObjectList)
+		for (const CollidedObject& collidedObject : collisionResult.collidedObjectList)
 		{
-			if (object->getType() & ObjectType::Object_Character && collidedObject->onTop == true)
+			if (object->getType() & ObjectType::Object_Character && collidedObject.onTop == true)
 			{
 				Character* character = static_cast<Character*>(object.get());
 				character->activateJumping();
 			}
 
-			if ((object->getType() & ObjectType::Object_NPC) && (collidedObject->object->getType() & (ObjectType::Object_Entity | ObjectType::Object_Character)))
+			if ((object->getType() & ObjectType::Object_NPC) && (collidedObject.object->getType() & (ObjectType::Object_Entity | ObjectType::Object_Character)))
 			{
 				NPC* npc = static_cast<NPC*>(object.get());
 				npc->evade(collisionResult);

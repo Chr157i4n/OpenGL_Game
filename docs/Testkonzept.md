@@ -123,7 +123,7 @@ tests/
 ├── protocol/
 │   └── test_network_framing.cpp
 └── data/
-    ├── levels/level_test.xml   # Kopie oder Referenz
+    ├── levels/level_test.json  # Kopie oder Referenz
     └── models/testball01.bmf   # Golden-Files
 ```
 
@@ -176,7 +176,7 @@ endif()
 Die vorhandenen Assets sind perfekt als Fixtures:
 
 - `GameServer/models/testball01.bmf` … `testball10.bmf` → BMF-Parser-Golden-Files
-- `GameServer/levels/level_test.xml` → Map-/ResourceManager-Parsing
+- `GameServer/levels/level_test.json` → Map-/ResourceManager-Parsing
 - `GameServer/config.ini` → ConfigManager
 - `GameServer/models/character.bmf` → Character-Physik-Dimensionen
 

@@ -1,219 +1,43 @@
 #pragma once
-#include "defines.h"
-#include "Types.h"
-
-#include <math.h>
-#include <unordered_map>
-#include <glm/glm.hpp>
-#include <glm/ext/matrix_transform.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/rotate_vector.hpp>
-#include <algorithm>
-#include <memory>
-#include <chrono>
-#include <string>
+#include "ObjectCore.h"
 
 #include "Model.h"
 
-
 /// <summary>
-/// Base class for every object in the game world
+/// Server object: shared ObjectCore simulation plus model loading.
 /// </summary>
-class Object
+class Object : public ObjectCore
 {
 public:
 
-	Object(std::string modelFileName);
-
-
-	bool  intersectWithRay(glm::vec3 rayOrigin, glm::vec3 rayDirection);
-
-	float getDistance(std::shared_ptr<Object> object);
-
-	void markObject();
-
-	void interact();
+	explicit Object(std::string modelFileName);
 
 	CollisionResult checkCollision();
 
-	bool checkCollision_AABB(std::shared_ptr < Object> object);
-
-	bool checkCollision_SAT(std::shared_ptr < Object> object, CollisionResult* collisionResult);
-
-	virtual void reactToCollision(CollisionResult collisionResult);
-
-	void calculationBeforeFrame();
-
-	void calculationAfterFrame();
-
-	glm::vec3 calculateDimensions();
-
-	std::vector<glm::vec2> calculateRectPoints();
-
-	std::vector<glm::vec3> calculateCollisionPoints();
-
-	std::vector<glm::vec3> calculateCollisionNormals();
-
-	std::vector<glm::vec2> getRectPoints();
-
-	std::vector<glm::vec3> getCubePoints();
-
-	std::vector<glm::vec3> getCubeNormals();
+	void reactToCollision(CollisionResult collisionResult);
 
 	bool checkBoundaries();
 
-	virtual void fall();
+	void fall();
 
-	virtual void move();
+	void move();
 
-	void setPosition(glm::vec3 newPosition);
-
-	glm::vec3 getPosition();
-
-	virtual void setRotation(glm::vec3 newRotation);
-
-	glm::vec3 getRotation();
-
-	glm::vec3 getCenter()
-	{
-		return center;
-	}
-
-	void setScale(glm::vec3 newScale);
-
-	glm::vec3 getScale();
-
-	void setMovement(glm::vec3 newMovement);
-
-	glm::vec3 getMovement();
-
-	glm::vec3 getDimensions();
-
-	glm::vec3 getBoundingBoxDimensions();
-
-	void setType(ObjectType newObjectType);
-
-	ObjectType getType();
-
-	static ObjectType convertStringToType(std::string objectTypeAsString);
-
-	void setName(std::string newName);
-
-	std::string getName();
-
-	void setNumber(int32 newNumber);
-
-	int32 getNumber();
-
-	virtual void registerHit();
-
-	void setHealth(float32 newHealth);
-
-	float32 getHealth();
-
-	bool isAlive() {
-		return (this->getHealth() > 0) ? true : false;
-	}
-
-	virtual void addToHealth(float32 addHealth);
-
-	std::string printObject();
-
-	std::string printPosition();
-
-	void setCollisionBoxType(CollisionBoxType collisionBoxType);
-
-	CollisionBoxType getCollisionBoxType();
-
-	static CollisionBoxType convertStringToCollisionBoxType(std::string collissionBoxTypeAsString);
-
-	void setGravity(bool enable);
-
-	bool getGravity();
+	float getDistance(std::shared_ptr<Object> object) const;
 
 	void setModel(Model* newModel);
 
 	void setModel(std::string newModelFileName);
 
-	Model* getModel();
-
-	bool isGettingDamaged();
-
-	void enable()
-	{
-		enabled = true;
-	}
-
-	void disable()
-	{
-		enabled = false;
-	}
-
-	bool getEnabled()
-	{
-		return enabled;
-	}
-
-	void toggleEnabled()
-	{
-		enabled = !enabled;
-	}
-
-	void setEnabled(bool enable)
-	{
-		enabled = enable;
-	}
-
-	int getNetworkID()
-	{
-		return networkID;
-	}
-
-	void setNetworkID(int newNetworkID)
-	{
-		networkID = newNetworkID;
-	}
-
-	std::string getNetworkIDString()
-	{
-		std::string answer = "";
-
-		if (this->getNetworkID() < 100) answer += "0";
-		if (this->getNetworkID() < 10) answer += "0";
-
-		answer += std::to_string(this->getNetworkID());
-		return answer;
-	}
+	Model* getModel() const;
 
 protected:
 
-	glm::vec3 position;						//x, y, z
-	glm::vec3 center;						//x, y, z
-	glm::vec3 rotation;						//yaw, pitch, roll	
-	glm::vec3 scale;
-	glm::vec3 movement;						//x, y, z
-	glm::vec3 dimensions;					//x, y, z
-	glm::vec3 boundingboxdimensions;		//x, y, z
-
-	std::vector<glm::vec2> rectPoints;
-	std::vector<glm::vec3> cubePoints;
-	std::vector<glm::vec3> cubeNormals;
+	Model* model = nullptr;
 
 	int modelIndex = -1;
-	Model* model = nullptr;
-	ObjectType type;
-	CollisionBoxType collisionBoxType;
-	std::string name = "";
-	int32 number;
-	float32 health = 100;
-	bool onOtherObject=false;
-	bool gravity = true;
-	bool enabled = true;
+
 	glm::vec2 textureFlow = glm::vec2(0, 0);
 
-	std::chrono::system_clock::time_point lastHitTimestamp = std::chrono::system_clock::now() - std::chrono::hours(1);
-
-	int envCubeMap=-1, envCubeMapFrameBuffer=-1;
-
-	int networkID = -1;
+	int envCubeMap = -1;
+	int envCubeMapFrameBuffer = -1;
 };
