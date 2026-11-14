@@ -40,6 +40,7 @@ jobs:
           key: og-deps-${{ matrix.label }}-${{ hashFiles('cmake/Dependencies.cmake', 'CMakeLists.txt') }}
 
       - name: Configure
+        shell: bash
         run: |
           cmake -S . -B build \
             -DCMAKE_BUILD_TYPE=Release \
@@ -50,16 +51,20 @@ jobs:
             -DOG_FETCH_DEPS=ON
 
       - name: Build
+        shell: bash
         run: cmake --build build --config Release
 
       - name: Run unit tests
+        shell: bash
         run: ctest --test-dir build --output-on-failure
 
       - name: Package distribution
+        shell: bash
         run: cmake --build build --target package
 
       - name: Smoke test the packaged server
         if: matrix.os == 'ubuntu-latest'
+        shell: bash
         run: timeout 5 ./build/dist/server/GameServer || true
 
       - name: Upload game client

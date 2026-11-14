@@ -75,8 +75,10 @@ endif()
 # stb (header only)
 # ---------------------------------------------------------------------------
 if(NOT TARGET og_stb)
+    # stb is pinned to a commit, and Git cannot fetch an arbitrary commit from
+    # a shallow clone, so the (small) repository is cloned in full.
     og_fetch_source(stb https://github.com/nothings/stb.git
-        4e9b368bfc071e97206ea5c6adba68dd0cbf8897)
+        4e9b368bfc071e97206ea5c6adba68dd0cbf8897 FALSE)
     FetchContent_GetProperties(stb)
 
     add_library(og_stb INTERFACE)
