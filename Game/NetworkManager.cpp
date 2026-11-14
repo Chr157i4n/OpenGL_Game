@@ -226,7 +226,22 @@ void NetworkManager::parseData(std::string data)
 		{
 			Logger::log("Server changes map: "+param_string);
 			Map::load(param_string);
-			Game::startGame(Game_Mode::GameMode_MultiPlayer);
+
+			// The multiplayer game mode is already initialized when this
+			// arrives. Calling startGame() again would re-run
+			// GameMode_MultiPlayer::init() -> NetworkManager::connect(),
+			// opening a fresh connection and causing an endless reconnect
+			// loop. Just load the map and make sure the game is active.
+			if (Game::getGameState() != GameState::GAME_ACTIVE)
+			{
+				Game::startGame(Game_Mode::GameMode_MultiPlayer);
+			}
+			else
+			{
+				Game::resetKeys();
+				Renderer::resetFrameCount();
+			}
+
 			sendPlayerPosition();
 			sendPlayerRotation();
 			break;
