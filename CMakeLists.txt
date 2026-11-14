@@ -119,7 +119,9 @@ if(OG_BUILD_GAME)
         "${CMAKE_SOURCE_DIR}/common")
     target_compile_definitions(OpenGL_Game PRIVATE
         SDL_MAIN_HANDLED
-        GLM_ENABLE_EXPERIMENTAL)
+        GLM_ENABLE_EXPERIMENTAL
+        # SDL.h pulls in <windows.h>, whose min/max macros break std::min/max.
+        NOMINMAX)
     target_link_libraries(OpenGL_Game PRIVATE
         ${OG_SDL_TARGET}
         ${OG_GLEW_TARGET}
