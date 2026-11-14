@@ -174,5 +174,31 @@ ctest --test-dir build --output-on-failure
 ```
 
 The tests only link `common/` sources, GLM and Catch2, so they run without a
-GPU or the OpenGL client. GitHub Actions (`.github/workflows/ci.yml`) builds
-the headless server and runs these tests on Linux and Windows.
+GPU or the OpenGL client.
+
+## Pipeline artifacts
+
+GitHub Actions (`.github/workflows/ci.yml`) builds the game client and the
+dedicated server in Release mode on Linux and Windows, runs the unit tests and
+publishes two artifacts per platform:
+
+| Artifact | Contents |
+| --- | --- |
+| `OpenGL_Game-linux-x64` / `OpenGL_Game-windows-x64` | `OpenGL_Game` executable, all assets (`models/`, `textures/`, `shaders/`, `levels/`, `audio/`, `fonts/`, `locale/`, `config.json`) and the Assimp library |
+| `GameServer-linux-x64` / `GameServer-windows-x64` | `GameServer` executable, `models/`, `levels/`, `config.json` and the Assimp library |
+
+The distribution is created by the `package` target of `CMakeLists.txt`, so it
+can be built locally the same way:
+
+```bash
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --config Release
+cmake --build build --target package     # build/dist/game and build/dist/server
+```
+
+`dist/game` and `dist/server` are runnable as they are: both executables change
+into their own directory at startup.  On Windows the required DLLs are copied
+next to the executables; on Linux Assimp is copied next to the executable and
+found through the `$ORIGIN` rpath, while OpenGL itself comes from the system
+(Mesa).  The Linux artifact is built with Ninja and needs the X11/OpenGL
+development packages listed above.

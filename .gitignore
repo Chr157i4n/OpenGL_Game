@@ -54,6 +54,7 @@
 # CMake build output
 /build*/
 /out/
+/dist/
 CMakeCache.txt
 CMakeFiles/
 CMakeUserPresets.json

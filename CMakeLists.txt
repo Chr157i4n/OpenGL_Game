@@ -93,11 +93,12 @@ function(og_set_output_directory target directory)
         RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL "${directory}")
 endfunction()
 
-# Windows loads DLLs from the executable directory first.  Executables are
-# written next to their assets, so any shared dependency has to be copied
-# there as well or the program fails with STATUS_DLL_NOT_FOUND.
+# Executables are written next to their assets and change into that directory
+# at startup, so every shared dependency has to sit next to the executable as
+# well: on Windows otherwise the program fails with STATUS_DLL_NOT_FOUND, on
+# Linux it is found through the "$ORIGIN" rpath set for the client.
 function(og_copy_runtime_dependency target dependency)
-    if(WIN32 AND TARGET ${dependency})
+    if(TARGET ${dependency})
         add_custom_command(TARGET ${target} POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
                 "$<TARGET_FILE:${dependency}>"
@@ -133,13 +134,14 @@ if(OG_BUILD_GAME)
         target_compile_definitions(OpenGL_Game PRIVATE OG_ASSIMP_ENABLED)
         target_link_libraries(OpenGL_Game PRIVATE assimp::assimp)
 
-        # The Assimp DLL has to sit next to the executable, otherwise the game
-        # starts with STATUS_DLL_NOT_FOUND when run from the asset directory.
-        add_custom_command(TARGET OpenGL_Game POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                "$<TARGET_FILE:assimp::assimp>"
-                "$<TARGET_FILE_DIR:OpenGL_Game>"
-            VERBATIM)
+        # Assimp is shared: it has to sit next to the executable, otherwise the
+        # game starts with STATUS_DLL_NOT_FOUND on Windows or with a missing
+        # libassimp on Linux.  On Linux the "$ORIGIN" rpath makes the loader
+        # search the executable directory.
+        og_copy_runtime_dependency(OpenGL_Game assimp::assimp)
+        if(NOT WIN32)
+            target_link_libraries(OpenGL_Game PRIVATE "-Wl,-rpath,$ORIGIN")
+        endif()
     endif()
 
     if(OG_ENABLE_AUDIO)
@@ -199,13 +201,9 @@ if(OG_BUILD_SERVER)
     if(OG_ASSIMP_FOUND)
         target_compile_definitions(GameServer PRIVATE OG_ASSIMP_ENABLED)
         target_link_libraries(GameServer PRIVATE assimp::assimp)
-
-        if(WIN32)
-            add_custom_command(TARGET GameServer POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                    "$<TARGET_FILE:assimp::assimp>"
-                    "$<TARGET_FILE_DIR:GameServer>"
-                VERBATIM)
+        og_copy_runtime_dependency(GameServer assimp::assimp)
+        if(NOT WIN32)
+            target_link_libraries(GameServer PRIVATE "-Wl,-rpath,$ORIGIN")
         endif()
     endif()
 
@@ -256,6 +254,35 @@ if(OG_BUILD_MODELCONVERTER)
     add_executable(modelconverter "${CMAKE_SOURCE_DIR}/modelconverter/modelconverter.cpp")
     target_link_libraries(modelconverter PRIVATE assimp::assimp)
     og_set_output_directory(modelconverter "${CMAKE_SOURCE_DIR}/modelconverter")
+endif()
+
+# ---------------------------------------------------------------------------
+# Packaging: a runnable distribution
+# ---------------------------------------------------------------------------
+# `cmake --build build --target package` writes
+#   build/dist/game     client executable, its assets and its runtime libraries
+#   build/dist/server   server executable, its assets and its runtime libraries
+# Both executables change into their own directory at startup, so the folder is
+# enough to run it.  cmake/package.cmake copies everything except the sources.
+set(OG_PACKAGE_TARGETS "")
+set(OG_PACKAGE_ARGS -DOG_PACK_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
+                    -DOG_PACK_DIR="${CMAKE_BINARY_DIR}/dist")
+
+if(OG_BUILD_GAME)
+    list(APPEND OG_PACKAGE_TARGETS OpenGL_Game)
+    list(APPEND OG_PACKAGE_ARGS -DOG_PACK_GAME_BINARY="$<TARGET_FILE:OpenGL_Game>")
+endif()
+
+if(OG_BUILD_SERVER)
+    list(APPEND OG_PACKAGE_TARGETS GameServer)
+    list(APPEND OG_PACKAGE_ARGS -DOG_PACK_SERVER_BINARY="$<TARGET_FILE:GameServer>")
+endif()
+
+if(OG_PACKAGE_TARGETS)
+    add_custom_target(package
+        COMMAND ${CMAKE_COMMAND} ${OG_PACKAGE_ARGS}
+            -P "${CMAKE_SOURCE_DIR}/cmake/package.cmake"
+        DEPENDS ${OG_PACKAGE_TARGETS})
 endif()
 
 # ---------------------------------------------------------------------------

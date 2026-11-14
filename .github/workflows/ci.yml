@@ -2,29 +2,74 @@ name: CI
 
 on:
   push:
-    branches: [ master, dev ]
+    branches: [master, dev]
   pull_request:
-    branches: [ master, dev ]
+    branches: [master, dev]
 
 jobs:
   build-and-test:
-    name: Build server + run unit tests
+    name: Build client + server and run tests
     runs-on: ${{ matrix.os }}
 
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            label: linux-x64
+          - os: windows-latest
+            label: windows-x64
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Configure (headless server + tests, no OpenGL client)
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DOG_BUILD_GAME=OFF -DOG_BUILD_SERVER=ON -DOG_BUILD_TESTS=ON -DOG_FETCH_DEPS=ON
+      - name: Install Linux build dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build \
+            libgl1-mesa-dev libglx-dev \
+            libx11-dev libxext-dev libxrandr-dev libxi-dev libxcursor-dev \
+            libxinerama-dev libxfixes-dev libxss-dev
+
+      - name: Cache downloaded dependencies
+        uses: actions/cache@v4
+        with:
+          path: libs/_deps
+          key: og-deps-${{ matrix.label }}-${{ hashFiles('cmake/Dependencies.cmake', 'CMakeLists.txt') }}
+
+      - name: Configure
+        run: |
+          cmake -S . -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DOG_BUILD_GAME=ON \
+            -DOG_BUILD_SERVER=ON \
+            -DOG_BUILD_TESTS=ON \
+            -DOG_ENABLE_AUDIO=ON \
+            -DOG_FETCH_DEPS=ON
 
       - name: Build
         run: cmake --build build --config Release
 
       - name: Run unit tests
         run: ctest --test-dir build --output-on-failure
+
+      - name: Package distribution
+        run: cmake --build build --target package
+
+      - name: Smoke test the packaged server
+        if: matrix.os == 'ubuntu-latest'
+        run: timeout 5 ./build/dist/server/GameServer || true
+
+      - name: Upload game client
+        uses: actions/upload-artifact@v4
+        with:
+          name: OpenGL_Game-${{ matrix.label }}
+          path: build/dist/game
+
+      - name: Upload dedicated server
+        uses: actions/upload-artifact@v4
+        with:
+          name: GameServer-${{ matrix.label }}
+          path: build/dist/server
